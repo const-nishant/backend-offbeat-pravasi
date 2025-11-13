@@ -1,42 +1,34 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { RedisService } from './config/redis.config';
-import { AuthModule } from './modules/auth/auth.module';
-import { UsersModule } from './modules/users/users.module';
-import { TreksModule } from './modules/treks/treks.module';
-import { BookingsModule } from './modules/bookings/bookings.module';
-import { PaymentsModule } from './modules/payments/payments.module';
-import { PostsModule } from './modules/posts/posts.module';
-import { StoriesModule } from './modules/stories/stories.module';
-import { FriendshipsModule } from './modules/friendships/friendships.module';
-import { BookmarksModule } from './modules/bookmarks/bookmarks.module';
-import { NotificationsModule } from './modules/notifications/notifications.module';
-import { LeaderboardModule } from './modules/leaderboard/leaderboard.module';
-import { OrganizerModule } from './modules/organizer/organizer.module';
-import { MediaModule } from './modules/media/media.module';
-import { AdminModule } from './modules/admin/admin.module';
-import { HealthModule } from './modules/health/health.module';
-
+import { Module, Global } from '@nestjs/common';
+import { createRedisClient } from './common/utils/redis.client';
+import { APP_FILTER, APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
+import { ValidationExceptionFilter } from './common/filters/validation-exception.filter';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { ApiKeyGuard } from './common/guards/api-key.guard';
+import { RedisService } from './common/utils/redis.service';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ormConfig } from './config/ormconfig';
+@Global()
 @Module({
-  imports: [
-    AuthModule,
-    UsersModule,
-    TreksModule,
-    BookingsModule,
-    PaymentsModule,
-    PostsModule,
-    StoriesModule,
-    FriendshipsModule,
-    BookmarksModule,
-    NotificationsModule,
-    LeaderboardModule,
-    OrganizerModule,
-    MediaModule,
-    AdminModule,
-    HealthModule,
+  imports: [TypeOrmModule.forRoot(ormConfig)],
+  providers: [
+    {
+      provide: 'REDIS_CLIENT',
+      useFactory: () => createRedisClient(),
+    },
+    RedisService,
+
+    // global filters & guards
+    { provide: APP_FILTER, useClass: AllExceptionsFilter },
+    { provide: APP_FILTER, useClass: ValidationExceptionFilter },
+    { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+    { provide: APP_GUARD, useClass: ApiKeyGuard },
   ],
-  controllers: [AppController],
-  providers: [AppService, RedisService],
+  exports: ['REDIS_CLIENT', RedisService],
 })
 export class AppModule {}

@@ -2,7 +2,14 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class HealthService {
-  getStatus(): { status: string } {
-    return { status: 'ok' };
+  baseHealth() {
+    return {
+      success: true as const,
+      message: 'Server running',
+      data: {
+        uptimeSeconds: process.uptime(),
+        timestamp: new Date().toISOString(),
+      },
+    };
   }
 }
