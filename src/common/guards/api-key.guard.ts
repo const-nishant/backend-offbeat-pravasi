@@ -1,32 +1,42 @@
 import {
+  Injectable,
   CanActivate,
   ExecutionContext,
-  Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
-  private readonly apiKey: string;
-  private readonly headerName: string;
+  constructor(private readonly reflector: Reflector) {}
 
-  constructor() {
-    const key = process.env.GLOBAL_API_KEY ?? '';
-    if (!key) {
-      throw new Error('GLOBAL_API_KEY is not configured');
+  canActivate(context: ExecutionContext): boolean {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isPublic) return true;
+
+    const request: Request = context.switchToHttp().getRequest();
+
+    const headerName = process.env.API_KEY_HEADER?.toLowerCase() ?? 'x-api-key';
+
+    const expectedKey = process.env.GLOBAL_API_KEY;
+
+    if (!expectedKey) {
+      // Allow all requests when no key is configured (dev mode)
+      return true;
     }
-    this.apiKey = key;
 
-    const header = process.env.API_KEY_HEADER ?? 'x-api-key';
-    this.headerName = header.trim() !== '' ? header.toLowerCase() : 'x-api-key';
-  }
+    const provided =
+      (request.headers[headerName] as string | undefined) ??
+      (request.headers[headerName.toLowerCase()] as string | undefined) ??
+      (request.headers[headerName.toUpperCase()] as string | undefined);
 
-  canActivate(context: ExecutionContext): boolean | Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request>();
-    const provided = request.headers[this.headerName] as string | undefined;
-
-    if (!provided || provided !== this.apiKey) {
+    if (!provided || provided !== expectedKey) {
       throw new UnauthorizedException('Invalid API key');
     }
 

@@ -1,0 +1,67 @@
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+} from '@nestjs/common';
+import { Observable, tap } from 'rxjs';
+import { Request, Response } from 'express';
+import { AuthenticatedUser } from '../decorators/current-user.decorator';
+
+@Injectable()
+export class LoggingInterceptor implements NestInterceptor {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+    const startTime = Date.now();
+
+    const httpContext = context.switchToHttp();
+    const req = httpContext.getRequest<Request>();
+    const res = httpContext.getResponse<Response>();
+
+    const user = req.user as AuthenticatedUser;
+    const userId = user?.id ?? null;
+
+    const { method, originalUrl, query, body } = req;
+
+    return next.handle().pipe(
+      tap({
+        next: () => {
+          const duration = Date.now() - startTime;
+
+          const log = {
+            type: 'request',
+            method,
+            url: originalUrl,
+            statusCode: res.statusCode,
+            durationMs: duration,
+            userId,
+            query,
+            timestamp: new Date().toISOString(),
+          };
+
+          console.log(JSON.stringify(log));
+        },
+
+        error: (error: unknown) => {
+          const duration = Date.now() - startTime;
+
+          const message =
+            error instanceof Error ? error.message : String(error);
+
+          const log = {
+            type: 'error',
+            method,
+            url: originalUrl,
+            statusCode: res.statusCode,
+            durationMs: duration,
+            userId,
+            query,
+            message,
+            timestamp: new Date().toISOString(),
+          };
+
+          console.error(JSON.stringify(log));
+        },
+      }),
+    );
+  }
+}
