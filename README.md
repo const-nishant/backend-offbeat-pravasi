@@ -1,98 +1,435 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 🚀 Offbeat प्रवासी – Backend (NestJS, TypeORM, Redis, R2, BullMQ)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A **production-grade**, **strictly typed**, **scalable backend** powering _Offbeat प्रवासी_ — a trekking, adventure, and social engagement platform featuring treks, bookings, posts, stories, leaderboards, organizers, and more.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This backend focuses on:
 
-## Description
+- Clean architecture
+- Predictable API responses
+- Cloud-native infrastructure
+- High scalability
+- Developer-friendly structure
+- Strict TypeScript rules (NO `any`)
+- Redis-based performance optimizations
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+---
 
-## Project setup
+# 📚 Table of Contents
 
-```bash
-$ npm install
+1. [Project Overview](#-project-overview)
+2. [Architecture](#-architecture)
+3. [Tech Stack](#-tech-stack)
+4. [Development Rules](#-development-rules)
+5. [Folder Structure](#-folder-structure)
+6. [Core Modules](#-core-modules)
+7. [API Reference](#-api-reference)
+8. [Postman / Thunder Client Collections](#-postman--thunder-client-collection)
+9. [Completed Work](#-completed-work-so-far)
+10. [Roadmap](#-roadmap)
+11. [Deployment Guide](#-deployment)
+12. [Contributing](#-contributing)
+
+---
+
+# 🚀 Project Overview
+
+Offbeat Pravasi is a social adventure & trekking platform backend featuring:
+
+- OTP + JWT Auth
+- Treks
+- Posts
+- Stories
+- Bookings
+- Payments
+- Organizer workflows
+- Leaderboards
+- Media uploads (R2)
+- Notifications (BullMQ workers)
+- Redis-backed pipelines
+
+The backend emphasizes **clean modular architecture** and **high scalability**.
+
+---
+
+# 🧩 Architecture
+
+## 🔹 High-Level System Diagram (Mermaid)
+
+```mermaid
+flowchart TD
+
+A[Client / Mobile App] -->|HTTPS| B[NestJS API]
+
+B --> C[PostgreSQL - TypeORM]
+B --> D[Redis - Cache, OTP, Jobs, Sessions]
+B --> E[Cloudflare R2 - Media Storage]
+
+B --> F[BullMQ Queues]
+F --> G[Workers - Story Expiry, Bookings, Notifications]
+
+B --> H[Authentication Layer]
+B --> I[Access Control - Guards]
 ```
 
-## Compile and run the project
+---
 
-```bash
-# development
-$ npm run start
+## 🔹 Module Interaction Overview
 
-# watch mode
-$ npm run start:dev
+```mermaid
+graph TD
 
-# production mode
-$ npm run start:prod
+auth --> users
+auth --> redis
+
+users --> treks
+users --> posts
+users --> stories
+users --> bookings
+
+treks --> bookings
+treks --> leaderboard
+
+stories --> workers
+
+notifications --> workers
+bookings --> workers
+
+media --> r2
 ```
 
-## Run tests
+---
 
-```bash
-# unit tests
-$ npm run test
+## 🔹 Core Flow: Auth + OTP + JWT
 
-# e2e tests
-$ npm run test:e2e
+```mermaid
+sequenceDiagram
+Client ->> API: POST /auth/register
+API ->> Redis: store OTP
+API ->> Client: OTP sent
 
-# test coverage
-$ npm run test:cov
+Client ->> API: POST /auth/email/verify
+API ->> DB: update emailVerified
+
+Client ->> API: POST /auth/login
+API ->> DB: validate
+API ->> JWT: generate access + refresh
+API ->> Redis: store hashed refresh token
+API ->> Client: tokens
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+# 🧱 Tech Stack
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+| Layer       | Technology                  |
+| ----------- | --------------------------- |
+| Framework   | NestJS                      |
+| Database    | PostgreSQL + TypeORM        |
+| Cache/Queue | Redis + BullMQ              |
+| Storage     | Cloudflare R2               |
+| Auth        | JWT (access + refresh), OTP |
+| Validation  | class-validator             |
+| Workers     | BullMQ Workers              |
+| Logging     | JSON structured logs        |
+| Language    | TypeScript (strict)         |
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+---
+
+# 🧑‍💻 Development Rules
+
+### ✔ No ConfigModule
+
+Environment variables accessed directly:
+
+```ts
+process.env.SOME_VAR;
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### ✔ Strict TypeScript — **NO `any`**
 
-## Resources
+All data structures must be strongly typed.
 
-Check out a few resources that may come in handy when working with NestJS:
+### ✔ Global Response Shape
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Success:
 
-## Support
+```json
+{
+  "success": true,
+  "message": "Request successful",
+  "data": {}
+}
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Error:
 
-## Stay in touch
+```json
+{
+  "success": false,
+  "statusCode": 400,
+  "message": "Validation failed",
+  "details": {}
+}
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### ✔ JSON Logging Only
 
-## License
+All logs go through `LoggingInterceptor`.
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### ✔ DDD-style Modular Architecture
+
+### ✔ Redis First
+
+Used for OTPs, refresh tokens, caching, job queues, cleanup.
+
+---
+
+# 📁 Folder Structure
+
+```
+src/
+├── app.module.ts
+├── config/
+│   ├── ormconfig.ts
+│   └── redis.config.ts
+│
+├── common/
+│   ├── constants/
+│   ├── decorators/
+│   ├── filters/
+│   ├── guards/
+│   ├── interceptors/
+│   ├── pagination/
+│   ├── pipes/
+│   └── utils/
+│
+├── modules/
+│   ├── auth/
+│   ├── users/
+│   ├── treks/
+│   ├── posts/
+│   ├── stories/
+│   ├── bookmarks/
+│   ├── friendships/
+│   ├── organizer/
+│   ├── admin/
+│   ├── media/
+│   ├── leaderboard/
+│   ├── notifications/
+│   ├── bookings/
+│   ├── payments/
+│   └── health/
+│
+├── jobs/
+│   ├── queues.ts
+│   └── processors/
+│
+└── database/
+    ├── migrations/
+    └── seeds/
+```
+
+---
+
+# 📦 Core Modules
+
+### ✔ Auth Module
+
+- Register
+- OTP send/verify
+- Login
+- JWT access + refresh
+- Refresh token rotation
+- Logout
+- Guards + decorators
+
+### ✔ User Module
+
+- User profile entity
+- Organizer status
+- Admin flag
+- Points + distance
+
+### ✔ Queues & Workers
+
+- Cleanup processor
+- Story expiry
+- Notification jobs
+- Booking reminder worker
+
+### ✔ Health Module
+
+- `/health`
+- `/health/redis`
+
+---
+
+# 📘 API Reference
+
+Below is a reference of the current available API endpoints.
+
+## 🔹 Auth Routes
+
+| Method | Endpoint                 | Description                    |
+| ------ | ------------------------ | ------------------------------ |
+| POST   | `/auth/register`         | Register user                  |
+| POST   | `/auth/login`            | Login & get tokens             |
+| POST   | `/auth/email/send-otp`   | Send email OTP                 |
+| POST   | `/auth/email/verify-otp` | Verify email OTP               |
+| POST   | `/auth/refresh`          | Refresh JWT tokens             |
+| POST   | `/auth/logout`           | Logout (invalidate session)    |
+| GET    | `/auth/me`               | Get current authenticated user |
+
+---
+
+## 🔹 Health Routes
+
+| Method | Endpoint        | Description   |
+| ------ | --------------- | ------------- |
+| GET    | `/health`       | Server status |
+| GET    | `/health/redis` | Redis status  |
+
+---
+
+## 🔹 Users (coming soon)
+
+| Method | Endpoint     |
+| ------ | ------------ |
+| GET    | `/users/me`  |
+| PATCH  | `/users/me`  |
+| GET    | `/users/:id` |
+
+---
+
+## 🔹 Treks (coming soon)
+
+| Method | Endpoint     |
+| ------ | ------------ |
+| GET    | `/treks`     |
+| POST   | `/treks`     |
+| GET    | `/treks/:id` |
+
+---
+
+# 📤 Postman / Thunder Client Collection
+
+### ✔ Included in repo:
+
+```
+/docs/postman/offbeat_pravasi_collection.json
+```
+
+### If missing — generate with:
+
+```
+npm run docs:postman
+```
+
+### How to import:
+
+**Postman**
+
+1. Open Postman
+2. Click "Import"
+3. Select the JSON file
+
+**Thunder Client**
+
+1. Open VS Code
+2. Thunder Client extension → Collections → Import
+3. Select the same JSON
+
+I can generate this file for you if you want.
+
+---
+
+# 🧱 Completed Work So Far
+
+### ✔ Core backend architecture
+
+### ✔ Full Auth system
+
+### ✔ Pagination utilities
+
+### ✔ JSON logging interceptor
+
+### ✔ AllExceptionsFilter
+
+### ✔ ValidationExceptionFilter
+
+### ✔ API utils
+
+### ✔ Redis config
+
+### ✔ ORM config
+
+### ✔ Cleanup processor
+
+### ✔ Queue system
+
+### ✔ User entity
+
+### ✔ Health module
+
+Everything is completely type-safe with no `any`.
+
+---
+
+# 🛠 Roadmap
+
+### 🟥 High Priority
+
+- User module (controller + service)
+- Trek module
+- Organizer module
+- Media upload (R2 presigned URLs)
+- Booking + payment module
+- Notification processor (FCM)
+
+### 🟧 Medium Priority
+
+- Story interactions
+- Post feed
+- Leaderboard algorithm
+- Admin moderation
+
+### 🟩 Low Priority
+
+- Reports system
+- Push analytics
+- Activity scoring
+
+---
+
+# 🐳 Deployment
+
+Detailed deployment instructions can be found inside `DEPLOYMENT.md`.
+
+### Quick Deploy:
+
+```sh
+docker compose build
+docker compose up -d
+```
+
+---
+
+# 🤝 Contributing
+
+Contribution guidelines are in `CONTRIBUTING.md`.
+
+Summary:
+
+- No `any`
+- Use DTOs
+- Write tests when needed
+- Use clean commits
+- Follow module boundaries
+
+---
+
+# 📞 Contact
+
+For issues, please open a GitHub issue or contact the project maintainer.
+
+---
