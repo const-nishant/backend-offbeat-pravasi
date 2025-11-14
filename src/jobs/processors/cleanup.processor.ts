@@ -66,12 +66,12 @@ export const cleanupWorker = new Worker(
 // ------------------------------
 
 /**
- * OTP Keys follow:
- * otp:email:<email>
+ * OTP Keys follow pattern from CacheKeys.otpEmail()
+ * Pattern: otp:email:<email>
  */
 async function clearExpiredOtps(): Promise<void> {
   const stream = redis.scanStream({
-    match: 'otp:email:*',
+    match: 'otp:email:*', // Matches CacheKeys.otpEmail() pattern
     count: 100,
   });
 
@@ -86,12 +86,12 @@ async function clearExpiredOtps(): Promise<void> {
 }
 
 /**
- * Refresh tokens follow:
- * refresh:<userId>:<sessionId>
+ * Refresh tokens follow pattern from CacheKeys.refreshSession()
+ * Pattern: refresh:<userId>:<sessionId>
  */
 async function clearOldRefreshTokens(): Promise<void> {
   const stream = redis.scanStream({
-    match: 'refresh:*',
+    match: 'refresh:*', // Matches CacheKeys.refreshSession() pattern
     count: 100,
   });
 
@@ -107,12 +107,14 @@ async function clearOldRefreshTokens(): Promise<void> {
 
 /**
  * Story expiration cleanup
+ * Stories follow pattern from CacheKeys.story()
+ * Pattern: story:<storyId>
  * If you're using DB for stories, delete from DB.
  * If using Redis storage for TTL, clean keys.
  */
 async function clearExpiredStories(): Promise<void> {
   const stream = redis.scanStream({
-    match: 'story:*',
+    match: 'story:*', // Matches CacheKeys.story() pattern
     count: 100,
   });
 
