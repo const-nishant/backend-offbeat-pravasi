@@ -1,0 +1,626 @@
+{
+  "info": {
+    "_postman_id": "offbeat-pravasi-api-collection",
+    "name": "Offbeat Pravasi API",
+    "description": "Production-grade Postman collection for Offbeat Pravasi Backend API with automated token management and comprehensive test scripts",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "offbeat-pravasi"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-refresh token if expired",
+          "const accessToken = pm.environment.get('accessToken');",
+          "const refreshToken = pm.environment.get('refreshToken');",
+          "",
+          "if (accessToken && refreshToken) {",
+          "    try {",
+          "        const tokenPayload = JSON.parse(atob(accessToken.split('.')[1]));",
+          "        const expirationTime = tokenPayload.exp * 1000;",
+          "        const currentTime = Date.now();",
+          "        const timeUntilExpiry = expirationTime - currentTime;",
+          "        ",
+          "        // Refresh if token expires in less than 5 minutes",
+          "        if (timeUntilExpiry < 300000) {",
+          "            pm.sendRequest({",
+          "                url: pm.environment.get('baseUrl') + '/auth/refresh',",
+          "                method: 'POST',",
+          "                header: {",
+          "                    'Content-Type': 'application/json',",
+          "                    'x-api-key': pm.environment.get('apiKey')",
+          "                },",
+          "                body: {",
+          "                    mode: 'raw',",
+          "                    raw: JSON.stringify({",
+          "                        refreshToken: refreshToken",
+          "                    })",
+          "                }",
+          "            }, function (err, res) {",
+          "                if (!err && res.code === 200) {",
+          "                    const response = res.json();",
+          "                    // Refresh endpoint returns tokens directly, not wrapped in data",
+          "                    if (response.accessToken && response.refreshToken) {",
+          "                        pm.environment.set('accessToken', response.accessToken);",
+          "                        pm.environment.set('refreshToken', response.refreshToken);",
+          "                    } else if (response.data && response.data.accessToken) {",
+          "                        // Fallback for endpoints that wrap in data object",
+          "                        pm.environment.set('accessToken', response.data.accessToken);",
+          "                        pm.environment.set('refreshToken', response.data.refreshToken);",
+          "                    }",
+          "                }",
+          "            });",
+          "        }",
+          "    } catch (e) {",
+          "        // Token parsing failed, will be handled by auth",
+          "    }",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script - runs after every request",
+          "pm.test('Response time is less than 5000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+          "});",
+          "",
+          "pm.test('Response has valid JSON structure', function () {",
+          "    if (pm.response.headers.get('Content-Type')?.includes('application/json')) {",
+          "        pm.response.to.have.jsonBody();",
+          "    }",
+          "});",
+          "",
+          "// Log response for debugging",
+          "if (pm.environment.get('debug') === 'true') {",
+          "    console.log('Response:', pm.response.json());",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Base Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has success field', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success');",
+                  "});",
+                  "",
+                  "pm.test('Response time is acceptable', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Check the base health status of the API"
+          },
+          "response": []
+        },
+        {
+          "name": "Redis Health Check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Redis is responding', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success', true);",
+                  "    pm.expect(jsonData.data).to.have.property('pong');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health/redis",
+              "host": ["{{baseUrl}}"],
+              "path": ["health", "redis"]
+            },
+            "description": "Check Redis connection health"
+          },
+          "response": []
+        }
+      ],
+      "description": "Health check endpoints"
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 201 or 200', function () {",
+                  "    pm.expect([200, 201]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "pm.test('Response has success field', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success');",
+                  "});",
+                  "",
+                  "// Store tokens if registration returns them",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.accessToken) {",
+                  "        pm.environment.set('accessToken', jsonData.data.accessToken);",
+                  "        pm.environment.set('refreshToken', jsonData.data.refreshToken);",
+                  "        pm.environment.set('userId', jsonData.data.user?.id || '');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{testEmail}}\",\n    \"password\": \"{{testPassword}}\",\n    \"fullName\": \"Test User\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new user account"
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has success field', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success', true);",
+                  "});",
+                  "",
+                  "pm.test('Response contains tokens', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('accessToken');",
+                  "    pm.expect(jsonData.data).to.have.property('refreshToken');",
+                  "});",
+                  "",
+                  "// Store tokens automatically",
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data) {",
+                  "        pm.environment.set('accessToken', jsonData.data.accessToken);",
+                  "        pm.environment.set('refreshToken', jsonData.data.refreshToken);",
+                  "        ",
+                  "        // Extract user ID from token",
+                  "        try {",
+                  "            const tokenPayload = JSON.parse(atob(jsonData.data.accessToken.split('.')[1]));",
+                  "            pm.environment.set('userId', tokenPayload.sub || tokenPayload.userId || '');",
+                  "        } catch (e) {",
+                  "            console.log('Could not extract user ID from token');",
+                  "        }",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{testEmail}}\",\n    \"password\": \"{{testPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with email and password"
+          },
+          "response": []
+        },
+        {
+          "name": "Send OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates OTP sent', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success');",
+                  "});",
+                  "",
+                  "// Store OTP email for verification",
+                  "pm.environment.set('otpEmail', pm.request.body.raw ? JSON.parse(pm.request.body.raw).email : '');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{testEmail}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/email/send-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "email", "send-otp"]
+            },
+            "description": "Send OTP to email address"
+          },
+          "response": []
+        },
+        {
+          "name": "Verify OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has success field', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success');",
+                  "});",
+                  "",
+                  "// Store tokens if verification returns them",
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.accessToken) {",
+                  "        pm.environment.set('accessToken', jsonData.data.accessToken);",
+                  "        pm.environment.set('refreshToken', jsonData.data.refreshToken);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{testEmail}}\",\n    \"otp\": \"{{otp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/email/verify-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "email", "verify-otp"]
+            },
+            "description": "Verify OTP code sent to email"
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains new tokens', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('accessToken');",
+                  "    pm.expect(jsonData).to.have.property('refreshToken');",
+                  "});",
+                  "",
+                  "// Update tokens automatically",
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.environment.set('accessToken', jsonData.accessToken);",
+                  "    pm.environment.set('refreshToken', jsonData.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            },
+            "description": "Refresh access token using refresh token"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has user data', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success', true);",
+                  "    pm.expect(jsonData).to.have.property('data');",
+                  "    pm.expect(jsonData.data).to.have.property('id');",
+                  "});",
+                  "",
+                  "// Update user ID if available",
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.id) {",
+                  "        pm.environment.set('userId', jsonData.data.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Get current authenticated user profile"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Logout successful', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success', true);",
+                  "});",
+                  "",
+                  "// Clear tokens after logout",
+                  "if (pm.response.code === 200) {",
+                  "    pm.environment.unset('accessToken');",
+                  "    pm.environment.unset('refreshToken');",
+                  "    pm.environment.unset('userId');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{apiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Logout current user session"
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints"
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}
