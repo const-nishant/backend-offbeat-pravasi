@@ -1,6 +1,6 @@
 import { Controller, Get, Inject } from '@nestjs/common';
 import { HealthService } from './health.service';
-import { Public } from '../../common/decorators/public.decorator';
+// import { Public } from '../../common/decorators/public.decorator';
 import type { RedisClient } from '../../common/utils/redis.client';
 
 @Controller('health')
@@ -10,13 +10,13 @@ export class HealthController {
     @Inject('REDIS_CLIENT') private readonly redis: RedisClient,
   ) {}
 
-  @Public()
+  // @Public()
   @Get()
   base() {
     return this.healthService.baseHealth();
   }
 
-  @Public()
+  // @Public()
   @Get('redis')
   async redisCheck() {
     const pong = await this.redis.ping();
