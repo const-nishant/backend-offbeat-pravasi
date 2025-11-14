@@ -20,34 +20,34 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ length: 120 })
+  @Column({ type: 'varchar', length: 120 })
   email!: string;
 
-  @Column({ select: false, nullable: true })
+  @Column({ type: 'varchar', length: 255, select: false, nullable: true })
   passwordHash!: string | null;
 
-  @Column({ length: 80, nullable: true })
+  @Column({ type: 'varchar', length: 80, nullable: true })
   fullName!: string | null;
 
-  @Column({ length: 80, nullable: true })
+  @Column({ type: 'varchar', length: 80, nullable: true })
   username!: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   phone!: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   location!: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   gender!: string | null;
 
   @Column({ type: 'date', nullable: true })
   dateOfBirth!: Date | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   profileImageUrl!: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   bannerImageUrl!: string | null;
 
   @Column({ type: 'boolean', default: false })

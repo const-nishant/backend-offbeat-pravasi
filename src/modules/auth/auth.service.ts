@@ -12,6 +12,7 @@ import { JwtService } from '@nestjs/jwt';
 import { RedisService } from '../../common/utils/redis.service';
 import { generateOtp } from '../../common/utils/otp.util';
 import { hashPassword, verifyPassword } from '../../common/utils/hash.util';
+import { CacheKeys } from '../../common/constants/cache.keys';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
 import { RefreshDto } from './dtos/refresh.dto';
@@ -44,8 +45,10 @@ interface JwtRefreshPayload {
 @Injectable()
 export class AuthService {
   // TTL config (in seconds)
-  private readonly accessTokenTtl = process.env.JWT_ACCESS_TTL ?? '900s'; // string accepted by JwtService
-  private readonly refreshTokenTtl = process.env.JWT_REFRESH_TTL ?? '30d';
+  private readonly accessTokenTtl: string =
+    process.env.JWT_ACCESS_TTL ?? '900s'; // string accepted by JwtService
+  private readonly refreshTokenTtl: string =
+    process.env.JWT_REFRESH_TTL ?? '30d';
 
   constructor(
     @InjectRepository(User)
@@ -79,7 +82,7 @@ export class AuthService {
     // send OTP on registration (async best-effort)
     try {
       await this.sendOtp({ email: dto.email });
-    } catch (err) {
+    } catch {
       // do not block registration if OTP send fails; log server-side
       // Re-throw if you want to force OTP send success
     }
@@ -91,7 +94,7 @@ export class AuthService {
   // OTP flows (send, verify, resend)
   // -----------------
   private otpKeyFor(email: string): string {
-    return `otp:email:${email.toLowerCase()}`;
+    return CacheKeys.otpEmail(email);
   }
 
   public async sendOtp(dto: SendOtpDto): Promise<{ message: string }> {
@@ -231,7 +234,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const storedKey = `refresh:${payload.sub}:${payload.sessionId}`;
+    const storedKey = CacheKeys.refreshSession(payload.sub, payload.sessionId);
     const storedHash = await this.redisService.get(storedKey);
     if (!storedHash) {
       throw new UnauthorizedException('Refresh token not found');
@@ -266,7 +269,7 @@ export class AuthService {
     userId: string,
     sessionId: string,
   ): Promise<{ message: string }> {
-    const key = `refresh:${userId}:${sessionId}`;
+    const key = CacheKeys.refreshSession(userId, sessionId);
     await this.redisService.del(key);
     return { message: 'Logged out' };
   }
@@ -296,7 +299,7 @@ export class AuthService {
     const token = this.jwtService.sign(payload, {
       secret,
       expiresIn: this.accessTokenTtl,
-    });
+    } as any);
 
     return token;
   }
@@ -326,10 +329,10 @@ export class AuthService {
     const token = this.jwtService.sign(payload, {
       secret,
       expiresIn: this.refreshTokenTtl,
-    });
+    } as any);
 
     // store hashed refresh token in redis with TTL (convert refreshTokenTtl into seconds when possible)
-    const redisKey = `refresh:${userId}:${sessionId}`;
+    const redisKey = CacheKeys.refreshSession(userId, sessionId);
 
     // compute TTL in seconds from JWT_REFRESH_TTL string when possible. As fallback, use 30 days in seconds.
     const fallbackTtlSeconds = 30 * 24 * 3600;
