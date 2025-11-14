@@ -401,6 +401,41 @@ Everything is completely type-safe with no `any`.
 
 ---
 
+# 🚀 Getting Started
+
+## Environment Setup
+
+1. **Copy the development environment template:**
+
+   ```sh
+   cp env.development .env
+   ```
+
+2. **Update the `.env` file with your actual values:**
+   - Database credentials (PostgreSQL)
+   - Redis connection details
+   - JWT secrets (generate with: `openssl rand -base64 32`)
+   - API keys for external services (Google OAuth, Firebase, R2, etc.)
+
+3. **Start required services:**
+
+   ```sh
+   # Using Docker Compose (recommended)
+   docker compose -f docker/docker-compose.dev.yml up -d
+
+   # Or manually start PostgreSQL and Redis
+   ```
+
+4. **Install dependencies and run:**
+   ```sh
+   npm install
+   npm run start:dev
+   ```
+
+The application will be available at `http://localhost:3000` (or the PORT specified in your `.env`).
+
+---
+
 # 🐳 Deployment
 
 Detailed deployment instructions can be found inside `DEPLOYMENT.md`.

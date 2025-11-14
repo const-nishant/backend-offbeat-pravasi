@@ -7,28 +7,48 @@ services:
       target: dev
     env_file:
       - ../.env
+    environment:
+      # Override DB and Redis hosts to use Docker service names
+      DB_HOST: postgres
+      REDIS_HOST: redis
     ports:
       - "${PORT:-4000}:4000"
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
-      - ../:/workspace:cached
-    command: npm run start:dev
+      # Mount entire project for hot-reload (node_modules stays in container)
+      - ../:/app:cached
+      # Prevent node_modules from being overwritten by host
+      - /app/node_modules
+    command: sh -c "npm ci && npm run start:dev"
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-offbeat}
+      POSTGRES_DB: ${POSTGRES_DB:-offbeat_pravasi}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 volumes:
   pgdata:
 
