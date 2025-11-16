@@ -24,10 +24,12 @@ import { LeaderboardModule } from './modules/leaderboard/leaderboard.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { MailerModule } from './modules/mailer/mailer.module';
 @Global()
 @Module({
   imports: [
     TypeOrmModule.forRoot(ormConfig),
+    MailerModule,
     HealthModule,
     AuthModule,
     UsersModule,

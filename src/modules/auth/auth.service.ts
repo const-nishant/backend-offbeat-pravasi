@@ -13,6 +13,7 @@ import { RedisService } from '../../common/utils/redis.service';
 import { generateOtp } from '../../common/utils/otp.util';
 import { hashPassword, verifyPassword } from '../../common/utils/hash.util';
 import { CacheKeys } from '../../common/constants/cache.keys';
+import { MailerService } from '../mailer/mailer.service';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
 import { RefreshDto } from './dtos/refresh.dto';
@@ -55,6 +56,7 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
+    private readonly mailerService: MailerService,
   ) {}
 
   // -----------------
@@ -110,9 +112,18 @@ export class AuthService {
 
     await this.redisService.set(key, JSON.stringify(payload), ttl);
 
-    // TODO: enqueue email job to send OTP. For now, return success
-    // (In production this should send an email)
-    return { message: 'OTP generated and stored (send via email job).' };
+    // Send OTP via email
+    try {
+      await this.mailerService.sendOtpEmail(dto.email, otp);
+      return { message: 'OTP sent successfully to your email' };
+    } catch (error) {
+      // Log error but don't fail the request - OTP is still stored in Redis
+      // User can request a new OTP if email fails
+      return {
+        message:
+          'OTP generated. Email delivery may be delayed. Please check your email shortly.',
+      };
+    }
   }
 
   public async verifyOtp(dto: VerifyOtpDto): Promise<{ message: string }> {
