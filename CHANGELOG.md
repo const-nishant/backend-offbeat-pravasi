@@ -34,6 +34,7 @@ This project follows a structured release flow and keeps the backend clean, type
 - Health module (server + Redis health)
 - JSON-based project-wide logging
 - Code-style conventions and backend rules
+- Centralized Swagger configuration (`src/config/swagger.config.ts`), UI at `/docs`, and `npm run swagger:export` script that writes `docs/swagger.json`
 
 ### Changed
 

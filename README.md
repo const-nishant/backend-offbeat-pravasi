@@ -434,6 +434,12 @@ Everything is completely type-safe with no `any`.
 
 The application will be available at `http://localhost:3000` (or the PORT specified in your `.env`).
 
+## API Documentation (Swagger)
+
+- Runtime docs: once the server is running, visit `http://localhost:4000/docs` (or your configured `PORT`) for Swagger UI with persisted auth and request timing.
+- Static spec: `npm run swagger:export` writes `docs/swagger.json`, which you can commit or share with API consumers/tools.
+- Adding endpoints: keep annotating controllers and DTOs with `@ApiTags`, `@ApiResponse`, and friends—metadata is centralized in `src/config/swagger.config.ts`.
+
 ---
 
 # 🐳 Deployment
