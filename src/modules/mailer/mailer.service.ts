@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as sgMail from '@sendgrid/mail';
+import { MailService } from '@sendgrid/mail';
+
+const sgMail = new MailService();
 
 export interface SendEmailOptions {
   to: string;
