@@ -33,7 +33,7 @@ export class User {
   @Column({ type: 'varchar', nullable: true })
   location!: string | null;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'enum', enum: Gender, nullable: true })
   gender!: Gender | null;
 
   @Column({ type: 'date', nullable: true })
