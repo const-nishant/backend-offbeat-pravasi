@@ -55,12 +55,6 @@ export class User {
   })
   organizerStatus!: OrganizerStatus;
 
-  @Column({ type: 'float', nullable: true })
-  OrganizerRating!: number | null;
-
-  @Column({ type: 'boolean', default: false })
-  isActiveOrganizer!: boolean;
-
   @Column({ type: 'boolean', default: false })
   emailVerified!: boolean;
 
