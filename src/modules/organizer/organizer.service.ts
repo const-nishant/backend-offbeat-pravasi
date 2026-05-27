@@ -67,8 +67,15 @@ export class OrganizerService {
 
     if (dto.adminNotes !== undefined) app.adminNotes = dto.adminNotes;
     if (dto.status !== undefined) app.status = dto.status;
-    // reviewedAt from dto (string) or set to now
-    app.reviewedAt = dto.reviewedAt ? new Date(dto.reviewedAt) : new Date();
+
+    if (dto.reviewedAt !== undefined) {
+      app.reviewedAt = new Date(dto.reviewedAt);
+    } else if (
+      dto.status === OrganizerStatus.APPROVED ||
+      dto.status === OrganizerStatus.REJECTED
+    ) {
+      app.reviewedAt = new Date();
+    }
 
     await this.applicationRepo.save(app);
 
