@@ -3,18 +3,26 @@ import { OrganizerStatus } from 'src/modules/users/enums/organizer-status.enums'
 import {
   Column,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity({ name: 'organizer_applications' })
+@Index('UQ_organizer_applications_pending_user', ['userId'], {
+  unique: true,
+  where: `"status" = 'PENDING'`,
+})
 export class OrganizerApplication {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ type: 'uuid' })
+  userId: string;
+
   @ManyToOne(() => User, { eager: true })
-  @JoinColumn()
+  @JoinColumn({ name: 'userId' })
   user: User;
 
   @Column({ length: 160 })
