@@ -116,7 +116,7 @@ export class AuthService {
     try {
       await this.mailerService.sendOtpEmail(dto.email, otp);
       return { message: 'OTP sent successfully to your email' };
-    } catch (error) {
+    } catch {
       // Log error but don't fail the request - OTP is still stored in Redis
       // User can request a new OTP if email fails
       return {

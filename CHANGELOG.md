@@ -35,12 +35,14 @@ This project follows a structured release flow and keeps the backend clean, type
 - JSON-based project-wide logging
 - Code-style conventions and backend rules
 - Centralized Swagger configuration (`src/config/swagger.config.ts`), UI at `/docs`, and `npm run swagger:export` script that writes `docs/swagger.json`
+- Treks module with PostGIS-enabled migrations, geospatial search, nearby lookup, in-house recommendations, Swagger annotations, and unit tests
 
 ### Changed
 
 - Standardized all modules to strict typing (no `any`)
 - Centralized Redis usage across queues and services
 - All environment variables accessed via `process.env.*`
+- Trek endpoint testing is still pending and will be covered in e2e follow-up work
 
 ### Removed
 

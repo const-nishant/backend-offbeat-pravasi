@@ -8,22 +8,29 @@ import {
 import { User } from '../../users/entities/user.entity';
 import { Trek } from './trek.entity';
 
-@Entity({ name: 'trek_reviews' })
-export class TrekReview {
+export enum InteractionType {
+  VIEW = 'VIEW',
+  BOOKMARK = 'BOOKMARK',
+  BOOKING = 'BOOKING',
+  LIKE = 'LIKE',
+}
+
+@Entity({ name: 'trek_interactions' })
+export class TrekInteraction {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => Trek, (t) => t.reviews, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Trek, { nullable: false, onDelete: 'CASCADE' })
   trek!: Trek;
 
   @ManyToOne(() => User, { nullable: false })
   user!: User;
 
-  @Column({ type: 'int' })
-  rating!: number;
+  @Column({ type: 'enum', enum: InteractionType })
+  type!: InteractionType;
 
-  @Column({ type: 'text', nullable: true })
-  comment!: string | null;
+  @Column({ type: 'int', default: 1 })
+  weight!: number;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;

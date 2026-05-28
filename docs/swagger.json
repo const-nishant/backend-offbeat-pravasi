@@ -1,0 +1,598 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/email/send-otp": {
+      "post": {
+        "operationId": "AuthController_sendOtp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendOtpDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/email/verify-otp": {
+      "post": {
+        "operationId": "AuthController_verifyOtp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyOtpDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "AuthController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "HealthController_base",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/health/redis": {
+      "get": {
+        "operationId": "HealthController_redisCheck",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/media/presign/trek": {
+      "post": {
+        "operationId": "MediaController_presignTrek",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PresignDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Media"
+        ]
+      }
+    },
+    "/organizer/applications": {
+      "post": {
+        "operationId": "OrganizerController_createApplication",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizerRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Organizer"
+        ]
+      }
+    },
+    "/organizer/applications/me": {
+      "get": {
+        "operationId": "OrganizerController_myApplication",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Organizer"
+        ]
+      }
+    },
+    "/organizer/applications/{id}": {
+      "get": {
+        "operationId": "OrganizerController_getApplication",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Organizer"
+        ]
+      },
+      "patch": {
+        "operationId": "OrganizerController_updateApplication",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrganizerRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Organizer"
+        ]
+      }
+    },
+    "/treks": {
+      "post": {
+        "operationId": "TreksController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTrekDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created trek"
+          }
+        },
+        "summary": "Create a trek",
+        "tags": [
+          "Treks"
+        ]
+      },
+      "get": {
+        "operationId": "TreksController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Paginated trek list"
+          }
+        },
+        "summary": "List and search treks",
+        "tags": [
+          "Treks"
+        ]
+      }
+    },
+    "/treks/nearby": {
+      "get": {
+        "operationId": "TreksController_nearby",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Treks near the provided coordinates"
+          }
+        },
+        "summary": "Find treks near a location",
+        "tags": [
+          "Treks"
+        ]
+      }
+    },
+    "/treks/recommendations": {
+      "get": {
+        "operationId": "TreksController_recommendations",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "lat",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "lon",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recommended treks"
+          }
+        },
+        "summary": "Get trek recommendations",
+        "tags": [
+          "Treks"
+        ]
+      }
+    },
+    "/treks/{id}": {
+      "get": {
+        "operationId": "TreksController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trek details"
+          }
+        },
+        "summary": "Get trek details",
+        "tags": [
+          "Treks"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Offbeat प्रवासी API",
+    "description": "Full-scale, production-ready trek discovery and booking platform.",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [
+    {
+      "url": "http://localhost:4000",
+      "description": "Local development"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "access-token": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "RegisterDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "SendOtpDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "VerifyOtpDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "RefreshDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "PresignDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateOrganizerRequestDto": {
+        "type": "object",
+        "properties": {
+          "organizationName": {
+            "type": "string",
+            "description": "Name of the organization",
+            "maxLength": 160
+          },
+          "contactPerson": {
+            "type": "string",
+            "description": "Contact person name",
+            "maxLength": 160
+          },
+          "contactPhone": {
+            "type": "string",
+            "description": "Contact phone number",
+            "maxLength": 20
+          },
+          "website": {
+            "type": "string",
+            "description": "Website URL",
+            "maxLength": 160
+          },
+          "bio": {
+            "type": "string",
+            "description": "Short bio about the organization"
+          },
+          "yearsOfExperience": {
+            "type": "number",
+            "description": "Years of experience",
+            "example": 5
+          },
+          "documentUrls": {
+            "type": "object",
+            "description": "Document URLs map",
+            "example": {
+              "licence": "https://..."
+            }
+          },
+          "certificateUrls": {
+            "type": "object",
+            "description": "Certificate URLs map",
+            "example": {
+              "certificate": "https://..."
+            }
+          }
+        },
+        "required": [
+          "organizationName",
+          "contactPhone",
+          "bio"
+        ]
+      },
+      "UpdateOrganizerRequestDto": {
+        "type": "object",
+        "properties": {
+          "organizationName": {
+            "type": "string",
+            "description": "Name of the organization",
+            "maxLength": 160
+          },
+          "contactPerson": {
+            "type": "string",
+            "description": "Contact person name",
+            "maxLength": 160
+          },
+          "contactPhone": {
+            "type": "string",
+            "description": "Contact phone number",
+            "maxLength": 20
+          },
+          "website": {
+            "type": "string",
+            "description": "Website URL",
+            "maxLength": 160
+          },
+          "bio": {
+            "type": "string",
+            "description": "Short bio about the organization"
+          },
+          "yearsOfExperience": {
+            "type": "number",
+            "description": "Years of experience",
+            "example": 5
+          },
+          "documentUrls": {
+            "type": "object",
+            "description": "Document URLs map",
+            "example": {
+              "licence": "https://..."
+            }
+          },
+          "certificateUrls": {
+            "type": "object",
+            "description": "Certificate URLs map",
+            "example": {
+              "certificate": "https://..."
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "PENDING",
+              "APPROVED",
+              "REJECTED"
+            ]
+          },
+          "adminNotes": {
+            "type": "string",
+            "description": "Admin notes"
+          },
+          "reviewedAt": {
+            "type": "string",
+            "description": "When the application was reviewed"
+          }
+        }
+      },
+      "CreateTrekDto": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  }
+}

@@ -23,3 +23,29 @@ export const bookingReminderQueue = new Queue('booking-reminder-queue', {
 export const cleanupQueue = new Queue('cleanup-queue', {
   connection,
 });
+
+export const recommendationQueue = new Queue('recommendation-builder-queue', {
+  connection,
+});
+
+await (async () => {
+  // Schedule a repeatable job to build recommendation candidates hourly.
+  try {
+    await recommendationQueue.add(
+      'build-candidates',
+      {},
+      {
+        jobId: 'recommendation-build',
+        repeat: {
+          pattern: '0 * * * *', // hourly at minute 0
+        },
+      },
+    );
+  } catch (err) {
+    // Ignore scheduling errors on import
+    console.warn(
+      'Failed to schedule recommendation build:',
+      err instanceof Error ? err.message : String(err),
+    );
+  }
+})();

@@ -1,6 +1,10 @@
-import { DataSourceOptions } from 'typeorm';
+import type { DataSourceOptions } from 'typeorm';
 import { User } from '../modules/users/entities/user.entity';
-// Import all other entities here when created…
+import { Trek } from '../modules/treks/entities/trek.entity';
+import { TrekImage } from '../modules/treks/entities/trek-image.entity';
+import { TrekTag } from '../modules/treks/entities/trek-tag.entity';
+import { TrekReview } from '../modules/treks/entities/trek-review.entity';
+import { TrekInteraction } from '../modules/treks/entities/trek-interaction.entity';
 
 export const ormConfig: DataSourceOptions = {
   type: 'postgres',
@@ -14,12 +18,11 @@ export const ormConfig: DataSourceOptions = {
   synchronize: process.env.TYPEORM_SYNC === 'true',
 
   // Auto-load all entity files
-  entities: [
-    User,
-    // Add new entities here as you build modules
-  ],
+  entities: [User, Trek, TrekImage, TrekTag, TrekReview, TrekInteraction],
 
-  migrations: ['dist/database/migrations/*.js'],
+  // Support both compiled JS (dist) and TS (src) migrations so migrations
+  // run in dev (ts-node) and production (compiled). Add PostGIS migration below.
+  migrations: ['dist/database/migrations/*.js', 'src/database/migrations/*.ts'],
   migrationsTableName: 'migrations',
 
   ssl:

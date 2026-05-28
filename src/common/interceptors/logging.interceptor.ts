@@ -5,7 +5,7 @@ import {
   CallHandler,
 } from '@nestjs/common';
 import { Observable, tap } from 'rxjs';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { AuthenticatedUser } from '../decorators/current-user.decorator';
 
 @Injectable()
@@ -14,13 +14,18 @@ export class LoggingInterceptor implements NestInterceptor {
     const startTime = Date.now();
 
     const httpContext = context.switchToHttp();
-    const req = httpContext.getRequest<Request>();
+    const req = httpContext.getRequest<{
+      user?: AuthenticatedUser;
+      method: string;
+      originalUrl: string;
+      query: unknown;
+    }>();
     const res = httpContext.getResponse<Response>();
 
-    const user = req.user as AuthenticatedUser;
+    const user = req.user ?? null;
     const userId = user?.id ?? null;
 
-    const { method, originalUrl, query, body } = req;
+    const { method, originalUrl, query } = req;
 
     return next.handle().pipe(
       tap({
