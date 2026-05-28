@@ -1,6 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
 import { OrganizerController } from './organizer.controller';
-import { OrganizerService } from './organizer.service';
+import type { OrganizerService } from './organizer.service';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 describe('OrganizerController', () => {
   let controller: OrganizerController;

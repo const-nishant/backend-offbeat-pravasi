@@ -6,15 +6,14 @@ const password = process.env.REDIS_PASSWORD;
 
 export const notificationWorker = new Worker(
   'notification-queue',
-  async (job) => {
-    // TODO:job.data is typed as unknown, so define your own type:
+  async (_job) => {
     interface NotificationJob {
       userId: string;
       title: string;
       body: string;
     }
 
-    const data = job.data as NotificationJob;
+    void (_job.data as NotificationJob);
 
     // TODO: integrate FCM sending here
   },

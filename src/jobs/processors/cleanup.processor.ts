@@ -1,4 +1,5 @@
-import { Worker, Job } from 'bullmq';
+import type { Job } from 'bullmq';
+import { Worker } from 'bullmq';
 import { redisConfig } from '../../config/redis.config';
 import { Redis } from 'ioredis';
 
