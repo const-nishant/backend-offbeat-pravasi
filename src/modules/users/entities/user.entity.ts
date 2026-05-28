@@ -1,18 +1,13 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  UpdateDateColumn,
+  Entity,
   Index,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
-
-export enum OrganizerStatus {
-  NONE = 'NONE',
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
-}
+import { Gender } from '../enums/gender.enum';
+import { OrganizerStatus } from '../enums/organizer-status.enums';
 
 @Entity({ name: 'users' })
 @Index(['email'], { unique: true })
@@ -38,8 +33,8 @@ export class User {
   @Column({ type: 'varchar', nullable: true })
   location!: string | null;
 
-  @Column({ type: 'varchar', nullable: true })
-  gender!: string | null;
+  @Column({ type: 'enum', enum: Gender, nullable: true })
+  gender!: Gender | null;
 
   @Column({ type: 'date', nullable: true })
   dateOfBirth!: Date | null;
@@ -71,6 +66,14 @@ export class User {
 
   @Column({ type: 'int', default: 0 })
   userDistanceTravelled!: number;
+
+  // Average rating for the user as an organizer (0-5), default 0
+  @Column({ type: 'float', default: 0 })
+  organizerRating!: number;
+
+  // Whether the user is currently active as an organizer
+  @Column({ type: 'boolean', default: false })
+  isOrganizerActive!: boolean;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
