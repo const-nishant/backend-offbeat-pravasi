@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  NotFoundException,
   Param,
   Patch,
   Post,
@@ -53,6 +54,10 @@ export class OrganizerController {
   @Get('applications/:id')
   async getApplication(@Param('id') id: string) {
     const app = await this.organizerService.getApplicationById(id);
+    if (!app) {
+      throw new NotFoundException('Application not found');
+    }
+
     return {
       success: true,
       message: 'Application fetched',

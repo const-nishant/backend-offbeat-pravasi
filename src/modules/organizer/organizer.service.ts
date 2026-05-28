@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/modules/users/entities/user.entity';
 import { OrganizerStatus } from 'src/modules/users/enums/organizer-status.enums';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { CreateOrganizerRequestDto } from './dtos/create-organizer-request.dto';
 import { UpdateOrganizerRequestDto } from './dtos/update-organizer-request.dto';
 import { OrganizerApplication } from './entities/organizer-application.entity';
@@ -28,10 +28,15 @@ export class OrganizerService {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
+    const existingWhere: FindOptionsWhere<OrganizerApplication> = {
+      user: { id: userId },
+      status: OrganizerStatus.PENDING,
+    };
+
     const existing = await this.applicationRepo.findOne({
-      where: { user: { id: userId }, status: OrganizerStatus.PENDING },
+      where: existingWhere,
       relations: ['user'],
-    } as any);
+    });
 
     if (existing) {
       throw new ConflictException('An application is already pending');

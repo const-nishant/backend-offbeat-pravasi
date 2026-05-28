@@ -1,6 +1,5 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import {
-  IsBoolean,
   IsDateString,
   IsEnum,
   IsOptional,
@@ -23,11 +22,6 @@ export class UpdateOrganizerRequestDto extends PartialType(
   @IsString()
   @Length(1, 1000)
   adminNotes?: string;
-
-  @ApiProperty({ description: 'Whether organizer is active', required: false })
-  @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
 
   @ApiProperty({
     description: 'When the application was reviewed',
