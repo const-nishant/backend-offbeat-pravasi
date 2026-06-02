@@ -9,6 +9,7 @@ import {
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
+import { AuthService as BetterAuthNestService } from '@thallesp/nestjs-better-auth';
 import { RedisService } from '../../common/utils/redis.service';
 import { generateOtp } from '../../common/utils/otp.util';
 import { hashPassword, verifyPassword } from '../../common/utils/hash.util';
@@ -22,6 +23,7 @@ import { VerifyOtpDto } from './dtos/verify-otp.dto';
 import { User } from '../users/entities/user.entity';
 import { randomUUID } from 'crypto';
 import argon2 from 'argon2';
+import { fromNodeHeaders } from 'better-auth/node';
 
 export interface TokenPair {
   accessToken: string;
@@ -57,6 +59,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
     private readonly mailerService: MailerService,
+    // Better Auth API service (injected from @thallesp/nestjs-better-auth)
+    private readonly betterAuthService: BetterAuthNestService,
   ) {}
 
   // -----------------
@@ -124,6 +128,83 @@ export class AuthService {
           'OTP generated. Email delivery may be delayed. Please check your email shortly.',
       };
     }
+  }
+
+  // -----------------
+  // Social / Better Auth helpers
+  // -----------------
+  public async getSocialAuthorizeUrl(
+    providerId: string,
+    reqHeaders: Record<string, any>,
+  ): Promise<{ url: string } | null> {
+    if (!this.betterAuthService) return null;
+
+    const body = {
+      provider: providerId,
+      disableRedirect: true,
+      callbackURL:
+        process.env.GOOGLE_CALLBACK_URL ??
+        `${process.env.APP_URL}/auth/google/callback`,
+    } as any;
+
+    // Call Better Auth's sign-in social endpoint programmatically
+    // It returns an object with `url` when `disableRedirect: true`.
+    const result = await (this.betterAuthService.api as any).signInSocial({
+      body,
+      headers: fromNodeHeaders(reqHeaders || {}),
+    });
+
+    return result?.url ? { url: result.url } : null;
+  }
+
+  public async exchangeSocialSession(
+    reqHeaders: Record<string, any>,
+  ): Promise<TokenPair> {
+    if (!this.betterAuthService) {
+      throw new InternalServerErrorException('Auth provider not configured');
+    }
+
+    const session = await (this.betterAuthService.api as any).getSession({
+      headers: fromNodeHeaders(reqHeaders || {}),
+    });
+
+    if (!session || !session.user) {
+      throw new UnauthorizedException('No active social session');
+    }
+
+    const socialUser = session.user as any;
+    if (!socialUser.email) {
+      throw new UnauthorizedException('Social account does not provide email');
+    }
+
+    // Find or create local user
+    let user = await this.userRepository.findOne({
+      where: { email: socialUser.email },
+    });
+    if (!user) {
+      user = this.userRepository.create({
+        email: socialUser.email,
+        passwordHash: null as any,
+        fullName: socialUser.name ?? null,
+        emailVerified: true,
+        emailVerifiedAt: new Date(),
+      } as Partial<User> as User);
+
+      user = await this.userRepository.save(user);
+    } else if (!user.emailVerified) {
+      user.emailVerified = true;
+      user.emailVerifiedAt = new Date();
+      await this.userRepository.save(user);
+    }
+
+    const tokens = await this.createTokenPair({
+      userId: user.id,
+      email: user.email,
+      isAdmin: user.isAdmin ?? false,
+      organizerStatus: user.organizerStatus ?? undefined,
+    });
+
+    return tokens;
   }
 
   public async verifyOtp(dto: VerifyOtpDto): Promise<{ message: string }> {
