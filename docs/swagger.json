@@ -10,9 +10,7 @@
             "description": ""
           }
         },
-        "tags": [
-          "App"
-        ]
+        "tags": ["App"]
       }
     },
     "/auth/register": {
@@ -34,9 +32,7 @@
             "description": ""
           }
         },
-        "tags": [
-          "Auth"
-        ]
+        "tags": ["Auth"]
       }
     },
     "/auth/login": {
@@ -58,9 +54,7 @@
             "description": ""
           }
         },
-        "tags": [
-          "Auth"
-        ]
+        "tags": ["Auth"]
       }
     },
     "/auth/email/send-otp": {
@@ -82,9 +76,7 @@
             "description": ""
           }
         },
-        "tags": [
-          "Auth"
-        ]
+        "tags": ["Auth"]
       }
     },
     "/auth/email/verify-otp": {
@@ -106,9 +98,7 @@
             "description": ""
           }
         },
-        "tags": [
-          "Auth"
-        ]
+        "tags": ["Auth"]
       }
     },
     "/auth/refresh": {
@@ -130,9 +120,7 @@
             "description": ""
           }
         },
-        "tags": [
-          "Auth"
-        ]
+        "tags": ["Auth"]
       }
     },
     "/auth/logout": {
@@ -144,9 +132,7 @@
             "description": ""
           }
         },
-        "tags": [
-          "Auth"
-        ]
+        "tags": ["Auth"]
       }
     },
     "/auth/me": {
@@ -158,9 +144,64 @@
             "description": ""
           }
         },
-        "tags": [
-          "Auth"
-        ]
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/google": {
+      "get": {
+        "operationId": "AuthController_google",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns the Google authorization URL to redirect the user to",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "properties": { "url": { "type": "string" } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/google/exchange": {
+      "post": {
+        "operationId": "AuthController_googleExchange",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Exchanges Better Auth session cookie for local access/refresh TokenPair",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "accessToken": { "type": "string" },
+                        "refreshToken": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Auth"]
       }
     },
     "/health": {
@@ -172,9 +213,7 @@
             "description": ""
           }
         },
-        "tags": [
-          "Health"
-        ]
+        "tags": ["Health"]
       }
     },
     "/health/redis": {
@@ -186,9 +225,7 @@
             "description": ""
           }
         },
-        "tags": [
-          "Health"
-        ]
+        "tags": ["Health"]
       }
     },
     "/media/presign/trek": {
@@ -210,9 +247,7 @@
             "description": ""
           }
         },
-        "tags": [
-          "Media"
-        ]
+        "tags": ["Media"]
       }
     },
     "/organizer/applications": {
@@ -234,9 +269,7 @@
             "description": ""
           }
         },
-        "tags": [
-          "Organizer"
-        ]
+        "tags": ["Organizer"]
       }
     },
     "/organizer/applications/me": {
@@ -248,9 +281,7 @@
             "description": ""
           }
         },
-        "tags": [
-          "Organizer"
-        ]
+        "tags": ["Organizer"]
       }
     },
     "/organizer/applications/{id}": {
@@ -271,9 +302,7 @@
             "description": ""
           }
         },
-        "tags": [
-          "Organizer"
-        ]
+        "tags": ["Organizer"]
       },
       "patch": {
         "operationId": "OrganizerController_updateApplication",
@@ -302,9 +331,7 @@
             "description": ""
           }
         },
-        "tags": [
-          "Organizer"
-        ]
+        "tags": ["Organizer"]
       }
     },
     "/treks": {
@@ -327,9 +354,7 @@
           }
         },
         "summary": "Create a trek",
-        "tags": [
-          "Treks"
-        ]
+        "tags": ["Treks"]
       },
       "get": {
         "operationId": "TreksController_list",
@@ -340,9 +365,7 @@
           }
         },
         "summary": "List and search treks",
-        "tags": [
-          "Treks"
-        ]
+        "tags": ["Treks"]
       }
     },
     "/treks/nearby": {
@@ -355,9 +378,7 @@
           }
         },
         "summary": "Find treks near a location",
-        "tags": [
-          "Treks"
-        ]
+        "tags": ["Treks"]
       }
     },
     "/treks/recommendations": {
@@ -395,9 +416,7 @@
           }
         },
         "summary": "Get trek recommendations",
-        "tags": [
-          "Treks"
-        ]
+        "tags": ["Treks"]
       }
     },
     "/treks/{id}": {
@@ -419,9 +438,7 @@
           }
         },
         "summary": "Get trek details",
-        "tags": [
-          "Treks"
-        ]
+        "tags": ["Treks"]
       }
     }
   },
@@ -466,6 +483,13 @@
       "RefreshDto": {
         "type": "object",
         "properties": {}
+      },
+      "TokenPair": {
+        "type": "object",
+        "properties": {
+          "accessToken": { "type": "string" },
+          "refreshToken": { "type": "string" }
+        }
       },
       "PresignDto": {
         "type": "object",
@@ -518,11 +542,7 @@
             }
           }
         },
-        "required": [
-          "organizationName",
-          "contactPhone",
-          "bio"
-        ]
+        "required": ["organizationName", "contactPhone", "bio"]
       },
       "UpdateOrganizerRequestDto": {
         "type": "object",
@@ -572,12 +592,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "NONE",
-              "PENDING",
-              "APPROVED",
-              "REJECTED"
-            ]
+            "enum": ["NONE", "PENDING", "APPROVED", "REJECTED"]
           },
           "adminNotes": {
             "type": "string",

@@ -279,6 +279,8 @@ Below is a reference of the current available API endpoints.
 | POST   | `/auth/refresh`          | Refresh JWT tokens             |
 | POST   | `/auth/logout`           | Logout (invalidate session)    |
 | GET    | `/auth/me`               | Get current authenticated user |
+| GET    | `/auth/google`           | Initiate Google OAuth (returns authorize URL)
+| POST   | `/auth/google/exchange`  | Exchange Better Auth session cookie for local TokenPair
 
 ---
 
