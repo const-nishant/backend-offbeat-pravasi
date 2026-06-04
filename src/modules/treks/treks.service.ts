@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Trek } from './entities/trek.entity';
@@ -16,7 +20,6 @@ import {
 import { RedisService } from '../../common/utils/redis.service';
 import { User } from '../users/entities/user.entity';
 import { OrganizerStatus } from '../users/enums/organizer-status.enums';
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class TreksService {
