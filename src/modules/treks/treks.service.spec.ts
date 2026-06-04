@@ -181,7 +181,9 @@ describe('TreksService', () => {
       isOrganizerActive: false,
     });
 
-    await expect(service.createTrek(payload, 'user-2')).rejects.toThrow();
+    await expect(service.createTrek(payload, 'user-2')).rejects.toThrow(
+      'User is not an active organizer',
+    );
   });
 
   it('allows admin to create a trek even if not an active organizer', async () => {
