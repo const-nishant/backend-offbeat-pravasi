@@ -184,7 +184,7 @@ export class AuthService {
     if (!user) {
       user = this.userRepository.create({
         email: socialUser.email,
-        passwordHash: null as any,
+        passwordHash: null,
         fullName: socialUser.name ?? null,
         emailVerified: true,
         emailVerifiedAt: new Date(),
