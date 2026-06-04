@@ -75,6 +75,9 @@ export class User {
   @Column({ type: 'boolean', default: false })
   isOrganizerActive!: boolean;
 
+  @Column({ type: 'boolean', default: false })
+  isSuspended!: boolean;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 

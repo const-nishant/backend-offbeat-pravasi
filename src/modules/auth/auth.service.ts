@@ -284,23 +284,55 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    if (!user.passwordHash) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    // Check if this email is an env-defined admin
+    const adminEmails = (process.env.ADMIN_EMAILS || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const adminHashes = (process.env.ADMIN_PASSWORD_HASHES || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
 
-    const passwordOk = await verifyPassword(user.passwordHash, dto.password);
-    if (!passwordOk) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    let isEnvAdmin = false;
 
-    if (!user.emailVerified) {
-      throw new ForbiddenException('Please verify your email to continue');
+    const adminIndex = adminEmails.findIndex(
+      (e) => e.toLowerCase() === dto.email.toLowerCase(),
+    );
+    if (adminIndex !== -1) {
+      const expectedHash = adminHashes[adminIndex];
+      if (!expectedHash) {
+        throw new UnauthorizedException('Admin password not configured');
+      }
+      // verify password against env hash
+      try {
+        const ok = await argon2.verify(expectedHash, dto.password);
+        if (!ok) throw new UnauthorizedException('Invalid credentials');
+        isEnvAdmin = true;
+      } catch (e) {
+        throw new UnauthorizedException(
+          'Invalid credentials',
+          e instanceof Error ? e.message : undefined,
+        );
+      }
+    } else {
+      // regular user password verification
+      if (!user.passwordHash) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+      const passwordOk = await verifyPassword(user.passwordHash, dto.password);
+      if (!passwordOk) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+      if (!user.emailVerified) {
+        throw new ForbiddenException('Please verify your email to continue');
+      }
     }
 
     const tokens = await this.createTokenPair({
       userId: user.id,
       email: user.email,
-      isAdmin: user.isAdmin ?? false,
+      isAdmin: isEnvAdmin || (user.isAdmin ?? false),
       organizerStatus: user.organizerStatus ?? undefined,
     });
 
