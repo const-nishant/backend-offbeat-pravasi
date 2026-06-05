@@ -17,7 +17,7 @@ export class AuditInterceptor implements NestInterceptor {
     const user = req.user;
     const start = Date.now();
     return next.handle().pipe(
-      tap(async (res) => {
+      tap(async (_res) => {
         // record simple audit entry for admin actions
         try {
           const action = `${req.method} ${req.route?.path || req.url}`;
@@ -34,8 +34,9 @@ export class AuditInterceptor implements NestInterceptor {
             ip: req.ip || req.headers['x-forwarded-for'] || null,
             userAgent: req.headers['user-agent'] || null,
           });
-        } catch (e) {
+        } catch (_e) {
           // swallow errors to not affect request
+          console.error(_e);
         }
       }),
     );

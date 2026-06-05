@@ -8,6 +8,10 @@ import {
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
+  // start background schedulers
+  // booking-release.scheduler registers a repeating job to release expired holds
+
+  require('./jobs/schedulers/booking-release.scheduler');
 
   const document = SwaggerModule.createDocument(app, swaggerDocumentOptions);
   SwaggerModule.setup('docs', app, document, swaggerCustomOptions);

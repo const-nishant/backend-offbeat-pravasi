@@ -203,9 +203,7 @@ describe('TreksService', () => {
       isOrganizerActive: false,
     });
 
-    await expect(service.createTrek(payload, 'admin-1')).resolves.toEqual(
-      trek,
-    );
+    await expect(service.createTrek(payload, 'admin-1')).resolves.toEqual(trek);
   });
 
   it('falls back to popular treks for anonymous users', async () => {

@@ -6,6 +6,9 @@ import { User } from '../users/entities/user.entity';
 import { OrganizerService } from '../organizer/organizer.service';
 import { UpdateUserStatusDto } from './dtos/update-user-status.dto';
 import { UpdateOrganizerRequestDto } from '../organizer/dtos/update-organizer-request.dto';
+import { PlatformSettings } from './entities/platform-settings.entity';
+import { Queue } from 'bullmq';
+import { redisConfig } from '../../config/redis.config';
 
 @Injectable()
 export class AdminService {
@@ -13,6 +16,8 @@ export class AdminService {
     private readonly auditLogService: AuditLogService,
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     private readonly organizerService: OrganizerService,
+    @InjectRepository(PlatformSettings)
+    private readonly settingsRepo: Repository<PlatformSettings>,
   ) {}
 
   async recordAction(
@@ -99,5 +104,55 @@ export class AdminService {
       req,
     );
     return app;
+  }
+
+  async enqueueTicketPdfJob(bookingId: string, actor?: any) {
+    const queue = new Queue('ticket-pdf-queue', {
+      connection: {
+        host: redisConfig.host,
+        port: redisConfig.port,
+        password: redisConfig.password,
+        db: redisConfig.db,
+      },
+    });
+    const job = await queue.add('generate-pdf', { bookingId });
+    await this.recordAction(actor, 'ENQUEUE_TICKET_PDF', 'booking', bookingId, {
+      jobId: job.id,
+    });
+    return { enqueued: true, jobId: job.id };
+  }
+
+  async getPlatformSettings() {
+    const row = await this.settingsRepo.findOne({
+      where: { key: 'platform_settings' },
+    });
+    return row?.settings || {};
+  }
+
+  async updatePlatformSettings(settings: any, actor: any) {
+    let row: any = await this.settingsRepo.findOne({
+      where: { key: 'platform_settings' },
+    });
+    if (!row) {
+      row = this.settingsRepo.create({
+        key: 'platform_settings',
+        settings,
+        changedBy: actor?.id,
+        changedAt: new Date(),
+      } as any);
+    } else {
+      row.settings = settings;
+      row.changedBy = actor?.id;
+      row.changedAt = new Date();
+    }
+    const res = await this.settingsRepo.save(row as any);
+    await this.recordAction(
+      actor,
+      'PLATFORM_SETTINGS_UPDATED',
+      'platform_settings',
+      res.id,
+      settings,
+    );
+    return res;
   }
 }

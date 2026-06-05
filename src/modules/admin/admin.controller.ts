@@ -5,6 +5,7 @@ import {
   Patch,
   Param,
   Body,
+  Post,
   UseGuards,
   Req,
 } from '@nestjs/common';
@@ -17,6 +18,7 @@ import { TrekDecisionDto } from './dtos/trek-decision.dto';
 import { AuditLogQueryDto } from './dtos/audit-log-query.dto';
 import { AdminGuard } from 'src/common/guards/admin.guard';
 import { AuditLogService } from './audit-log.service';
+import { UpdatePlatformSettingsDto } from './dtos/update-platform-settings.dto';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, AdminGuard)
@@ -24,7 +26,30 @@ export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly auditLogService: AuditLogService,
-  ) { }
+  ) {}
+
+  @Get('platform-settings')
+  async getPlatformSettings() {
+    return this.adminService.getPlatformSettings();
+  }
+
+  @Patch('platform-settings')
+  async updatePlatformSettings(
+    @Body() body: UpdatePlatformSettingsDto,
+    @Req() req: any,
+  ) {
+    const res = await this.adminService.updatePlatformSettings(
+      body.settings,
+      req.user,
+    );
+    return res;
+  }
+
+  @Post('bookings/:id/generate-ticket-pdf')
+  async generateBookingPdf(@Param('id') id: string, @Req() req: any) {
+    // enqueue PDF generation job for a booking
+    return this.adminService.enqueueTicketPdfJob(id, req.user);
+  }
 
   @Get('users')
   async listUsers(@Query() q: AdminUserFiltersDto) {
