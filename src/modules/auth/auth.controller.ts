@@ -115,4 +115,46 @@ export class AuthController {
       data: user,
     };
   }
+
+  // -------------------------------
+  // GOOGLE OAUTH (initiate)
+  // -------------------------------
+  @Public()
+  @Get('google')
+  async googleAuth(@Req() req: Request) {
+    const result = await this.authService.getSocialAuthorizeUrl(
+      'google',
+      req.headers as any,
+    );
+    if (!result || !result.url) {
+      return {
+        success: false,
+        message: 'Unable to get Google authorize URL',
+        data: {},
+      };
+    }
+
+    return {
+      success: true,
+      message: 'Redirect to Google',
+      data: { url: result.url },
+    };
+  }
+  // -------------------------------
+  // GOOGLE EXCHANGE - Exchange Better Auth session for local TokenPair
+  // -------------------------------
+  @Public()
+  @Post('google/exchange')
+  async googleExchange(@Req() req: Request) {
+    // The client should include cookies received from Better Auth callback.
+    const tokens = await this.authService.exchangeSocialSession(
+      req.headers as any,
+    );
+
+    return {
+      success: true,
+      message: 'Login successful',
+      data: tokens,
+    };
+  }
 }

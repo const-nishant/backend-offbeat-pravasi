@@ -9,7 +9,7 @@ This document explains how to deploy the backend using **Docker**, **Docker Comp
 ## 1. Dockerfile
 
 ```dockerfile
-FROM node:20-alpine
+FROM node:22.22.1-alpine
 
 WORKDIR /app
 
