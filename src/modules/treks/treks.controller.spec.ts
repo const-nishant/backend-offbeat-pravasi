@@ -27,11 +27,16 @@ describe('TreksController', () => {
     const dto = { name: 'Kedarkantha' };
     treksService.createTrek.mockResolvedValue({ id: 'trek-1', ...dto });
 
-    await expect(controller.create(dto as never)).resolves.toEqual({
+    const user = {
+      id: 'user-1',
+      email: 'u@example.com',
+      isAdmin: false,
+    } as any;
+    await expect(controller.create(user, dto as never)).resolves.toEqual({
       id: 'trek-1',
       ...dto,
     });
-    expect(treksService.createTrek).toHaveBeenCalledWith(dto);
+    expect(treksService.createTrek).toHaveBeenCalledWith(dto, 'user-1');
   });
 
   it('lists treks with search filters', async () => {

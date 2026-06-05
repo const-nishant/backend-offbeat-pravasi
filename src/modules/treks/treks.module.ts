@@ -7,6 +7,7 @@ import { TrekImage } from './entities/trek-image.entity';
 import { TrekTag } from './entities/trek-tag.entity';
 import { TrekReview } from './entities/trek-review.entity';
 import { TrekInteraction } from './entities/trek-interaction.entity';
+import { User } from '../users/entities/user.entity';
 
 @Module({
   imports: [
@@ -16,10 +17,11 @@ import { TrekInteraction } from './entities/trek-interaction.entity';
       TrekTag,
       TrekReview,
       TrekInteraction,
+      User,
     ]),
   ],
   controllers: [TreksController],
   providers: [TreksService],
-  exports: [TreksService, TypeOrmModule.forFeature([Trek])],
+  exports: [TreksService],
 })
 export class TreksModule {}

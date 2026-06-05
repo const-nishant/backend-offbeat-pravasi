@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { TreksService } from './treks.service';
 import { CreateTrekDto } from './dtos/create-trek.dto';
 import { TrekSearchDto } from './dtos/trek-search.dto';
@@ -8,17 +16,23 @@ import {
   CurrentUser,
   type AuthenticatedUser,
 } from '../../common/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { OrganizerGuard } from '../../common/guards/organizer.guard';
 
 @ApiTags('Treks')
 @Controller('treks')
 export class TreksController {
   constructor(private readonly treksService: TreksService) {}
 
+  @UseGuards(JwtAuthGuard, OrganizerGuard)
   @Post()
   @ApiOperation({ summary: 'Create a trek' })
   @ApiOkResponse({ description: 'Created trek' })
-  async create(@Body() dto: CreateTrekDto) {
-    return this.treksService.createTrek(dto);
+  async create(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: CreateTrekDto,
+  ) {
+    return this.treksService.createTrek(dto, user.id);
   }
 
   @Get()

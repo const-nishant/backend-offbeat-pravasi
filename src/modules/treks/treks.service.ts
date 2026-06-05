@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Trek } from './entities/trek.entity';
@@ -14,12 +18,16 @@ import {
   buildPaginationMeta,
 } from '../../common/pagination/pagination.util';
 import { RedisService } from '../../common/utils/redis.service';
+import { User } from '../users/entities/user.entity';
+import { OrganizerStatus } from '../users/enums/organizer-status.enums';
 
 @Injectable()
 export class TreksService {
   constructor(
     @InjectRepository(Trek)
     private readonly trekRepo: Repository<Trek>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
     @InjectRepository(TrekReview)
     private readonly reviewRepo: Repository<TrekReview>,
     @InjectRepository(TrekInteraction)
@@ -31,9 +39,31 @@ export class TreksService {
     private readonly redisService: RedisService,
   ) {}
 
-  async createTrek(payload: any) {
+  async createTrek(payload: any, userId?: string) {
     const { tags, imageKeys, ...rest } = payload;
+
+    // Ensure organizer assignment comes from authenticated user
     const trek = this.trekRepo.create(rest as any) as unknown as Trek;
+
+    if (!userId) {
+      throw new ForbiddenException('Authenticated organizer required');
+    }
+
+    // Validate user exists and is an approved/active organizer
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+    // Allow admins to bypass organizer checks (admins are trusted)
+    if (!user.isAdmin) {
+      if (
+        user.organizerStatus !== OrganizerStatus.APPROVED ||
+        user.isOrganizerActive !== true
+      ) {
+        throw new ForbiddenException('User is not an active organizer');
+      }
+    }
+
+    // Set organizer relation server-side
+    trek.organizer = user as unknown as any;
 
     if (Array.isArray(tags) && tags.length > 0) {
       const normalized = tags.map((t: string) => t.trim());

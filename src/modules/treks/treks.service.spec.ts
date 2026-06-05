@@ -20,6 +20,9 @@ describe('TreksService', () => {
     createQueryBuilder: jest.fn(),
   };
   const reviewRepo = {} as Repository<TrekReview>;
+  const userRepo = {
+    findOne: jest.fn(),
+  } as unknown as Repository<any>;
   const interactionRepo = {
     find: jest.fn(),
   };
@@ -61,6 +64,7 @@ describe('TreksService', () => {
     jest.clearAllMocks();
     service = new TreksService(
       trekRepo as unknown as Repository<Trek>,
+      userRepo,
       reviewRepo,
       interactionRepo as unknown as Repository<TrekInteraction>,
       tagRepo as unknown as Repository<TrekTag>,
@@ -85,8 +89,13 @@ describe('TreksService', () => {
     tagRepo.save.mockResolvedValue(tagRecords);
     imageRepo.create.mockImplementation((value) => value);
     imageRepo.save.mockResolvedValue([]);
+    userRepo.findOne = jest.fn().mockResolvedValue({
+      id: 'user-1',
+      organizerStatus: 'APPROVED',
+      isOrganizerActive: true,
+    });
 
-    await expect(service.createTrek(payload)).resolves.toEqual(trek);
+    await expect(service.createTrek(payload, 'user-1')).resolves.toEqual(trek);
 
     expect(tagRepo.find).toHaveBeenCalledWith({
       where: { name: In(['snow', 'winter']) },
@@ -162,6 +171,40 @@ describe('TreksService', () => {
       'user:recs:user-1',
       JSON.stringify([{ id: 'trek-2' }]),
       8 * 3600,
+    );
+  });
+  it('forbids trek creation for non-approved organizer', async () => {
+    const payload = { name: 'Test Trek' };
+    userRepo.findOne = jest.fn().mockResolvedValue({
+      id: 'user-2',
+      organizerStatus: 'PENDING',
+      isOrganizerActive: false,
+    });
+
+    await expect(service.createTrek(payload, 'user-2')).rejects.toThrow(
+      'User is not an active organizer',
+    );
+  });
+
+  it('allows admin to create a trek even if not an active organizer', async () => {
+    const payload = { name: 'Admin Trek', imageKeys: [] };
+    const trek = { id: 'trek-admin', ...payload };
+
+    trekRepo.create.mockReturnValue(trek);
+    trekRepo.save.mockResolvedValue(trek);
+    tagRepo.find.mockResolvedValue([]);
+    imageRepo.create.mockImplementation((value) => value);
+    imageRepo.save.mockResolvedValue([]);
+
+    userRepo.findOne = jest.fn().mockResolvedValue({
+      id: 'admin-1',
+      isAdmin: true,
+      organizerStatus: 'NONE',
+      isOrganizerActive: false,
+    });
+
+    await expect(service.createTrek(payload, 'admin-1')).resolves.toEqual(
+      trek,
     );
   });
 
