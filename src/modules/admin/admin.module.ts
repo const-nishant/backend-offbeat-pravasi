@@ -9,7 +9,7 @@ import { User } from '../users/entities/user.entity';
 import { OrganizerModule } from '../organizer/organizer.module';
 import { AuditLogService } from './audit-log.service';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { AuditInterceptor } from './interceptors/audit.interceptor';
+import { AuditInterceptor } from '../../common/interceptors/audit.interceptor';
 
 @Module({
   imports: [
