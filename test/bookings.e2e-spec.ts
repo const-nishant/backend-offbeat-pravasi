@@ -89,7 +89,7 @@ import { AppModule } from '../src/app.module';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { createTestApp } from './helpers/create-test-app';
 
-describe('App (e2e)', () => {
+describe('Bookings (e2e)', () => {
   let app: INestApplication<App>;
 
   beforeAll(async () => {
@@ -100,10 +100,35 @@ describe('App (e2e)', () => {
     if (app) await app.close();
   });
 
-  it('should respond on health endpoint', () => {
-    return request(app.getHttpServer())
-      .get('/health')
-      .set('x-api-key', 'test-api-key')
-      .expect(200);
+  describe('POST /bookings', () => {
+    it('should return 401 when no auth token provided', () => {
+      return request(app.getHttpServer())
+        .post('/bookings')
+        .set('x-api-key', 'test-api-key')
+        .set('Authorization', '')
+        .send({ trekId: 1, numberOfPeople: 2 })
+        .expect(401);
+    });
+  });
+
+  describe('GET /bookings', () => {
+    it('should return 401 when no auth token provided', () => {
+      return request(app.getHttpServer())
+        .get('/bookings')
+        .set('x-api-key', 'test-api-key')
+        .set('Authorization', '')
+        .expect(401);
+    });
+  });
+
+  describe('POST /bookings/:id/cancel', () => {
+    it('should return 401 when no auth token provided', () => {
+      return request(app.getHttpServer())
+        .post('/bookings/1/cancel')
+        .set('x-api-key', 'test-api-key')
+        .set('Authorization', '')
+        .send({})
+        .expect(401);
+    });
   });
 });

@@ -8,8 +8,15 @@ const workerProviders =
     ? [BookingReleaseWorkerService, TicketPdfWorkerService]
     : [];
 
+// Always include TicketPdfWorkerService so it can be exported for other modules
+const exportProviders = [TicketPdfWorkerService];
+
 @Module({
-  providers: [BookingReleaseScheduler, ...workerProviders],
-  exports: [TicketPdfWorkerService],
+  providers: [
+    BookingReleaseScheduler,
+    ...workerProviders,
+    TicketPdfWorkerService,
+  ],
+  exports: [...exportProviders],
 })
 export class JobsModule {}

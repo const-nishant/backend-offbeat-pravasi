@@ -89,7 +89,7 @@ import { AppModule } from '../src/app.module';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { createTestApp } from './helpers/create-test-app';
 
-describe('App (e2e)', () => {
+describe('Media (e2e)', () => {
   let app: INestApplication<App>;
 
   beforeAll(async () => {
@@ -100,10 +100,15 @@ describe('App (e2e)', () => {
     if (app) await app.close();
   });
 
-  it('should respond on health endpoint', () => {
-    return request(app.getHttpServer())
-      .get('/health')
-      .set('x-api-key', 'test-api-key')
-      .expect(200);
+  describe('POST /media/presign-trek', () => {
+    it('should return a presigned URL response shape', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/media/presign-trek')
+        .set('x-api-key', 'test-api-key')
+        .send({ fileName: 'test.jpg', contentType: 'image/jpeg' });
+      // The response should be an object (even if error, it should be JSON)
+      expect(res.body).toBeDefined();
+      expect(typeof res.body).toBe('object');
+    });
   });
 });

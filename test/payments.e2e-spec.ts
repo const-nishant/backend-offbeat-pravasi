@@ -89,7 +89,7 @@ import { AppModule } from '../src/app.module';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { createTestApp } from './helpers/create-test-app';
 
-describe('App (e2e)', () => {
+describe('Payments (e2e)', () => {
   let app: INestApplication<App>;
 
   beforeAll(async () => {
@@ -100,10 +100,34 @@ describe('App (e2e)', () => {
     if (app) await app.close();
   });
 
-  it('should respond on health endpoint', () => {
-    return request(app.getHttpServer())
-      .get('/health')
-      .set('x-api-key', 'test-api-key')
-      .expect(200);
+  describe('POST /payments/checkout', () => {
+    it('should return 401 when no auth token provided', () => {
+      return request(app.getHttpServer())
+        .post('/payments/checkout')
+        .set('x-api-key', 'test-api-key')
+        .set('Authorization', '')
+        .send({ bookingId: 1, provider: 'stripe' })
+        .expect(401);
+    });
+  });
+
+  describe('POST /payments/webhook/stripe', () => {
+    it('should return 400 for missing stripe-signature header', () => {
+      return request(app.getHttpServer())
+        .post('/payments/webhook/stripe')
+        .set('x-api-key', 'test-api-key')
+        .send({})
+        .expect(400);
+    });
+  });
+
+  describe('POST /payments/webhook/razorpay', () => {
+    it('should return 400 for missing razorpay-signature header', () => {
+      return request(app.getHttpServer())
+        .post('/payments/webhook/razorpay')
+        .set('x-api-key', 'test-api-key')
+        .send({})
+        .expect(400);
+    });
   });
 });

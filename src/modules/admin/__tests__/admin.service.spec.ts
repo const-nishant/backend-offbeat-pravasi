@@ -23,8 +23,23 @@ describe('AdminService', () => {
     updateApplication: jest.fn(async (id, dto) => ({ id, dto })),
   } as any;
 
+  const mockAppRepo: any = { save: jest.fn(async (e) => e), findOne: jest.fn() };
+  const mockTrekRepo: any = { find: jest.fn() };
+  const mockBookingRepo: any = { find: jest.fn() };
+  const mockPlatformSettingsService: any = { getByKey: jest.fn(), setByKey: jest.fn() };
+  const mockTicketPdfWorker: any = { generate: jest.fn() };
+
   beforeEach(() => {
-    service = new AdminService(mockAudit, mockUserRepo, mockOrganizerService);
+    service = new AdminService(
+      mockAudit,
+      mockUserRepo,
+      mockAppRepo,
+      mockTrekRepo,
+      mockBookingRepo,
+      mockOrganizerService,
+      mockPlatformSettingsService,
+      mockTicketPdfWorker,
+    );
   });
 
   it('lists users', async () => {
