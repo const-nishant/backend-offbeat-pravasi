@@ -58,6 +58,9 @@ export class CreateBookingsPaymentsAndSettings0005
       `CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings (status);`,
     );
     await queryRunner.query(
+      `CREATE INDEX IF NOT EXISTS idx_bookings_trek_status ON bookings (trek_id, status);`,
+    );
+    await queryRunner.query(
       `CREATE INDEX IF NOT EXISTS idx_payments_status ON payments (status);`,
     );
   }

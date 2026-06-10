@@ -1,33 +1,55 @@
-import type { Job } from 'bullmq';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+} from '@nestjs/common';
 import { Worker } from 'bullmq';
-import { ormConfig } from '../../config/ormconfig';
 import { DataSource } from 'typeorm';
-import { redisConfig } from '../../config/redis.config';
+import { bullConnection } from '../config';
 
-const dataSource = new DataSource({ ...ormConfig, synchronize: false });
+@Injectable()
+export class BookingReleaseWorkerService
+  implements OnModuleInit, OnModuleDestroy
+{
+  private readonly logger = new Logger(BookingReleaseWorkerService.name);
+  private worker!: Worker;
 
-export const bookingReleaseWorker = new Worker(
-  'booking-release-queue',
-  async (_job: Job) => {
-    if (!dataSource.isInitialized) {
-      await dataSource.initialize();
-    }
+  constructor(private readonly dataSource: DataSource) {}
 
-    const res = await dataSource.query(`
-      UPDATE bookings
-      SET status = 'FAILED', metadata = jsonb_set(COALESCE(metadata, '{}'), '{releasedAt}', to_jsonb(now() at time zone 'utc')), updated_at = now()
-      WHERE status = 'PENDING' AND hold_expires_at <= now()
-      RETURNING id;
-    `);
+  async onModuleInit(): Promise<void> {
+    this.worker = new Worker(
+      'booking-release-queue',
+      async () => {
+        const res = await this.dataSource.query(`
+          UPDATE bookings
+          SET status = 'FAILED',
+              metadata = jsonb_set(COALESCE(metadata, '{}'), '{releasedAt}', to_jsonb(now() at time zone 'utc')),
+              updated_at = now()
+          WHERE status = 'PENDING' AND hold_expires_at <= now()
+          RETURNING id;
+        `);
 
-    return { released: res.length };
-  },
-  {
-    connection: {
-      host: redisConfig.host,
-      port: redisConfig.port,
-      password: redisConfig.password,
-      db: redisConfig.db,
-    },
-  },
-);
+        return { released: res.length };
+      },
+      { connection: bullConnection },
+    );
+
+    this.worker.on('completed', (job) => {
+      this.logger.log(`Booking release job completed: ${job.id}`);
+    });
+
+    this.worker.on('failed', (job, err) => {
+      this.logger.error(
+        `Booking release job ${job?.id} failed: ${err.message}`,
+        err.stack,
+      );
+    });
+
+    this.logger.log('Booking release worker started');
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    await this.worker?.close();
+  }
+}

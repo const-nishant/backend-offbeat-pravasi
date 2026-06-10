@@ -16,7 +16,6 @@ export async function createRazorpayOrder(
   amountInr: number,
   receipt?: string,
 ) {
-  // Razorpay expects amount in paise
   const amount = amountInr * 100;
   const order = await razorpay.orders.create({
     amount,
@@ -24,4 +23,11 @@ export async function createRazorpayOrder(
     receipt: receipt ?? undefined,
   });
   return order;
+}
+
+export async function refundRazorpayPayment(
+  razorpay: Razorpay,
+  providerPaymentId: string,
+) {
+  return razorpay.payments.refund(providerPaymentId, {});
 }

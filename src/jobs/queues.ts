@@ -28,8 +28,15 @@ export const recommendationQueue = new Queue('recommendation-builder-queue', {
   connection,
 });
 
+export const bookingReleaseQueue = new Queue('booking-release-queue', {
+  connection,
+});
+
+export const ticketPdfQueue = new Queue('ticket-pdf-queue', {
+  connection,
+});
+
 await (async () => {
-  // Schedule a repeatable job to build recommendation candidates hourly.
   try {
     await recommendationQueue.add(
       'build-candidates',
@@ -37,12 +44,11 @@ await (async () => {
       {
         jobId: 'recommendation-build',
         repeat: {
-          pattern: '0 * * * *', // hourly at minute 0
+          pattern: '0 * * * *',
         },
       },
     );
   } catch (err) {
-    // Ignore scheduling errors on import
     console.warn(
       'Failed to schedule recommendation build:',
       err instanceof Error ? err.message : String(err),
