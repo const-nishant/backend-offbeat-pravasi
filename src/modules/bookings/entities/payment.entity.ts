@@ -14,6 +14,7 @@ export enum PaymentProvider {
 
 export enum PaymentStatus {
   CREATED = 'CREATED',
+  REQUIRES_ACTION = 'REQUIRES_ACTION',
   SUCCEEDED = 'SUCCEEDED',
   FAILED = 'FAILED',
   REFUNDED = 'REFUNDED',
@@ -27,13 +28,13 @@ export class Payment {
   @Column('uuid')
   bookingId: string;
 
-  @Column({ type: 'enum', enum: PaymentProvider })
+  @Column({ type: 'varchar', length: 32 })
   provider: PaymentProvider;
 
   @Column('varchar', { nullable: true })
   providerPaymentId?: string;
 
-  @Column({ type: 'enum', enum: PaymentStatus, default: PaymentStatus.CREATED })
+  @Column({ type: 'varchar', length: 32, default: PaymentStatus.CREATED })
   @Index()
   status: PaymentStatus;
 
@@ -48,6 +49,9 @@ export class Payment {
 
   @Column('varchar', { nullable: true })
   idempotencyKey?: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  metadata?: any;
 
   @CreateDateColumn()
   createdAt: Date;

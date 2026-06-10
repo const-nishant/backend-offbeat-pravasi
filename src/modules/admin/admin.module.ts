@@ -6,15 +6,27 @@ import { AuditLog } from './entities/audit-log.entity';
 import { PlatformSettings } from './entities/platform-settings.entity';
 import { PlatformSettingsService } from './platform-settings.service';
 import { User } from '../users/entities/user.entity';
+import { Trek } from '../treks/entities/trek.entity';
+import { Booking } from '../bookings/entities/booking.entity';
+import { OrganizerApplication } from '../organizer/entities/organizer-application.entity';
 import { OrganizerModule } from '../organizer/organizer.module';
 import { AuditLogService } from './audit-log.service';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AuditInterceptor } from '../../common/interceptors/audit.interceptor';
+import { JobsModule } from '../../jobs/jobs.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AuditLog, User, PlatformSettings]),
+    TypeOrmModule.forFeature([
+      AuditLog,
+      User,
+      PlatformSettings,
+      Trek,
+      Booking,
+      OrganizerApplication,
+    ]),
     OrganizerModule,
+    JobsModule,
   ],
   controllers: [AdminController],
   providers: [

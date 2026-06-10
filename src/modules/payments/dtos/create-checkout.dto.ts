@@ -1,12 +1,12 @@
 import { IsUUID, IsEnum, IsOptional, IsString } from 'class-validator';
-import { PaymentProviderEnum } from '../enums/payment-provider.enum';
+import { PaymentProvider } from '../../bookings/entities/payment.entity';
 
 export class CreateCheckoutDto {
   @IsUUID()
   bookingId!: string;
 
-  @IsEnum(PaymentProviderEnum)
-  provider!: PaymentProviderEnum;
+  @IsEnum(PaymentProvider)
+  provider!: PaymentProvider;
 
   @IsOptional()
   @IsString()

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -16,5 +16,15 @@ export class TicketService {
       { expiresIn: `${ttlMinutes}m` },
     );
     return { token, issuedAt, expiresAt };
+  }
+
+  async verifyToken(
+    token: string,
+  ): Promise<{ bookingId: string; userId: string }> {
+    try {
+      return await this.jwtService.verifyAsync(token);
+    } catch {
+      throw new UnauthorizedException('Invalid or expired ticket token');
+    }
   }
 }

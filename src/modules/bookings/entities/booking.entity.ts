@@ -16,6 +16,7 @@ export enum BookingStatus {
 }
 
 @Entity({ name: 'bookings' })
+@Index(['trekId', 'status'])
 export class Booking {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -41,7 +42,7 @@ export class Booking {
   @Column('int')
   totalAmountInr: number;
 
-  @Column({ type: 'enum', enum: BookingStatus, default: BookingStatus.PENDING })
+  @Column({ type: 'varchar', length: 32, default: BookingStatus.PENDING })
   @Index()
   status: BookingStatus;
 

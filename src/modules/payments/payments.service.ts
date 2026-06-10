@@ -3,8 +3,9 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   Payment,
@@ -16,11 +17,15 @@ import { TicketService } from '../bookings/ticket.service';
 import {
   createStripeClient,
   createStripePaymentIntent,
+  refundStripePayment,
 } from './providers/stripe.provider';
 import {
   createRazorpayClient,
   createRazorpayOrder,
+  refundRazorpayPayment,
 } from './providers/razorpay.provider';
+import { Trek } from '../treks/entities/trek.entity';
+import { MailerService } from '../mailer/mailer.service';
 
 @Injectable()
 export class PaymentsService {
@@ -31,24 +36,44 @@ export class PaymentsService {
     private readonly paymentRepo: Repository<Payment>,
     @InjectRepository(Booking)
     private readonly bookingRepo: Repository<Booking>,
+    @InjectRepository(Trek)
+    private readonly trekRepo: Repository<Trek>,
     private readonly ticketService: TicketService,
+    private readonly mailerService: MailerService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async createCheckout(opts: {
     bookingId: string;
     provider: PaymentProvider;
     idempotencyKey?: string;
+    userId: string;
   }) {
-    const { bookingId, provider, idempotencyKey } = opts;
+    const { bookingId, provider, idempotencyKey, userId } = opts;
 
     const booking = await this.bookingRepo.findOne({
       where: { id: bookingId },
     });
     if (!booking) throw new NotFoundException('Booking not found');
+    if (booking.userId !== userId)
+      throw new ForbiddenException('Booking does not belong to user');
     if (booking.status !== BookingStatus.PENDING)
       throw new BadRequestException('Booking is not pending');
 
-    // create payment record
+    if (idempotencyKey) {
+      const existing = await this.paymentRepo.findOne({
+        where: { idempotencyKey },
+      });
+      if (existing) {
+        return {
+          paymentId: existing.id,
+          provider,
+          duplicate: true,
+          status: existing.status,
+        };
+      }
+    }
+
     const payment = this.paymentRepo.create({
       bookingId,
       provider,
@@ -58,7 +83,6 @@ export class PaymentsService {
     } as Partial<Payment>);
     await this.paymentRepo.save(payment);
 
-    // Provider-specific flows
     if (provider === PaymentProvider.STRIPE) {
       const stripe = createStripeClient();
       if (!stripe) throw new Error('Stripe not configured');
@@ -103,9 +127,8 @@ export class PaymentsService {
     providerPaymentId: string,
     amount: number,
   ) {
-    // find payment by providerPaymentId or by id
     const payment = await this.paymentRepo.findOne({
-      where: [{ providerPaymentId }, { id: providerPaymentId }] as any,
+      where: { providerPaymentId } as any,
     });
     if (!payment) {
       this.logger.warn(
@@ -119,36 +142,135 @@ export class PaymentsService {
     payment.amountInr = amount;
     await this.paymentRepo.save(payment);
 
+    return this.confirmBooking(payment);
+  }
+
+  async handleProviderFailure(
+    provider: PaymentProvider,
+    providerPaymentId: string,
+  ) {
+    const payment = await this.paymentRepo.findOne({
+      where: { providerPaymentId } as any,
+    });
+    if (!payment) {
+      this.logger.warn(
+        `Payment record not found for failure: providerPaymentId=${providerPaymentId}`,
+      );
+      return null;
+    }
+
+    payment.status = PaymentStatus.FAILED;
+    payment.metadata = {
+      ...(payment.metadata ?? {}),
+      failedAt: new Date().toISOString(),
+    } as any;
+    await this.paymentRepo.save(payment);
+
     const booking = await this.bookingRepo.findOne({
       where: { id: payment.bookingId },
     });
-    if (!booking) throw new NotFoundException('Booking not found for payment');
-    booking.status = BookingStatus.CONFIRMED;
-    // attach payment reference
-    (booking as any).paymentId = payment.id;
-    booking.metadata = {
-      ...(booking.metadata ?? {}),
-      ticketIssued: false,
-    } as any;
-    await this.bookingRepo.save(booking);
-
-    // Issue signed ticket token
-    try {
-      const ticket = await this.ticketService.generateSignedTicket({
-        bookingId: booking.id,
-        userId: booking.userId,
-      });
+    if (booking) {
+      booking.status = BookingStatus.FAILED;
       booking.metadata = {
         ...(booking.metadata ?? {}),
-        ticketToken: ticket.token,
-        ticketIssued: true,
-        ticketIssuedAt: new Date().toISOString(),
+        paymentFailedAt: new Date().toISOString(),
       } as any;
       await this.bookingRepo.save(booking);
+    }
+
+    return { payment, booking };
+  }
+
+  private async confirmBooking(payment: Payment) {
+    return await this.dataSource.transaction(async (em) => {
+      const booking = await em
+        .getRepository(Booking)
+        .findOne({ where: { id: payment.bookingId } });
+      if (!booking)
+        throw new NotFoundException('Booking not found for payment');
+      if (booking.status === BookingStatus.CONFIRMED) {
+        return { payment, booking, alreadyConfirmed: true };
+      }
+
+      booking.status = BookingStatus.CONFIRMED;
+      (booking as any).paymentId = payment.id;
+      booking.metadata = {
+        ...(booking.metadata ?? {}),
+        ticketIssued: false,
+      } as any;
+      await em.getRepository(Booking).save(booking);
+
+      const trek = await em
+        .getRepository(Trek)
+        .createQueryBuilder('t')
+        .setLock('pessimistic_write')
+        .where('t.id = :id', { id: booking.trekId })
+        .getOne();
+      if (trek) {
+        await em
+          .getRepository(Trek)
+          .createQueryBuilder()
+          .update(Trek)
+          .set({
+            currentParticipants: () =>
+              `current_participants + ${booking.quantity}`,
+          })
+          .where('id = :id', { id: booking.trekId })
+          .execute();
+      }
+
+      let ticket: any = null;
+      try {
+        ticket = await this.ticketService.generateSignedTicket({
+          bookingId: booking.id,
+          userId: booking.userId,
+        });
+        booking.metadata = {
+          ...(booking.metadata ?? {}),
+          ticketToken: ticket.token,
+          ticketIssued: true,
+          ticketIssuedAt: new Date().toISOString(),
+        } as any;
+        await em.getRepository(Booking).save(booking);
+      } catch (e) {
+        this.logger.error('Ticket issuance failed after payment', e as any);
+      }
+
+      this.sendConfirmationNotification(booking, trek).catch((e) =>
+        this.logger.error('Confirmation notification failed', e),
+      );
+
       return { payment, booking, ticket };
+    });
+  }
+
+  private async sendConfirmationNotification(
+    booking: Booking,
+    trek?: Trek | null,
+  ) {
+    try {
+      const trekName = trek?.name ?? booking.trekSnapshot?.name ?? 'Trek';
+      const userEmail = booking.metadata?.contactEmail;
+
+      if (userEmail) {
+        await this.mailerService.sendEmail({
+          to: userEmail,
+          subject: `Booking Confirmed - ${trekName}`,
+          html: `
+<h2>Booking Confirmed!</h2>
+<p>Your booking for <strong>${trekName}</strong> has been confirmed.</p>
+<ul>
+  <li>Booking ID: ${booking.id}</li>
+  <li>Quantity: ${booking.quantity}</li>
+  <li>Total Paid: INR ${booking.totalAmountInr}</li>
+</ul>
+<p>You can download your ticket from your bookings page.</p>
+<p>Thank you for choosing Offbeat Pravasi!</p>
+          `,
+        });
+      }
     } catch (e) {
-      // don't fail the payment flow if ticket issuance fails
-      return { payment, booking, ticketError: (e as any).message };
+      this.logger.error('Failed to send confirmation email', e as any);
     }
   }
 
@@ -157,9 +279,35 @@ export class PaymentsService {
       where: { id: paymentId },
     });
     if (!payment) throw new NotFoundException('Payment not found');
+    if (payment.status !== PaymentStatus.SUCCEEDED) {
+      throw new BadRequestException('Only succeeded payments can be refunded');
+    }
 
-    // Integration with provider refund API should be implemented; here we mark refunded locally
+    try {
+      if (payment.provider === PaymentProvider.STRIPE) {
+        const stripe = createStripeClient();
+        if (stripe && payment.providerPaymentId) {
+          await refundStripePayment(stripe, payment.providerPaymentId);
+        }
+      } else if (payment.provider === PaymentProvider.RAZORPAY) {
+        const razor = createRazorpayClient();
+        if (razor && payment.providerPaymentId) {
+          await refundRazorpayPayment(razor, payment.providerPaymentId);
+        }
+      }
+    } catch (e) {
+      this.logger.error(
+        `Provider refund failed for payment ${paymentId}`,
+        e as any,
+      );
+    }
+
     payment.status = PaymentStatus.REFUNDED;
+    payment.metadata = {
+      ...(payment.metadata ?? {}),
+      refundReason: reason ?? null,
+      refundedAt: new Date().toISOString(),
+    } as any;
     await this.paymentRepo.save(payment);
 
     const booking = await this.bookingRepo.findOne({
