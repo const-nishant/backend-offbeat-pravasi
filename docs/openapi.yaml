@@ -1,0 +1,1752 @@
+openapi: "3.0.3"
+info:
+  title: "Offbeat प्रवासी API"
+  description: "Full-scale, production-ready trek discovery and booking platform."
+  version: "1.0.0"
+servers:
+  - url: http://localhost:4000
+    description: Local development
+  - url: https://api.offbeatpravasi.com
+    description: Production
+
+paths:
+  # ──────────────────────────────────────────────
+  # APP
+  # ──────────────────────────────────────────────
+  /:
+    get:
+      operationId: appHello
+      summary: Health check / welcome
+      tags: [App]
+      responses:
+        "200":
+          description: Hello world string
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  # ──────────────────────────────────────────────
+  # HEALTH
+  # ──────────────────────────────────────────────
+  /health:
+    get:
+      operationId: healthBase
+      summary: Base health check
+      tags: [Health]
+      responses:
+        "200":
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+
+  /health/redis:
+    get:
+      operationId: healthRedis
+      summary: Redis health check
+      tags: [Health]
+      responses:
+        "200":
+          description: Redis ping result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      pong:
+                        type: string
+
+  # ──────────────────────────────────────────────
+  # AUTH
+  # ──────────────────────────────────────────────
+  /auth/register:
+    post:
+      operationId: authRegister
+      summary: Register a new user
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  minLength: 8
+                  example: myPassword123
+                fullName:
+                  type: string
+                  example: John Doe
+      responses:
+        "201":
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/login:
+    post:
+      operationId: authLogin
+      summary: Login with email and password
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  example: myPassword123
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Login successful
+                  data:
+                    $ref: "#/components/schemas/TokenPair"
+
+  /auth/email/send-otp:
+    post:
+      operationId: authSendOtp
+      summary: Send email OTP
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        "201":
+          description: OTP sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/email/verify-otp:
+    post:
+      operationId: authVerifyOtp
+      summary: Verify email OTP
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, otp]
+              properties:
+                email:
+                  type: string
+                  format: email
+                otp:
+                  type: string
+                  pattern: ^\d{6}$
+                  example: "123456"
+      responses:
+        "201":
+          description: OTP verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/refresh:
+    post:
+      operationId: authRefresh
+      summary: Refresh JWT token pair
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        "200":
+          description: Tokens refreshed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenPair"
+
+  /auth/logout:
+    post:
+      operationId: authLogout
+      summary: Logout and invalidate session
+      tags: [Auth]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/me:
+    get:
+      operationId: authMe
+      summary: Get current authenticated user
+      tags: [Auth]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/AuthenticatedUser"
+
+  /auth/google:
+    get:
+      operationId: authGoogle
+      summary: Initiate Google OAuth flow
+      tags: [Auth]
+      responses:
+        "200":
+          description: Google authorize URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+
+  /auth/google/exchange:
+    post:
+      operationId: authGoogleExchange
+      summary: Exchange Google OAuth session for JWT tokens
+      tags: [Auth]
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/TokenPair"
+
+  # ──────────────────────────────────────────────
+  # TREKS
+  # ──────────────────────────────────────────────
+  /treks:
+    post:
+      operationId: treksCreate
+      summary: Create a trek (organizer only)
+      tags: [Treks]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTrekDto"
+      responses:
+        "201":
+          description: Created trek
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    get:
+      operationId: treksList
+      summary: List and search treks
+      tags: [Treks]
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          description: Full-text search query
+        - in: query
+          name: state
+          schema:
+            type: string
+          description: Filter by state
+        - in: query
+          name: difficulty
+          schema:
+            $ref: "#/components/schemas/TrekDifficulty"
+          description: Filter by difficulty
+        - in: query
+          name: minCost
+          schema:
+            type: integer
+            minimum: 0
+          description: Minimum cost filter
+        - in: query
+          name: maxCost
+          schema:
+            type: integer
+            minimum: 0
+          description: Maximum cost filter
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [relevance, newest, popular, distance]
+          description: Sort order
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+          description: Items per page
+      responses:
+        "200":
+          description: Paginated trek list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /treks/nearby:
+    get:
+      operationId: treksNearby
+      summary: Find treks near a location
+      tags: [Treks]
+      parameters:
+        - in: query
+          name: latitude
+          required: true
+          schema:
+            type: number
+          description: Latitude coordinate
+        - in: query
+          name: longitude
+          required: true
+          schema:
+            type: number
+          description: Longitude coordinate
+        - in: query
+          name: radiusMeters
+          schema:
+            type: integer
+            minimum: 10
+            default: 5000
+          description: Search radius in meters
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Treks near the provided coordinates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /treks/recommendations:
+    get:
+      operationId: treksRecommendations
+      summary: Get trek recommendations
+      tags: [Treks]
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Number of recommendations
+        - in: query
+          name: lat
+          schema:
+            type: number
+          description: User latitude for geo-aware recs
+        - in: query
+          name: lon
+          schema:
+            type: number
+          description: User longitude for geo-aware recs
+      responses:
+        "200":
+          description: Recommended treks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /treks/{id}:
+    get:
+      operationId: treksGet
+      summary: Get trek details by ID
+      tags: [Treks]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Trek ID
+      responses:
+        "200":
+          description: Trek details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ──────────────────────────────────────────────
+  # BOOKINGS
+  # ──────────────────────────────────────────────
+  /bookings:
+    post:
+      operationId: bookingsCreate
+      summary: Create a booking
+      tags: [Bookings]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBookingDto"
+      responses:
+        "201":
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    get:
+      operationId: bookingsList
+      summary: List my bookings
+      tags: [Bookings]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: User's bookings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /bookings/verify:
+    post:
+      operationId: bookingsVerify
+      summary: Verify a booking QR token
+      tags: [Bookings]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [qrToken]
+              properties:
+                qrToken:
+                  type: string
+                  description: QR token from booking ticket
+      responses:
+        "201":
+          description: Verification result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /bookings/release-expired:
+    patch:
+      operationId: bookingsReleaseExpired
+      summary: Release expired booking holds (admin only)
+      tags: [Bookings]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: Expired holds released
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /bookings/{id}:
+    get:
+      operationId: bookingsGet
+      summary: Get booking detail
+      tags: [Bookings]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Booking detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /bookings/{id}/cancel:
+    post:
+      operationId: bookingsCancel
+      summary: Cancel a booking
+      tags: [Bookings]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: Cancellation reason
+      responses:
+        "200":
+          description: Booking cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /bookings/{id}/ticket:
+    get:
+      operationId: bookingsTicket
+      summary: Download booking ticket PDF
+      tags: [Bookings]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: PDF ticket file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
+  # ──────────────────────────────────────────────
+  # PAYMENTS
+  # ──────────────────────────────────────────────
+  /payments/checkout:
+    post:
+      operationId: paymentsCheckout
+      summary: Create a payment checkout session
+      tags: [Payments]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCheckoutDto"
+      responses:
+        "201":
+          description: Checkout session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /payments/webhook/{provider}:
+    post:
+      operationId: paymentsWebhook
+      summary: Handle payment provider webhook (Stripe / Razorpay)
+      tags: [Payments]
+      parameters:
+        - in: path
+          name: provider
+          required: true
+          schema:
+            type: string
+            enum: [stripe, razorpay]
+          description: Payment provider slug
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Raw webhook payload from provider
+            application/x-www-form-urlencoded:
+              schema:
+                type: object
+      responses:
+        "200":
+          description: Webhook processed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+                    example: true
+
+  # ──────────────────────────────────────────────
+  # MEDIA
+  # ──────────────────────────────────────────────
+  /media/presign/trek:
+    post:
+      operationId: mediaPresignTrek
+      summary: Get presigned upload URL for a trek image
+      tags: [Media]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [filename]
+              properties:
+                filename:
+                  type: string
+                  description: Desired filename (e.g., trek-photo.jpg)
+      responses:
+        "201":
+          description: Presigned URL generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ──────────────────────────────────────────────
+  # ORGANIZER
+  # ──────────────────────────────────────────────
+  /organizer/applications:
+    post:
+      operationId: organizerCreateApplication
+      summary: Submit organizer application
+      tags: [Organizer]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrganizerRequestDto"
+      responses:
+        "201":
+          description: Application submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /organizer/applications/me:
+    get:
+      operationId: organizerMyApplication
+      summary: Get my organizer application status
+      tags: [Organizer]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: User's application status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /organizer/applications/{id}:
+    get:
+      operationId: organizerGetApplication
+      summary: Get organizer application detail (admin only)
+      tags: [Organizer]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Application detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    patch:
+      operationId: organizerUpdateApplication
+      summary: Update organizer application (admin only)
+      tags: [Organizer]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrganizerRequestDto"
+      responses:
+        "200":
+          description: Application updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /organizer/dashboard:
+    get:
+      operationId: organizerDashboard
+      summary: Get organizer dashboard
+      tags: [Organizer]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /organizer/treks:
+    get:
+      operationId: organizerListTreks
+      summary: List organizer's treks
+      tags: [Organizer]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            $ref: "#/components/schemas/TrekStatus"
+        - in: query
+          name: startDateFrom
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: startDateTo
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Organizer's treks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /organizer/treks/{id}:
+    get:
+      operationId: organizerGetTrek
+      summary: Get organizer trek detail
+      tags: [Organizer]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Trek detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /organizer/treks/{id}/status:
+    patch:
+      operationId: organizerUpdateTrekStatus
+      summary: Update trek status
+      tags: [Organizer]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  description: New trek status
+      responses:
+        "200":
+          description: Trek status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /organizer/treks/{id}/bookings:
+    get:
+      operationId: organizerGetTrekBookings
+      summary: Get bookings for a trek
+      tags: [Organizer]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: trekId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: status
+          schema:
+            $ref: "#/components/schemas/BookingStatusFilter"
+        - in: query
+          name: bookingDateFrom
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: bookingDateTo
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Trek bookings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /organizer/treks/{id}/reviews:
+    get:
+      operationId: organizerGetTrekReviews
+      summary: Get reviews for a trek
+      tags: [Organizer]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Trek reviews
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /organizer/bookings:
+    get:
+      operationId: organizerListBookings
+      summary: List organizer bookings across treks
+      tags: [Organizer]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: trekId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: status
+          schema:
+            $ref: "#/components/schemas/BookingStatusFilter"
+        - in: query
+          name: bookingDateFrom
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: bookingDateTo
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Organizer bookings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /organizer/analytics:
+    get:
+      operationId: organizerAnalytics
+      summary: Get organizer analytics
+      tags: [Organizer]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: trekId
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Analytics data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /organizer/revenue:
+    get:
+      operationId: organizerRevenue
+      summary: Get organizer revenue data
+      tags: [Organizer]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: trekId
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Revenue data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /organizer/participants:
+    get:
+      operationId: organizerParticipants
+      summary: List organizer participants
+      tags: [Organizer]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: trekId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: status
+          schema:
+            $ref: "#/components/schemas/BookingStatusFilter"
+        - in: query
+          name: bookingDateFrom
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: bookingDateTo
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Participants list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ──────────────────────────────────────────────
+  # ADMIN
+  # ──────────────────────────────────────────────
+  /admin/platform-settings:
+    get:
+      operationId: adminGetPlatformSettings
+      summary: Get platform settings (admin only)
+      tags: [Admin]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: Platform settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    patch:
+      operationId: adminUpdatePlatformSettings
+      summary: Update platform settings (admin only)
+      tags: [Admin]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePlatformSettingsDto"
+      responses:
+        "200":
+          description: Settings updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/users:
+    get:
+      operationId: adminListUsers
+      summary: List users (admin only)
+      tags: [Admin]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+          description: Search query
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+        - in: query
+          name: isSuspended
+          schema:
+            type: boolean
+        - in: query
+          name: organizerStatus
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/users/{id}/status:
+    patch:
+      operationId: adminUpdateUserStatus
+      summary: Update user status (admin only)
+      tags: [Admin]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserStatusDto"
+      responses:
+        "200":
+          description: User status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/organizer-requests:
+    get:
+      operationId: adminListOrganizerRequests
+      summary: List organizer requests (admin only)
+      tags: [Admin]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+        - in: query
+          name: isSuspended
+          schema:
+            type: boolean
+        - in: query
+          name: organizerStatus
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of organizer requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/organizer-requests/{id}:
+    patch:
+      operationId: adminDecideOrganizerRequest
+      summary: Approve or reject an organizer request (admin only)
+      tags: [Admin]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrganizerRequestDecisionDto"
+      responses:
+        "200":
+          description: Decision processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/treks/pending:
+    get:
+      operationId: adminListPendingTreks
+      summary: List pending treks for approval (admin only)
+      tags: [Admin]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+        - in: query
+          name: isSuspended
+          schema:
+            type: boolean
+        - in: query
+          name: organizerStatus
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Pending treks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/treks/{id}/decision:
+    patch:
+      operationId: adminDecideTrek
+      summary: Approve or reject a trek (admin only)
+      tags: [Admin]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrekDecisionDto"
+      responses:
+        "200":
+          description: Trek decision processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/bookings/report:
+    get:
+      operationId: adminBookingsReport
+      summary: Get bookings report (admin only)
+      tags: [Admin]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+        - in: query
+          name: isSuspended
+          schema:
+            type: boolean
+        - in: query
+          name: organizerStatus
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Bookings report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/audit-logs:
+    get:
+      operationId: adminAuditLogs
+      summary: Query audit logs (admin only)
+      tags: [Admin]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: actorId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: action
+          schema:
+            type: string
+        - in: query
+          name: resourceType
+          schema:
+            type: string
+        - in: query
+          name: from
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: to
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+      responses:
+        "200":
+          description: Audit log entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/bookings/{id}/generate-ticket-pdf:
+    post:
+      operationId: adminGenerateTicketPdf
+      summary: Enqueue ticket PDF generation for a booking (admin only)
+      tags: [Admin]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Job enqueued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+components:
+  securitySchemes:
+    access-token:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+
+  schemas:
+    # ── Base response ──
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+        data:
+          type: object
+
+    # ── Auth ──
+    AuthenticatedUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        isAdmin:
+          type: boolean
+        organizerStatus:
+          type: string
+          nullable: true
+
+    TokenPair:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+
+    # ── Enums ──
+    TrekDifficulty:
+      type: string
+      enum: [EASY, MODERATE, DIFFICULT, EXTREME]
+
+    TrekStatus:
+      type: string
+      enum: [DRAFT, PUBLISHED, CANCELLED, COMPLETED]
+
+    BookingStatus:
+      type: string
+      enum: [PENDING, CONFIRMED, CANCELLED, FAILED]
+
+    BookingStatusFilter:
+      type: string
+      enum: [PENDING, CONFIRMED, CANCELLED, FAILED]
+
+    PaymentProvider:
+      type: string
+      enum: [STRIPE, RAZORPAY]
+
+    OrganizerStatus:
+      type: string
+      enum: [NONE, PENDING, APPROVED, REJECTED]
+
+    Decision:
+      type: string
+      enum: [APPROVE, REJECT]
+
+    TrekDecision:
+      type: string
+      enum: [APPROVE, REJECT]
+
+    # ── DTOs ──
+    CreateTrekDto:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        shortDescription:
+          type: string
+          maxLength: 512
+        fullDescription:
+          type: string
+        state:
+          type: string
+        location:
+          type: string
+        latitude:
+          type: number
+          format: double
+        longitude:
+          type: number
+          format: double
+        difficulty:
+          $ref: "#/components/schemas/TrekDifficulty"
+        costInr:
+          type: integer
+          minimum: 0
+        maxParticipants:
+          type: integer
+          minimum: 1
+        tags:
+          type: array
+          items:
+            type: string
+        imageKeys:
+          type: array
+          items:
+            type: string
+
+    CreateBookingDto:
+      type: object
+      required: [trekId, quantity]
+      properties:
+        trekId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+        participants:
+          type: array
+          items:
+            type: object
+        contactPhone:
+          type: string
+        contactEmail:
+          type: string
+          format: email
+        clientReference:
+          type: string
+
+    CreateCheckoutDto:
+      type: object
+      required: [bookingId, provider]
+      properties:
+        bookingId:
+          type: string
+          format: uuid
+        provider:
+          $ref: "#/components/schemas/PaymentProvider"
+        idempotencyKey:
+          type: string
+
+    CreateOrganizerRequestDto:
+      type: object
+      required: [organizationName, contactPhone, bio]
+      properties:
+        organizationName:
+          type: string
+          minLength: 1
+          maxLength: 160
+        contactPerson:
+          type: string
+          maxLength: 160
+        contactPhone:
+          type: string
+          minLength: 3
+          maxLength: 20
+        website:
+          type: string
+          format: uri
+          maxLength: 160
+        bio:
+          type: string
+        yearsOfExperience:
+          type: integer
+          minimum: 0
+          example: 5
+        documentUrls:
+          type: object
+          additionalProperties:
+            type: string
+            format: uri
+          example:
+            licence: "https://..."
+        certificateUrls:
+          type: object
+          additionalProperties:
+            type: string
+            format: uri
+          example:
+            certificate: "https://..."
+
+    UpdateOrganizerRequestDto:
+      allOf:
+        - $ref: "#/components/schemas/CreateOrganizerRequestDto"
+        - type: object
+          properties:
+            status:
+              $ref: "#/components/schemas/OrganizerStatus"
+            adminNotes:
+              type: string
+              maxLength: 1000
+            reviewedAt:
+              type: string
+              format: date-time
+
+    UpdatePlatformSettingsDto:
+      type: object
+      required: [settings]
+      properties:
+        settings:
+          type: object
+          description: Arbitrary platform settings object
+        message:
+          type: string
+
+    UpdateUserStatusDto:
+      type: object
+      properties:
+        isSuspended:
+          type: boolean
+        organizerStatus:
+          type: string
+        note:
+          type: string
+
+    OrganizerRequestDecisionDto:
+      type: object
+      required: [decision]
+      properties:
+        decision:
+          $ref: "#/components/schemas/Decision"
+        note:
+          type: string
+
+    TrekDecisionDto:
+      type: object
+      required: [decision]
+      properties:
+        decision:
+          $ref: "#/components/schemas/TrekDecision"
+        note:
+          type: string

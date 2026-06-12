@@ -13,13 +13,16 @@ import { CreateCheckoutDto } from './dtos/create-checkout.dto';
 import { createStripeClient } from './providers/stripe.provider';
 import { createRazorpayClient } from './providers/razorpay.provider';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
+@ApiTags('Payments')
 @Controller('payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Post('checkout')
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Create a payment checkout session' })
   async createCheckout(@Body() body: CreateCheckoutDto, @Req() req: any) {
     return this.paymentsService.createCheckout({
       ...body,
@@ -28,6 +31,7 @@ export class PaymentsController {
   }
 
   @Post('webhook/:provider')
+  @ApiOperation({ summary: 'Handle payment provider webhook (Stripe/Razorpay)' })
   async providerWebhook(
     @Param('provider') provider: string,
     @Req() req: any,

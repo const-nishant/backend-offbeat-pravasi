@@ -22,13 +22,16 @@ import { OrganizerTrekFiltersDto } from './dtos/organizer-trek-filters.dto';
 import { OrganizerBookingFiltersDto } from './dtos/organizer-booking-filters.dto';
 import { OrganizerAnalyticsFiltersDto } from './dtos/organizer-analytics-filters.dto';
 import { OrganizerService } from './organizer.service';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
+@ApiTags('Organizer')
 @Controller('organizer')
 export class OrganizerController {
   constructor(private readonly organizerService: OrganizerService) {}
 
   @UseGuards(JwtAuthGuard)
   @Post('applications')
+  @ApiOperation({ summary: 'Submit organizer application' })
   async createApplication(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateOrganizerRequestDto,
@@ -43,6 +46,7 @@ export class OrganizerController {
 
   @UseGuards(JwtAuthGuard)
   @Get('applications/me')
+  @ApiOperation({ summary: 'Get my organizer application status' })
   async myApplication(@CurrentUser() user: AuthenticatedUser) {
     const app = await this.organizerService.getMyApplication(user.id);
     return {
@@ -54,6 +58,7 @@ export class OrganizerController {
 
   @UseGuards(JwtAuthGuard, AdminGuard)
   @Get('applications/:id')
+  @ApiOperation({ summary: 'Get organizer application detail (admin)' })
   async getApplication(@Param('id') id: string) {
     const app = await this.organizerService.getApplicationById(id);
     if (!app) {
@@ -68,6 +73,7 @@ export class OrganizerController {
 
   @UseGuards(JwtAuthGuard, AdminGuard)
   @Patch('applications/:id')
+  @ApiOperation({ summary: 'Update organizer application (admin)' })
   async updateApplication(
     @Param('id') id: string,
     @Body() dto: UpdateOrganizerRequestDto,
@@ -82,12 +88,14 @@ export class OrganizerController {
 
   @UseGuards(JwtAuthGuard, OrganizerGuard)
   @Get('dashboard')
+  @ApiOperation({ summary: 'Get organizer dashboard' })
   async getDashboard(@CurrentUser() user: AuthenticatedUser) {
     return this.organizerService.getDashboard(user.id);
   }
 
   @UseGuards(JwtAuthGuard, OrganizerGuard)
   @Get('treks')
+  @ApiOperation({ summary: "List organizer's treks" })
   async listTreks(
     @CurrentUser() user: AuthenticatedUser,
     @Query() filters: OrganizerTrekFiltersDto,
@@ -97,6 +105,7 @@ export class OrganizerController {
 
   @UseGuards(JwtAuthGuard, OrganizerGuard)
   @Get('treks/:id')
+  @ApiOperation({ summary: 'Get organizer trek detail' })
   async getTrekDetail(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
@@ -106,6 +115,7 @@ export class OrganizerController {
 
   @UseGuards(JwtAuthGuard, OrganizerGuard)
   @Patch('treks/:id/status')
+  @ApiOperation({ summary: 'Update trek status' })
   async updateTrekStatus(
     @Param('id') id: string,
     @Body('status') status: string,
@@ -116,6 +126,7 @@ export class OrganizerController {
 
   @UseGuards(JwtAuthGuard, OrganizerGuard)
   @Get('treks/:id/bookings')
+  @ApiOperation({ summary: 'Get bookings for a trek' })
   async getTrekBookings(
     @Param('id') id: string,
     @Query() query: OrganizerBookingFiltersDto,
@@ -126,6 +137,7 @@ export class OrganizerController {
 
   @UseGuards(JwtAuthGuard, OrganizerGuard)
   @Get('treks/:id/reviews')
+  @ApiOperation({ summary: 'Get reviews for a trek' })
   async getTrekReviews(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
@@ -135,6 +147,7 @@ export class OrganizerController {
 
   @UseGuards(JwtAuthGuard, OrganizerGuard)
   @Get('bookings')
+  @ApiOperation({ summary: 'List organizer bookings across treks' })
   async listBookings(
     @CurrentUser() user: AuthenticatedUser,
     @Query() filters: OrganizerBookingFiltersDto,
@@ -144,6 +157,7 @@ export class OrganizerController {
 
   @UseGuards(JwtAuthGuard, OrganizerGuard)
   @Get('analytics')
+  @ApiOperation({ summary: 'Get organizer analytics' })
   async getAnalytics(
     @CurrentUser() user: AuthenticatedUser,
     @Query() filters: OrganizerAnalyticsFiltersDto,
@@ -153,6 +167,7 @@ export class OrganizerController {
 
   @UseGuards(JwtAuthGuard, OrganizerGuard)
   @Get('revenue')
+  @ApiOperation({ summary: 'Get organizer revenue data' })
   async getRevenue(
     @CurrentUser() user: AuthenticatedUser,
     @Query() filters: OrganizerAnalyticsFiltersDto,
@@ -162,6 +177,7 @@ export class OrganizerController {
 
   @UseGuards(JwtAuthGuard, OrganizerGuard)
   @Get('participants')
+  @ApiOperation({ summary: 'List organizer participants' })
   async getParticipants(
     @CurrentUser() user: AuthenticatedUser,
     @Query() query: OrganizerBookingFiltersDto,
