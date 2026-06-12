@@ -1,26 +1,109 @@
-import type { TestingModule } from '@nestjs/testing';
-import { Test } from '@nestjs/testing';
+// Mock typeorm — only replace DataSource with a mock to avoid real DB connection
+jest.mock('typeorm', () => {
+  const actual = jest.requireActual('typeorm');
+  const mockRepo = {
+    find: jest.fn(),
+    findOne: jest.fn(),
+    findOneBy: jest.fn(),
+    save: jest.fn(),
+    delete: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    upsert: jest.fn(),
+    findAndCount: jest.fn(),
+    count: jest.fn(),
+    increment: jest.fn(),
+    decrement: jest.fn(),
+    query: jest.fn(),
+    metadata: { columns: [], relations: [] },
+    createQueryBuilder: jest.fn().mockReturnThis(),
+  };
+  const mockDataSource = {
+    entityMetadatas: [],
+    manager: {
+      find: jest.fn(),
+      findOne: jest.fn(),
+      save: jest.fn(),
+      delete: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      increment: jest.fn(),
+      decrement: jest.fn(),
+      count: jest.fn(),
+      findAndCount: jest.fn(),
+      query: jest.fn(),
+      transaction: jest.fn(),
+    },
+    getRepository: jest.fn().mockReturnValue(mockRepo),
+    destroy: jest.fn(),
+    initialize: jest.fn().mockResolvedValue(undefined),
+    isInitialized: true,
+    options: { type: 'postgres' },
+    name: 'default',
+  };
+  return {
+    ...actual,
+    DataSource: jest.fn().mockImplementation(() => mockDataSource),
+  };
+});
+
+// Mock ESM modules (must be before all imports — jest hoists these)
+jest.mock('@thallesp/nestjs-better-auth', () => {
+  class MockBetterAuthService {
+    api = { signInSocial: jest.fn(), getSession: jest.fn() };
+  }
+  return {
+    AuthService: MockBetterAuthService,
+    AuthModule: {
+      forRoot: () => ({
+        module: class {},
+        providers: [MockBetterAuthService],
+        exports: [MockBetterAuthService],
+      }),
+    },
+  };
+});
+jest.mock('better-auth/node', () => ({ fromNodeHeaders: jest.fn() }));
+jest.mock('better-auth', () => ({ betterAuth: jest.fn() }));
+jest.mock('better-auth/minimal', () => ({ betterAuth: jest.fn() }));
+jest.mock('bullmq', () => {
+  const mockQueue = {
+    add: jest.fn().mockResolvedValue({}),
+    close: jest.fn().mockResolvedValue(undefined),
+    on: jest.fn(),
+    emit: jest.fn(),
+  };
+  return {
+    Queue: jest.fn().mockImplementation(() => mockQueue),
+    Worker: jest.fn().mockImplementation(() => ({
+      on: jest.fn(),
+      close: jest.fn(),
+    })),
+  };
+});
+
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import type { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
+import { AppModule } from '../src/app.module';
+import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { createTestApp } from './helpers/create-test-app';
 
-describe('AppController (e2e)', () => {
+describe('App (e2e)', () => {
   let app: INestApplication<App>;
 
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+  beforeAll(async () => {
+    app = await createTestApp(AppModule);
+  }, 30000);
 
-    app = moduleFixture.createNestApplication();
-    await app.init();
+  afterAll(async () => {
+    if (app) await app.close();
   });
 
-  it('/ (GET)', () => {
+  it('should respond on health endpoint', () => {
     return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+      .get('/health')
+      .set('x-api-key', 'test-api-key')
+      .expect(200);
   });
 });

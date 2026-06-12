@@ -168,3 +168,22 @@ You now have:
 - Environment variable structure
 - Migration flow
 - Production instructions
+
+---
+
+# Additional Environment Notes
+
+- Ticket signing (used to create short-lived signed tickets/PDF access)
+  - `JWT_TICKET_SECRET` — strong secret for ticket JWTs
+  - `JWT_TICKET_TTL` — TTL for ticket JWTs (e.g. `60m`)
+
+- Cloudflare R2 / S3-compatible storage (required for media and ticket PDFs):
+  - `R2_ACCOUNT_ID`, `R2_ENDPOINT`
+  - `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`
+  - `R2_BUCKET_TREKS`, `R2_BUCKET_POSTS`, `R2_BUCKET_PROFILE`
+  - `R2_PUBLIC_BASE_URL` (public CDN base URL)
+  - `R2_REGION`
+
+- Webhooks
+  - Stripe and Razorpay webhook endpoints verify signatures — ensure the webhook route receives the raw request body (disable JSON body parsing for that route or use raw-body middleware).
+

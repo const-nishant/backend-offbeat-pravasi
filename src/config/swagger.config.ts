@@ -1,5 +1,5 @@
 import { DocumentBuilder } from '@nestjs/swagger';
-import type { SwaggerCustomOptions } from '@nestjs/swagger/dist/interfaces/swagger-custom-options.interface';
+import type { SwaggerCustomOptions } from '@nestjs/swagger';
 
 export const swaggerDocumentOptions = new DocumentBuilder()
   .setTitle('Offbeat प्रवासी API')

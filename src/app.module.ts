@@ -25,6 +25,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { MailerModule } from './modules/mailer/mailer.module';
+import { JobsModule } from './jobs/jobs.module';
 @Global()
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { MailerModule } from './modules/mailer/mailer.module';
     NotificationsModule,
     BookingsModule,
     PaymentsModule,
+    JobsModule,
   ],
   providers: [
     {

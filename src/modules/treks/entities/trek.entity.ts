@@ -17,6 +17,13 @@ import { TrekTag } from './trek-tag.entity';
 import { TrekReview } from './trek-review.entity';
 import { TrekDifficulty } from '../enums/trek-difficulty.enum';
 
+export enum TrekStatus {
+  DRAFT = 'DRAFT',
+  PUBLISHED = 'PUBLISHED',
+  CANCELLED = 'CANCELLED',
+  COMPLETED = 'COMPLETED',
+}
+
 @Entity({ name: 'treks' })
 @Index(['state'])
 @Index(['difficulty'])
@@ -77,6 +84,12 @@ export class Trek {
 
   @Column({ type: 'boolean', default: false })
   isPublished!: boolean;
+
+  @Column({ type: 'int', default: 0 })
+  currentParticipants!: number;
+
+  @Column({ type: 'varchar', length: 32, default: TrekStatus.DRAFT })
+  status!: TrekStatus;
 
   @Column({ type: 'float', default: 0 })
   avgRating!: number;

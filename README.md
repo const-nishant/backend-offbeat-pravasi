@@ -476,3 +476,12 @@ Summary:
 For issues, please open a GitHub issue or contact the project maintainer.
 
 ---
+
+---
+
+**Environment / Webhooks notes**
+
+- The project uses a number of environment variables listed in `env.example` — ensure `JWT_TICKET_SECRET` and `JWT_TICKET_TTL` are set for signed ticket issuance (PDF tickets).
+- Payment webhooks (Stripe/Razorpay) require the raw request body for signature verification. When deploying behind proxies or middleware, ensure the webhook route receives the raw payload (no JSON body-parser that strips raw body).
+- Workers (BullMQ) are required to process PDF generation, booking release, and notifications. Configure Redis and run the worker process alongside the API.
+
