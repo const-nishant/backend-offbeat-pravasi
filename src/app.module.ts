@@ -30,6 +30,7 @@ import { BookingsModule } from './modules/bookings/bookings.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { MailerModule } from './modules/mailer/mailer.module';
 import { JobsModule } from './jobs/jobs.module';
+import { ReportsModule } from './modules/reports/reports.module';
 @Global()
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { JobsModule } from './jobs/jobs.module';
     BookingsModule,
     PaymentsModule,
     JobsModule,
+    ReportsModule,
   ],
   providers: [
     {

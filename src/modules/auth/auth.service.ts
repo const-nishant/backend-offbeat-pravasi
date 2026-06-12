@@ -264,6 +264,15 @@ export class AuthService {
 
     await this.redisService.del(key);
 
+    try {
+      await this.mailerService.sendWelcomeEmail(
+        user.email,
+        user.fullName ?? user.email,
+      );
+    } catch {
+      // non-blocking
+    }
+
     return { message: 'Email verified successfully' };
   }
 
@@ -310,7 +319,9 @@ export class AuthService {
   // -----------------
   // Forgot password — send OTP
   // -----------------
-  public async forgotPassword(dto: { email: string }): Promise<{ message: string }> {
+  public async forgotPassword(dto: {
+    email: string;
+  }): Promise<{ message: string }> {
     const user = await this.userRepository.findOne({
       where: { email: dto.email },
     });
@@ -332,7 +343,7 @@ export class AuthService {
     await this.redisService.set(key, JSON.stringify(payload), ttl);
 
     try {
-      await this.mailerService.sendOtpEmail(dto.email, otp);
+      await this.mailerService.sendPasswordResetEmail(dto.email, otp);
     } catch {
       // Log error but continue
     }

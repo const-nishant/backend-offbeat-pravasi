@@ -4,6 +4,8 @@ import { BookingReleaseWorkerService } from './processors/booking-release.proces
 import { TicketPdfWorkerService } from './processors/ticket-pdf.processor';
 import { StoryExpiryWorkerService } from './processors/stories.processor';
 import { StoryExpiryScheduler } from './schedulers/story-expiry.scheduler';
+import { BookingReminderWorkerService } from './processors/booking-reminder.processor';
+import { BookingReminderScheduler } from './schedulers/booking-reminder.scheduler';
 
 const workerProviders =
   process.env.WORKERS_ENABLED !== 'false'
@@ -11,6 +13,7 @@ const workerProviders =
         BookingReleaseWorkerService,
         TicketPdfWorkerService,
         StoryExpiryWorkerService,
+        BookingReminderWorkerService,
       ]
     : [];
 
@@ -21,8 +24,10 @@ const exportProviders = [TicketPdfWorkerService];
   providers: [
     BookingReleaseScheduler,
     StoryExpiryScheduler,
+    BookingReminderScheduler,
     ...workerProviders,
     TicketPdfWorkerService,
+    BookingReminderWorkerService,
   ],
   exports: [...exportProviders],
 })
