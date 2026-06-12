@@ -1,0 +1,14 @@
+<h2 style="margin:0 0 20px;color:#1a1a2e;">Refund Processed</h2>
+<p style="margin:0 0 16px;color:#555555;">Hi {{name}},</p>
+<p style="margin:0 0 16px;color:#555555;">Your refund for the booking has been processed.</p>
+<table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;">
+  <tr><td style="padding:10px 12px;border:1px solid #e0e0e0;color:#666;background:#fafafa;">Booking ID</td>
+      <td style="padding:10px 12px;border:1px solid #e0e0e0;font-weight:600;">{{bookingId}}</td></tr>
+  {{#if trekName}}
+  <tr><td style="padding:10px 12px;border:1px solid #e0e0e0;color:#666;background:#fafafa;">Trek</td>
+      <td style="padding:10px 12px;border:1px solid #e0e0e0;font-weight:600;">{{trekName}}</td></tr>
+  {{/if}}
+  <tr><td style="padding:10px 12px;border:1px solid #e0e0e0;color:#666;background:#fafafa;">Refund Amount</td>
+      <td style="padding:10px 12px;border:1px solid #e0e0e0;font-weight:600;">{{formatCurrency refundAmount}}</td></tr>
+</table>
+<p style="margin:20px 0 0;color:#888;font-size:14px;">The refund will reflect in your account within 5-7 business days.</p>
