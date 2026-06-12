@@ -17,7 +17,7 @@ const swaggerConfig = new DocumentBuilder()
   .build();
 
 async function bootstrap() {
-  const { AppModule } = await import('../src/app.module');
+  const { AppModule } = await import('../src/app.module.js');
   const app = await NestFactory.create(AppModule, { logger: false });
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   const docsPath = join(process.cwd(), 'docs');
