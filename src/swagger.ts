@@ -1,4 +1,3 @@
-import 'tsconfig-paths/register';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Module } from '@nestjs/common';
@@ -94,15 +93,14 @@ async function generateSwaggerDocs(): Promise<void> {
 
   const docsPath = join(process.cwd(), 'docs');
   await mkdir(docsPath, { recursive: true });
+
   await writeFile(
     join(docsPath, 'swagger.json'),
     JSON.stringify(document, null, 2),
-    {
-      encoding: 'utf8',
-      flag: 'w',
-    },
+    { encoding: 'utf8', flag: 'w' },
   );
 
+  console.log('✓ Generated docs/swagger.json');
   await app.close();
 }
 

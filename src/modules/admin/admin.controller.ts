@@ -19,7 +19,9 @@ import { AuditLogQueryDto } from './dtos/audit-log-query.dto';
 import { AdminGuard } from 'src/common/guards/admin.guard';
 import { AuditLogService } from './audit-log.service';
 import { UpdatePlatformSettingsDto } from './dtos/update-platform-settings.dto';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
+@ApiTags('Admin')
 @Controller('admin')
 @UseGuards(JwtAuthGuard, AdminGuard)
 export class AdminController {
@@ -29,11 +31,13 @@ export class AdminController {
   ) {}
 
   @Get('platform-settings')
+  @ApiOperation({ summary: 'Get platform settings' })
   async getPlatformSettings() {
     return this.adminService.getPlatformSettings();
   }
 
   @Patch('platform-settings')
+  @ApiOperation({ summary: 'Update platform settings' })
   async updatePlatformSettings(
     @Body() body: UpdatePlatformSettingsDto,
     @Req() req: any,
@@ -42,16 +46,19 @@ export class AdminController {
   }
 
   @Post('bookings/:id/generate-ticket-pdf')
+  @ApiOperation({ summary: 'Enqueue ticket PDF generation for a booking' })
   async generateBookingPdf(@Param('id') id: string, @Req() req: any) {
     return this.adminService.enqueueTicketPdfJob(id, req.user);
   }
 
   @Get('users')
+  @ApiOperation({ summary: 'List users' })
   async listUsers(@Query() q: AdminUserFiltersDto) {
     return this.adminService.listUsers(q, q.page, q.limit);
   }
 
   @Patch('users/:id/status')
+  @ApiOperation({ summary: 'Update user status' })
   async updateUserStatus(
     @Param('id') id: string,
     @Body() body: UpdateUserStatusDto,
@@ -61,11 +68,13 @@ export class AdminController {
   }
 
   @Get('organizer-requests')
+  @ApiOperation({ summary: 'List organizer requests' })
   async listOrganizerRequests(@Query() q: AdminUserFiltersDto) {
     return this.adminService.listOrganizerRequests(q, q.page, q.limit);
   }
 
   @Patch('organizer-requests/:id')
+  @ApiOperation({ summary: 'Approve or reject an organizer request' })
   async decideOrganizerRequest(
     @Param('id') id: string,
     @Body() body: OrganizerRequestDecisionDto,
@@ -75,11 +84,13 @@ export class AdminController {
   }
 
   @Get('treks/pending')
+  @ApiOperation({ summary: 'List pending treks for approval' })
   async listPendingTreks(@Query() q: AdminUserFiltersDto) {
     return this.adminService.listPendingTreks(q, q.page, q.limit);
   }
 
   @Patch('treks/:id/decision')
+  @ApiOperation({ summary: 'Approve or reject a trek' })
   async decideTrek(
     @Param('id') id: string,
     @Body() body: TrekDecisionDto,
@@ -89,11 +100,13 @@ export class AdminController {
   }
 
   @Get('bookings/report')
+  @ApiOperation({ summary: 'Get bookings report' })
   async bookingsReport(@Query() q: any) {
     return this.adminService.getBookingsReport(q, q.page, q.limit);
   }
 
   @Get('audit-logs')
+  @ApiOperation({ summary: 'Query audit logs' })
   async auditLogs(@Query() q: AuditLogQueryDto) {
     return this.auditLogService.query(q, {
       page: q['page'],

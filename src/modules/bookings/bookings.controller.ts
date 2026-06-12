@@ -17,19 +17,23 @@ import { AdminGuard } from 'src/common/guards/admin.guard';
 import { PaginationDto } from 'src/common/pagination/pagination.dto';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from 'src/common/decorators/current-user.decorator';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
+@ApiTags('Bookings')
 @Controller('bookings')
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Create a booking' })
   async createBooking(@Body() body: CreateBookingDto, @Req() req: any) {
     return this.bookingsService.createBooking(body, req.user);
   }
 
   @Get()
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'List my bookings' })
   async listMyBookings(
     @CurrentUser() user: AuthenticatedUser,
     @Query() query: PaginationDto,
@@ -39,6 +43,7 @@ export class BookingsController {
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Get booking detail' })
   async getBooking(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
@@ -48,6 +53,7 @@ export class BookingsController {
 
   @Post(':id/cancel')
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Cancel a booking' })
   async cancelBooking(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
@@ -58,6 +64,7 @@ export class BookingsController {
 
   @Get(':id/ticket')
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Download booking ticket PDF' })
   async downloadTicket(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticatedUser,
@@ -71,12 +78,14 @@ export class BookingsController {
 
   @Post('verify')
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Verify a booking QR token' })
   async verifyBooking(@Body('qrToken') qrToken: string) {
     return this.bookingsService.verifyQrToken(qrToken);
   }
 
   @Patch('release-expired')
   @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiOperation({ summary: 'Release expired booking holds (admin)' })
   async releaseExpired() {
     return this.bookingsService.releaseExpiredHolds();
   }
