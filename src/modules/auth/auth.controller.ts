@@ -4,6 +4,9 @@ import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
 import { SendOtpDto } from './dtos/send-otp.dto';
 import { VerifyOtpDto } from './dtos/verify-otp.dto';
+import { ResendOtpDto } from './dtos/resend-otp.dto';
+import { ForgotPasswordDto } from './dtos/forgot-password.dto';
+import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { RefreshDto } from './dtos/refresh.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import {
@@ -70,6 +73,36 @@ export class AuthController {
   @ApiOperation({ summary: 'Verify email OTP' })
   verifyOtp(@Body() dto: VerifyOtpDto) {
     return this.authService.verifyOtp(dto);
+  }
+
+  // -------------------------------
+  // RESEND OTP
+  // -------------------------------
+  @Public()
+  @Post('email/resend-otp')
+  @ApiOperation({ summary: 'Resend email verification OTP' })
+  resendOtp(@Body() dto: ResendOtpDto) {
+    return this.authService.resendOtp(dto);
+  }
+
+  // -------------------------------
+  // FORGOT PASSWORD
+  // -------------------------------
+  @Public()
+  @Post('password/forgot')
+  @ApiOperation({ summary: 'Request password reset OTP' })
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  // -------------------------------
+  // RESET PASSWORD
+  // -------------------------------
+  @Public()
+  @Post('password/reset')
+  @ApiOperation({ summary: 'Reset password using OTP' })
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
   }
 
   // -------------------------------

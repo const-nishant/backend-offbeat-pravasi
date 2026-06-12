@@ -1,4 +1,6 @@
 import { Module, Global } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { createRedisClient } from './common/utils/redis.client';
 import { APP_FILTER, APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 import { ValidationExceptionFilter } from './common/filters/validation-exception.filter';
@@ -9,6 +11,8 @@ import { RedisService } from './common/utils/redis.service';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ormConfig } from './config/ormconfig';
+import configuration from './config/configuration';
+import { validationSchema } from './config/validation';
 import { HealthModule } from './modules/health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
@@ -29,6 +33,17 @@ import { JobsModule } from './jobs/jobs.module';
 @Global()
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      load: [configuration],
+      validationSchema,
+      isGlobal: true,
+    }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 90000,
+        limit: 100,
+      },
+    ]),
     TypeOrmModule.forRoot(ormConfig),
     MailerModule,
     HealthModule,

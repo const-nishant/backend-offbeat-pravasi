@@ -5,6 +5,9 @@ import {
   UnauthorizedException,
   ForbiddenException,
   InternalServerErrorException,
+  BadRequestException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -262,6 +265,131 @@ export class AuthService {
     await this.redisService.del(key);
 
     return { message: 'Email verified successfully' };
+  }
+
+  // -----------------
+  // Resend OTP
+  // -----------------
+  public async resendOtp(dto: { email: string }): Promise<{ message: string }> {
+    const user = await this.userRepository.findOne({
+      where: { email: dto.email },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (user.emailVerified) {
+      throw new BadRequestException('Email already verified');
+    }
+
+    // Rate limit check: max 3 requests per 15 min
+    const rateLimitKey = `otp:rate:${dto.email.toLowerCase()}`;
+    const attempts = await this.redisService.get(rateLimitKey);
+    if (attempts && Number(attempts) >= 3) {
+      throw new HttpException(
+        'Too many OTP requests. Please wait.',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    // Delete existing OTP
+    await this.redisService.del(this.otpKeyFor(dto.email));
+
+    // Send new OTP
+    const result = await this.sendOtp({ email: dto.email });
+
+    // Increment rate limit
+    await this.redisService.set(
+      rateLimitKey,
+      String(Number(attempts ?? 0) + 1),
+      900,
+    );
+
+    return result;
+  }
+
+  // -----------------
+  // Forgot password — send OTP
+  // -----------------
+  public async forgotPassword(dto: { email: string }): Promise<{ message: string }> {
+    const user = await this.userRepository.findOne({
+      where: { email: dto.email },
+    });
+    if (!user) {
+      // Don't reveal whether email exists
+      return { message: 'If the email exists, an OTP has been sent.' };
+    }
+
+    const otp = generateOtp(Number(process.env.OTP_LENGTH ?? '6'));
+    const key = `otp:password:${dto.email.toLowerCase()}`;
+    const ttl = Number(process.env.OTP_EXPIRY_MINUTES ?? '10') * 60;
+
+    const payload = {
+      otp,
+      attempts: 0,
+      createdAt: new Date().toISOString(),
+    };
+
+    await this.redisService.set(key, JSON.stringify(payload), ttl);
+
+    try {
+      await this.mailerService.sendOtpEmail(dto.email, otp);
+    } catch {
+      // Log error but continue
+    }
+
+    return { message: 'If the email exists, an OTP has been sent.' };
+  }
+
+  // -----------------
+  // Reset password — verify OTP + update
+  // -----------------
+  public async resetPassword(dto: {
+    email: string;
+    otp: string;
+    newPassword: string;
+  }): Promise<{ message: string }> {
+    const key = `otp:password:${dto.email.toLowerCase()}`;
+    const stored = await this.redisService.get(key);
+    if (!stored) {
+      throw new BadRequestException('OTP expired or invalid');
+    }
+
+    const parsed = JSON.parse(stored) as {
+      otp: string;
+      attempts: number;
+      createdAt: string;
+    };
+
+    if (parsed.attempts >= Number(process.env.OTP_MAX_ATTEMPTS ?? '5')) {
+      await this.redisService.del(key);
+      throw new BadRequestException(
+        'Too many failed attempts. Please request a new OTP.',
+      );
+    }
+
+    if (dto.otp !== parsed.otp) {
+      parsed.attempts += 1;
+      await this.redisService.set(
+        key,
+        JSON.stringify(parsed),
+        Number(process.env.OTP_EXPIRY_MINUTES ?? '10') * 60,
+      );
+      throw new BadRequestException('Invalid OTP');
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { email: dto.email },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.passwordHash = await hashPassword(dto.newPassword);
+    await this.userRepository.save(user);
+
+    await this.redisService.del(key);
+
+    return { message: 'Password reset successfully' };
   }
 
   // -----------------
