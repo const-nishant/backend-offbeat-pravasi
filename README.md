@@ -137,13 +137,9 @@ API ->> Client: tokens
 
 # 🧑‍💻 Development Rules
 
-### ✔ No ConfigModule
+### ✔ ConfigModule with Joi Validation
 
-Environment variables accessed directly:
-
-```ts
-process.env.SOME_VAR;
-```
+Environment variables validated at boot via `@nestjs/config` + Joi schema in `config/validation.ts`. Missing required vars (e.g., `JWT_ACCESS_SECRET`) fail immediately on startup.
 
 ### ✔ Strict TypeScript — **NO `any`**
 
@@ -189,9 +185,13 @@ Used for OTPs, refresh tokens, caching, job queues, cleanup.
 ```
 src/
 ├── app.module.ts
+├── main.ts
 ├── config/
 │   ├── ormconfig.ts
-│   └── redis.config.ts
+│   ├── redis.config.ts
+│   ├── swagger.config.ts
+│   ├── configuration.ts      # ConfigModule factory
+│   └── validation.ts         # Joi env schema
 │
 ├── common/
 │   ├── constants/
@@ -204,21 +204,22 @@ src/
 │   └── utils/
 │
 ├── modules/
-│   ├── auth/
-│   ├── users/
-│   ├── treks/
-│   ├── posts/
-│   ├── stories/
-│   ├── bookmarks/
-│   ├── friendships/
-│   ├── organizer/
-│   ├── admin/
-│   ├── media/
+│   ├── auth/                 # register, login, OTP, password reset, Google OAuth
+│   ├── users/                # profile CRUD, onboarding, search
+│   ├── treks/                # CRUD, geospatial nearby, recommendations
+│   ├── posts/                # feed, create, like, comment
+│   ├── stories/              # create, list, view tracking, expiry
+│   ├── bookmarks/            # toggle, list
+│   ├── friendships/          # send, accept, decline
+│   ├── organizer/            # applications, dashboard, analytics
+│   ├── admin/                # users, treks, bookings, audit logs
+│   ├── media/                # presigned URLs for all categories
 │   ├── leaderboard/
 │   ├── notifications/
-│   ├── bookings/
-│   ├── payments/
-│   └── health/
+│   ├── bookings/             # CRUD, ticket PDF, QR verify
+│   ├── payments/             # Stripe & Razorpay webhooks
+│   ├── health/
+│   └── mailer/
 │
 ├── jobs/
 │   ├── queues.ts
@@ -270,17 +271,22 @@ Below is a reference of the current available API endpoints.
 
 ## 🔹 Auth Routes
 
-| Method | Endpoint                 | Description                    |
-| ------ | ------------------------ | ------------------------------ |
-| POST   | `/auth/register`         | Register user                  |
-| POST   | `/auth/login`            | Login & get tokens             |
-| POST   | `/auth/email/send-otp`   | Send email OTP                 |
-| POST   | `/auth/email/verify-otp` | Verify email OTP               |
-| POST   | `/auth/refresh`          | Refresh JWT tokens             |
-| POST   | `/auth/logout`           | Logout (invalidate session)    |
-| GET    | `/auth/me`               | Get current authenticated user |
-| GET    | `/auth/google`           | Initiate Google OAuth (returns authorize URL)
-| POST   | `/auth/google/exchange`  | Exchange Better Auth session cookie for local TokenPair
+All paths prefixed with `/api/v1`.
+
+| Method | Endpoint                     | Description                                  |
+| ------ | ---------------------------- | -------------------------------------------- |
+| POST   | `/auth/register`             | Register user                                |
+| POST   | `/auth/login`                | Login & get tokens                           |
+| POST   | `/auth/email/send-otp`       | Send email OTP                               |
+| POST   | `/auth/email/verify-otp`     | Verify email OTP                             |
+| POST   | `/auth/email/resend-otp`     | Resend email verification OTP                |
+| POST   | `/auth/password/forgot`      | Request password reset OTP                   |
+| POST   | `/auth/password/reset`       | Reset password using OTP                     |
+| POST   | `/auth/refresh`              | Refresh JWT tokens                           |
+| POST   | `/auth/logout`               | Logout (invalidate session)                  |
+| GET    | `/auth/me`                   | Get current authenticated user               |
+| GET    | `/auth/google`               | Initiate Google OAuth (returns authorize URL) |
+| POST   | `/auth/google/exchange`      | Exchange Better Auth session cookie for local TokenPair |
 
 ---
 
@@ -293,23 +299,27 @@ Below is a reference of the current available API endpoints.
 
 ---
 
-## 🔹 Users (coming soon)
+## 🔹 Users
 
-| Method | Endpoint     |
-| ------ | ------------ |
-| GET    | `/users/me`  |
-| PATCH  | `/users/me`  |
-| GET    | `/users/:id` |
+| Method | Endpoint                | Description                        |
+| ------ | ----------------------- | ---------------------------------- |
+| GET    | `/users/me`             | Get current user profile           |
+| PATCH  | `/users/me`             | Update current user profile        |
+| POST   | `/users/me/onboarding`  | Save onboarding answers            |
+| GET    | `/users/search`         | Search users by username or name   |
+| GET    | `/users/:id`            | Get user by ID                     |
 
 ---
 
-## 🔹 Treks (coming soon)
+## 🔹 Treks
 
-| Method | Endpoint     |
-| ------ | ------------ |
-| GET    | `/treks`     |
-| POST   | `/treks`     |
-| GET    | `/treks/:id` |
+| Method | Endpoint                  | Description                     |
+| ------ | ------------------------- | ------------------------------- |
+| GET    | `/treks`                  | List and search treks           |
+| POST   | `/treks`                  | Create a trek (organizer only)  |
+| GET    | `/treks/nearby`           | Find treks near a location      |
+| GET    | `/treks/recommendations`  | Get trek recommendations         |
+| GET    | `/treks/:id`              | Get trek details                |
 
 ---
 
@@ -349,29 +359,45 @@ I can generate this file for you if you want.
 
 ### ✔ Core backend architecture
 
-### ✔ Full Auth system
+### ✔ Full Auth system (register, login, OTP verify/resend, password reset, Google OAuth, JWT rotation)
+
+### ✔ User module (profile CRUD, onboarding, search)
+
+### ✔ Treks module (CRUD, geospatial nearby, recommendations, search)
+
+### ✔ Posts module (feed, create, like, comment, delete)
+
+### ✔ Stories module (create, list, delete, view tracking, expiry job)
+
+### ✔ Bookmarks module (toggle, list)
+
+### ✔ Friendships module (send, accept, decline)
+
+### ✔ Organizer module (applications, dashboard, treks, bookings, reviews, analytics, revenue, participants)
+
+### ✔ Admin module (users, organizer requests, trek decisions, bookings report, audit logs, platform settings)
+
+### ✔ Media module (presigned URLs for profile, banner, post, trek, story)
+
+### ✔ Bookings module (create, list, cancel, ticket PDF with QR, QR verification)
+
+### ✔ Payments module (Stripe & Razorpay checkout + webhooks)
 
 ### ✔ Pagination utilities
 
 ### ✔ JSON logging interceptor
 
-### ✔ AllExceptionsFilter
+### ✔ AllExceptionsFilter + ValidationExceptionFilter
 
-### ✔ ValidationExceptionFilter
+### ✔ Redis config + OTP/password-reset pipelines
 
-### ✔ API utils
+### ✔ ORM config with type-safe entities
 
-### ✔ Redis config
+### ✔ BullMQ queues + processors (story expiry, booking release, reminders, notifications, ticket PDF, cleanup)
 
-### ✔ ORM config
+### ✔ Health module (server + Redis)
 
-### ✔ Cleanup processor
-
-### ✔ Queue system
-
-### ✔ User entity
-
-### ✔ Health module
+### ✔ ConfigModule with Joi env validation
 
 Everything is completely type-safe with no `any`.
 
@@ -381,25 +407,25 @@ Everything is completely type-safe with no `any`.
 
 ### 🟥 High Priority
 
-- User module (controller + service)
-- Trek module
-- Organizer module
-- Media upload (R2 presigned URLs)
-- Booking + payment module
-- Notification processor (FCM)
+- Notification module (push via FCM, device token management)
+- Leaderboard module (friend leaderboard, global ranking)
+- Full-text search + geolocation indexes for treks
+- Content moderation (profanity filter, reporting)
+- Image optimization pipeline (thumbnails via sharp)
 
 ### 🟧 Medium Priority
 
-- Story interactions
-- Post feed
-- Leaderboard algorithm
-- Admin moderation
+- Cancellation & refund policy enforcement
+- Email templates (welcome, booking confirmation, organizer approval)
+- Rate limiting per endpoint type (auth, upload, general)
+- WebSocket support for real-time notifications
 
 ### 🟩 Low Priority
 
-- Reports system
-- Push analytics
-- Activity scoring
+- CSV export for bookings and participants
+- Push analytics (open rates, delivery metrics)
+- Activity scoring / gamification
+- API versioning docs for v1 → v2 migration
 
 ---
 

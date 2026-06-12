@@ -2,6 +2,7 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { MediaController } from './media.controller';
 import { MediaService } from './media.service';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { MediaCategory } from './entities/media.entity';
 
 describe('MediaController', () => {
   let controller: MediaController;
@@ -14,7 +15,12 @@ describe('MediaController', () => {
         {
           provide: MediaService,
           useValue: {
-            presignTrekImage: jest.fn(),
+            presignUrl: jest.fn(),
+            presignProfile: jest.fn(),
+            presignBanner: jest.fn(),
+            presignPost: jest.fn(),
+            presignTrek: jest.fn(),
+            presignStory: jest.fn(),
           },
         },
       ],
@@ -25,18 +31,23 @@ describe('MediaController', () => {
   });
 
   describe('presignTrek', () => {
-    it('should call mediaService.presignTrekImage with filename', () => {
+    it('should call mediaService.presignTrek with dto fields', () => {
       const mockResult = {
         key: 'treks/12345-abc.jpg',
         url: null,
         presignedUrl: null,
       };
-      mediaService.presignTrekImage.mockReturnValue(mockResult);
+      mediaService.presignTrek.mockReturnValue(mockResult);
 
-      const result = controller.presignTrek({ filename: 'photo.jpg' });
+      const dto = {
+        filename: 'photo.jpg',
+        mimeType: 'image/jpeg',
+        category: MediaCategory.TREK,
+      };
+      const result = controller.presignTrek(dto);
 
       expect(result).toEqual(mockResult);
-      expect(mediaService.presignTrekImage).toHaveBeenCalledWith('photo.jpg');
+      expect(mediaService.presignTrek).toHaveBeenCalledWith('photo.jpg', 'image/jpeg');
     });
   });
 });

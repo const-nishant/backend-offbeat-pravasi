@@ -300,6 +300,197 @@ paths:
                   data:
                     $ref: "#/components/schemas/TokenPair"
 
+  /auth/email/resend-otp:
+    post:
+      operationId: authResendOtp
+      summary: Resend email verification OTP
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        "201":
+          description: OTP resent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/password/forgot:
+    post:
+      operationId: authForgotPassword
+      summary: Request password reset OTP
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        "201":
+          description: OTP sent if email exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/password/reset:
+    post:
+      operationId: authResetPassword
+      summary: Reset password using OTP
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, otp, newPassword]
+              properties:
+                email:
+                  type: string
+                  format: email
+                otp:
+                  type: string
+                  pattern: ^\d{6}$
+                  example: "123456"
+                newPassword:
+                  type: string
+                  minLength: 8
+      responses:
+        "200":
+          description: Password reset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ──────────────────────────────────────────────
+  # USERS
+  # ──────────────────────────────────────────────
+  /users/me:
+    get:
+      operationId: usersGetProfile
+      summary: Get current user profile
+      tags: [Users]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    patch:
+      operationId: usersUpdateProfile
+      summary: Update current user profile
+      tags: [Users]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateProfileDto"
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /users/me/onboarding:
+    post:
+      operationId: usersSaveOnboarding
+      summary: Save onboarding answers
+      tags: [Users]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertOnboardingDto"
+      responses:
+        "201":
+          description: Onboarding answers saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /users/search:
+    get:
+      operationId: usersSearch
+      summary: Search users by username or name
+      tags: [Users]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          description: Search query
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        "200":
+          description: Paginated user list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /users/{id}:
+    get:
+      operationId: usersGetById
+      summary: Get user by ID
+      tags: [Users]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
   # ──────────────────────────────────────────────
   # TREKS
   # ──────────────────────────────────────────────
@@ -702,22 +893,124 @@ paths:
   # ──────────────────────────────────────────────
   # MEDIA
   # ──────────────────────────────────────────────
-  /media/presign/trek:
+  /media/presign:
     post:
-      operationId: mediaPresignTrek
-      summary: Get presigned upload URL for a trek image
+      operationId: mediaPresign
+      summary: Get presigned upload URL for any media category
       tags: [Media]
+      security:
+        - access-token: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required: [filename]
-              properties:
-                filename:
-                  type: string
-                  description: Desired filename (e.g., trek-photo.jpg)
+              $ref: "#/components/schemas/PresignDto"
+      responses:
+        "201":
+          description: Presigned URL generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /media/presign/profile:
+    post:
+      operationId: mediaPresignProfile
+      summary: Get presigned URL for profile image
+      tags: [Media]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PresignDto"
+      responses:
+        "201":
+          description: Presigned URL generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /media/presign/banner:
+    post:
+      operationId: mediaPresignBanner
+      summary: Get presigned URL for banner image
+      tags: [Media]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PresignDto"
+      responses:
+        "201":
+          description: Presigned URL generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /media/presign/post:
+    post:
+      operationId: mediaPresignPost
+      summary: Get presigned URL for post image
+      tags: [Media]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PresignDto"
+      responses:
+        "201":
+          description: Presigned URL generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /media/presign/trek:
+    post:
+      operationId: mediaPresignTrek
+      summary: Get presigned URL for trek image
+      tags: [Media]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PresignDto"
+      responses:
+        "201":
+          description: Presigned URL generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /media/presign/story:
+    post:
+      operationId: mediaPresignStory
+      summary: Get presigned URL for story media
+      tags: [Media]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PresignDto"
       responses:
         "201":
           description: Presigned URL generated
@@ -1899,6 +2192,67 @@ components:
           $ref: "#/components/schemas/PaymentProvider"
         idempotencyKey:
           type: string
+
+    UpdateProfileDto:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 80
+        fullName:
+          type: string
+          maxLength: 120
+        phone:
+          type: string
+        location:
+          type: string
+        gender:
+          type: string
+          enum: [MALE, FEMALE, OTHER]
+        dateOfBirth:
+          type: string
+          format: date
+        profileImageUrl:
+          type: string
+          format: uri
+        bannerImageUrl:
+          type: string
+          format: uri
+
+    UpsertOnboardingDto:
+      type: object
+      required: [answers]
+      properties:
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/OnboardingAnswerDto"
+
+    OnboardingAnswerDto:
+      type: object
+      required: [questionId, value]
+      properties:
+        questionId:
+          type: string
+        value:
+          type: string
+
+    PresignDto:
+      type: object
+      required: [filename, mimeType, category]
+      properties:
+        filename:
+          type: string
+          description: Desired filename with extension
+        mimeType:
+          type: string
+          example: image/jpeg
+        category:
+          $ref: "#/components/schemas/MediaCategory"
+
+    MediaCategory:
+      type: string
+      enum: [PROFILE, BANNER, POST, TREK, STORY]
 
     CreateOrganizerRequestDto:
       type: object
