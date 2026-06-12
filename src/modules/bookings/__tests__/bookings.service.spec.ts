@@ -1,12 +1,14 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
-import { Repository, DataSource } from 'typeorm';
+import type { Repository, DataSource } from 'typeorm';
 import { BookingsService } from '../bookings.service';
-import { Booking, BookingStatus } from '../entities/booking.entity';
-import { Payment, PaymentStatus } from '../entities/payment.entity';
-import { Trek } from '../../treks/entities/trek.entity';
-import { TicketService } from '../ticket.service';
+import type { Booking } from '../entities/booking.entity';
+import { BookingStatus } from '../entities/booking.entity';
+import type { Payment } from '../entities/payment.entity';
+import { PaymentStatus } from '../entities/payment.entity';
+import type { Trek } from '../../treks/entities/trek.entity';
+import type { TicketService } from '../ticket.service';
 import {
   NotFoundException,
   ForbiddenException,
@@ -171,8 +173,14 @@ describe('BookingsService', () => {
       };
       bookingRepo.findOne.mockResolvedValue(confirmedBooking);
       paymentRepo.findOne.mockResolvedValue(mockPayment);
-      bookingRepo.save.mockResolvedValue({ ...confirmedBooking, status: BookingStatus.CANCELLED });
-      paymentRepo.save.mockResolvedValue({ ...mockPayment, status: PaymentStatus.REFUNDED });
+      bookingRepo.save.mockResolvedValue({
+        ...confirmedBooking,
+        status: BookingStatus.CANCELLED,
+      });
+      paymentRepo.save.mockResolvedValue({
+        ...mockPayment,
+        status: PaymentStatus.REFUNDED,
+      });
 
       const result = await service.cancelBooking('booking-1', 'user-1');
 

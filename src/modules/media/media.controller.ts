@@ -13,7 +13,11 @@ export class MediaController {
   @Post('presign')
   @ApiOperation({ summary: 'Get presigned upload URL for any media category' })
   presign(@Body() dto: PresignDto) {
-    return this.mediaService.presignUrl(dto.category, dto.filename, dto.mimeType);
+    return this.mediaService.presignUrl(
+      dto.category,
+      dto.filename,
+      dto.mimeType,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

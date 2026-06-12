@@ -31,10 +31,7 @@ export class UsersService {
     return user;
   }
 
-  async updateProfile(
-    userId: string,
-    dto: UpdateProfileDto,
-  ): Promise<User> {
+  async updateProfile(userId: string, dto: UpdateProfileDto): Promise<User> {
     const user = await this.getProfile(userId);
 
     if (dto.username) {

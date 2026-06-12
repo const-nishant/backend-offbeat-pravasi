@@ -28,7 +28,9 @@ describe('MediaService', () => {
       const svc = new MediaService();
       const result = svc.presignTrekImage('photo.jpg', 'treks');
 
-      expect(result.url).toMatch(/^https:\/\/media\.example\.com\/treks\/.+\.jpg$/);
+      expect(result.url).toMatch(
+        /^https:\/\/media\.example\.com\/treks\/.+\.jpg$/,
+      );
       delete process.env.R2_PUBLIC_BASE_URL;
     });
 

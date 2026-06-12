@@ -1,7 +1,9 @@
 import Joi from 'joi';
 
 export const validationSchema = Joi.object({
-  NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
+  NODE_ENV: Joi.string()
+    .valid('development', 'production', 'test')
+    .default('development'),
   PORT: Joi.number().default(4000),
   APP_URL: Joi.string().uri().default('http://localhost:4000'),
   FRONTEND_URL: Joi.string().uri().default('http://localhost:3000'),
@@ -52,4 +54,10 @@ export const validationSchema = Joi.object({
   OTP_EXPIRY_MINUTES: Joi.number().default(10),
   OTP_LENGTH: Joi.number().default(6),
   OTP_MAX_ATTEMPTS: Joi.number().default(5),
+
+  // Push notifications
+  EXPO_ACCESS_TOKEN: Joi.string().optional(),
+  VAPID_PUBLIC_KEY: Joi.string().optional(),
+  VAPID_PRIVATE_KEY: Joi.string().optional(),
+  VAPID_SUBJECT: Joi.string().email().optional(),
 });

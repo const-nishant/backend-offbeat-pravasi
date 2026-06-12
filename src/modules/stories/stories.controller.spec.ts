@@ -1,7 +1,7 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { StoriesController } from './stories.controller';
 import { StoriesService } from './stories.service';
-import { CreateStoryDto } from './dtos/create-story.dto';
+import type { CreateStoryDto } from './dtos/create-story.dto';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 describe('StoriesController', () => {

@@ -1,16 +1,13 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
 import { StoriesService } from './stories.service';
-import { Story } from './entities/story.entity';
-import { StoryView } from './entities/story-view.entity';
-import { CreateStoryDto } from './dtos/create-story.dto';
-import { User } from '../users/entities/user.entity';
-import { FriendshipsService } from '../friendships/friendships.service';
-import {
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import type { Story } from './entities/story.entity';
+import type { StoryView } from './entities/story-view.entity';
+import type { CreateStoryDto } from './dtos/create-story.dto';
+import type { User } from '../users/entities/user.entity';
+import type { FriendshipsService } from '../friendships/friendships.service';
+import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 describe('StoriesService', () => {
@@ -194,17 +191,17 @@ describe('StoriesService', () => {
       };
       storyRepo.findOne.mockResolvedValue(expiredStory);
 
-      await expect(
-        service.markAsViewed('story-1', 'user-2'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.markAsViewed('story-1', 'user-2')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException if story not found', async () => {
       storyRepo.findOne.mockResolvedValue(null);
 
-      await expect(
-        service.markAsViewed('bad-id', 'user-2'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.markAsViewed('bad-id', 'user-2')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

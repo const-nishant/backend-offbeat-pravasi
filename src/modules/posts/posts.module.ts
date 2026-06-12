@@ -7,11 +7,13 @@ import { Comment } from './entities/comment.entity';
 import { PostLike } from './entities/post-like.entity';
 import { User } from '../users/entities/user.entity';
 import { FriendshipsModule } from '../friendships/friendships.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Post, Comment, PostLike, User]),
     FriendshipsModule,
+    NotificationsModule,
   ],
   controllers: [PostsController],
   providers: [PostsService],

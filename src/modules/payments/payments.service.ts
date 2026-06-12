@@ -26,6 +26,7 @@ import {
 } from './providers/razorpay.provider';
 import { Trek } from '../treks/entities/trek.entity';
 import { MailerService } from '../mailer/mailer.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class PaymentsService {
@@ -41,6 +42,7 @@ export class PaymentsService {
     private readonly ticketService: TicketService,
     private readonly mailerService: MailerService,
     private readonly dataSource: DataSource,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async createCheckout(opts: {
@@ -203,6 +205,7 @@ export class PaymentsService {
       const trek = await em
         .getRepository(Trek)
         .createQueryBuilder('t')
+        .leftJoinAndSelect('t.organizer', 'org')
         .setLock('pessimistic_write')
         .where('t.id = :id', { id: booking.trekId })
         .getOne();
@@ -239,6 +242,23 @@ export class PaymentsService {
       this.sendConfirmationNotification(booking, trek).catch((e) =>
         this.logger.error('Confirmation notification failed', e),
       );
+
+      this.notificationsService
+        .notifyBookingConfirmed(booking.userId, booking.id)
+        .catch((e) => this.logger.error('Push notification failed', e as any));
+
+      if (trek?.organizer?.id) {
+        this.notificationsService
+          .notifyNewBookingToOrganizer(
+            trek.organizer.id,
+            trek.name,
+            booking.id,
+            booking.quantity,
+          )
+          .catch((e) =>
+            this.logger.error('Organizer push notification failed', e as any),
+          );
+      }
 
       return { payment, booking, ticket };
     });

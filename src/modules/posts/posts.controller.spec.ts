@@ -1,8 +1,8 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { PostsController } from './posts.controller';
 import { PostsService } from './posts.service';
-import { CreatePostDto } from './dtos/create-post.dto';
-import { CommentPostDto } from './dtos/comment-post.dto';
+import type { CreatePostDto } from './dtos/create-post.dto';
+import type { CommentPostDto } from './dtos/comment-post.dto';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 describe('PostsController', () => {

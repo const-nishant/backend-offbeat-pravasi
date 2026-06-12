@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
@@ -12,6 +13,7 @@ import { User } from '../users/entities/user.entity';
 import { CreatePostDto } from './dtos/create-post.dto';
 import { CommentPostDto } from './dtos/comment-post.dto';
 import { FriendshipsService } from '../friendships/friendships.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import {
   getPagination,
   buildPaginationMeta,
@@ -19,6 +21,8 @@ import {
 
 @Injectable()
 export class PostsService {
+  private readonly logger = new Logger(PostsService.name);
+
   constructor(
     @InjectRepository(Post)
     private readonly postRepo: Repository<Post>,
@@ -29,6 +33,7 @@ export class PostsService {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
     private readonly friendshipsService: FriendshipsService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(userId: string, dto: CreatePostDto): Promise<Post> {
@@ -67,7 +72,10 @@ export class PostsService {
     userId: string,
     postId: string,
   ): Promise<{ liked: boolean }> {
-    const post = await this.postRepo.findOne({ where: { id: postId } });
+    const post = await this.postRepo.findOne({
+      where: { id: postId },
+      relations: ['user'],
+    });
     if (!post) throw new NotFoundException('Post not found');
 
     const existing = await this.likeRepo.findOne({
@@ -87,6 +95,13 @@ export class PostsService {
     await this.likeRepo.save(like);
     await this.postRepo.increment({ id: postId }, 'likesCount', 1);
 
+    if (post.user.id !== userId) {
+      const likerName = user.fullName ?? user.username ?? 'Someone';
+      this.notificationsService
+        .notifyPostLiked(post.user.id, postId, likerName)
+        .catch((e) => this.logger.error('Like push failed', e));
+    }
+
     return { liked: true };
   }
 
@@ -95,7 +110,10 @@ export class PostsService {
     postId: string,
     dto: CommentPostDto,
   ): Promise<Comment> {
-    const post = await this.postRepo.findOne({ where: { id: postId } });
+    const post = await this.postRepo.findOne({
+      where: { id: postId },
+      relations: ['user'],
+    });
     if (!post) throw new NotFoundException('Post not found');
 
     const user = await this.userRepo.findOne({ where: { id: userId } });
@@ -109,6 +127,13 @@ export class PostsService {
     const saved = await this.commentRepo.save(comment);
 
     await this.postRepo.increment({ id: postId }, 'commentsCount', 1);
+
+    if (post.user.id !== userId) {
+      const commenterName = user.fullName ?? user.username ?? 'Someone';
+      this.notificationsService
+        .notifyPostCommented(post.user.id, postId, commenterName, dto.comment)
+        .catch((e) => this.logger.error('Comment push failed', e));
+    }
 
     return saved;
   }
