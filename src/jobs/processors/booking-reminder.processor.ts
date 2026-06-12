@@ -7,6 +7,7 @@ import {
 import { Worker, Queue } from 'bullmq';
 import { DataSource } from 'typeorm';
 import { bullConnection } from '../config';
+import { MailerService } from '../../modules/mailer/mailer.service';
 
 @Injectable()
 export class BookingReminderWorkerService
@@ -18,7 +19,10 @@ export class BookingReminderWorkerService
     connection: bullConnection,
   });
 
-  constructor(private readonly dataSource: DataSource) {}
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly mailerService: MailerService,
+  ) {}
 
   async onModuleInit(): Promise<void> {
     this.worker = new Worker(
@@ -47,6 +51,20 @@ export class BookingReminderWorkerService
         this.logger.log(
           `Sending reminder for booking ${bookingId} to ${booking.email}`,
         );
+
+        try {
+          await this.mailerService.sendTrekReminderEmail(booking.email, {
+            name: booking.fullName ?? booking.email,
+            trekName: booking.trekName,
+            startDate: booking.startDate,
+            location: booking.location ?? undefined,
+          });
+        } catch (e) {
+          this.logger.error(
+            `Failed to send trek reminder email for booking ${bookingId}`,
+            e as any,
+          );
+        }
 
         return {
           reminded: true,

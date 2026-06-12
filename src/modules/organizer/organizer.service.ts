@@ -29,6 +29,7 @@ import {
   buildPaginationMeta,
 } from 'src/common/pagination/pagination.util';
 import { RedisService } from 'src/common/utils/redis.service';
+import { MailerService } from '../mailer/mailer.service';
 
 @Injectable()
 export class OrganizerService {
@@ -39,6 +40,7 @@ export class OrganizerService {
     private readonly applicationRepo: Repository<OrganizerApplication>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    private readonly mailerService: MailerService,
     @InjectRepository(Trek)
     private readonly trekRepo: Repository<Trek>,
     @InjectRepository(TrekReview)
@@ -85,6 +87,16 @@ export class OrganizerService {
     (user as any).isOrganizerActive = false;
     await this.userRepo.save(user);
 
+    try {
+      await this.mailerService.sendOrganizerApplicationReceivedEmail(
+        user.email,
+        user.fullName ?? user.email,
+        saved.organizationName,
+      );
+    } catch {
+      // non-blocking
+    }
+
     return saved;
   }
 
@@ -128,6 +140,25 @@ export class OrganizerService {
         (user as any).organizerRating = 0;
       }
       await this.userRepo.save(user);
+
+      try {
+        if (dto.status === OrganizerStatus.APPROVED) {
+          await this.mailerService.sendOrganizerApprovedEmail(
+            user.email,
+            user.fullName ?? user.email,
+            app.organizationName,
+          );
+        } else if (dto.status === OrganizerStatus.REJECTED) {
+          await this.mailerService.sendOrganizerRejectedEmail(
+            user.email,
+            user.fullName ?? user.email,
+            app.organizationName,
+            dto.adminNotes,
+          );
+        }
+      } catch {
+        // non-blocking
+      }
     }
 
     return app;

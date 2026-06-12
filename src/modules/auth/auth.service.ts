@@ -400,6 +400,15 @@ export class AuthService {
 
     await this.redisService.del(key);
 
+    try {
+      await this.mailerService.sendPasswordResetSuccessEmail(
+        user.email,
+        user.fullName ?? user.email,
+      );
+    } catch {
+      // non-blocking
+    }
+
     return { message: 'Password reset successfully' };
   }
 

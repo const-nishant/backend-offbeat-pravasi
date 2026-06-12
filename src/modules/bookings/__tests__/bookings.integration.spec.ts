@@ -243,6 +243,9 @@ describe('BookingsService integration (sqlite)', () => {
       verifyAsync: jest.fn(),
     } as unknown as JwtService);
 
+    const mailerService = { sendBookingCancellationEmail: jest.fn() } as any;
+    const notificationsService = {} as any;
+
     return new BookingsService(
       bookingRepo as any,
       trekRepo as any,
@@ -250,6 +253,8 @@ describe('BookingsService integration (sqlite)', () => {
       settingsService,
       ticketService,
       dataSource,
+      notificationsService,
+      mailerService,
     );
   };
 

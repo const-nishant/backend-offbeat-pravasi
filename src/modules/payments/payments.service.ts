@@ -26,6 +26,11 @@ import {
 } from './providers/razorpay.provider';
 import { Trek } from '../treks/entities/trek.entity';
 import { MailerService } from '../mailer/mailer.service';
+import type {
+  BookingDetails,
+  PaymentDetails,
+  BookingAlertDetails,
+} from '../mailer/interfaces/mailer.interface';
 import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
@@ -243,6 +248,20 @@ export class PaymentsService {
         this.logger.error('Confirmation notification failed', e),
       );
 
+      this.sendPaymentReceipt(booking, payment, trek).catch((e) =>
+        this.logger.error('Payment receipt email failed', e),
+      );
+
+      this.sendOrganizerBookingAlert(booking, trek).catch((e) =>
+        this.logger.error('Organizer booking alert failed', e),
+      );
+
+      if (ticket) {
+        this.sendTicketWithAttachment(booking, trek, ticket).catch((e) =>
+          this.logger.error('Ticket email failed', e),
+        );
+      }
+
       this.notificationsService
         .notifyBookingConfirmed(booking.userId, booking.id)
         .catch((e) => this.logger.error('Push notification failed', e as any));
@@ -273,24 +292,99 @@ export class PaymentsService {
       const userEmail = booking.metadata?.contactEmail;
 
       if (userEmail) {
-        await this.mailerService.sendEmail({
-          to: userEmail,
-          subject: `Booking Confirmed - ${trekName}`,
-          html: `
-<h2>Booking Confirmed!</h2>
-<p>Your booking for <strong>${trekName}</strong> has been confirmed.</p>
-<ul>
-  <li>Booking ID: ${booking.id}</li>
-  <li>Quantity: ${booking.quantity}</li>
-  <li>Total Paid: INR ${booking.totalAmountInr}</li>
-</ul>
-<p>You can download your ticket from your bookings page.</p>
-<p>Thank you for choosing Offbeat Pravasi!</p>
-          `,
-        });
+        const details: BookingDetails = {
+          name: booking.metadata?.contactName ?? 'Traveller',
+          trekName,
+          bookingId: booking.id,
+          amount: booking.totalAmountInr,
+          startDate: trek?.startDate?.toISOString() ?? 'TBD',
+          quantity: booking.quantity,
+        };
+
+        await this.mailerService.sendBookingConfirmationEmail(
+          userEmail,
+          details,
+        );
       }
     } catch (e) {
       this.logger.error('Failed to send confirmation email', e as any);
+    }
+  }
+
+  private async sendPaymentReceipt(
+    booking: Booking,
+    payment: Payment,
+    trek?: Trek | null,
+  ) {
+    try {
+      const userEmail = booking.metadata?.contactEmail;
+      if (!userEmail) return;
+
+      const details: PaymentDetails = {
+        name: booking.metadata?.contactName ?? 'Traveller',
+        trekName: trek?.name ?? booking.trekSnapshot?.name,
+        bookingId: booking.id,
+        amount: payment.amountInr,
+        paymentId: payment.id,
+        paymentDate: new Date().toISOString(),
+      };
+
+      await this.mailerService.sendPaymentReceiptEmail(userEmail, details);
+    } catch (e) {
+      this.logger.error('Failed to send payment receipt email', e as any);
+    }
+  }
+
+  private async sendOrganizerBookingAlert(
+    booking: Booking,
+    trek?: Trek | null,
+  ) {
+    try {
+      const organizerEmail = trek?.organizer?.email;
+      const organizerName =
+        trek?.organizer?.fullName ?? trek?.organizer?.email ?? 'Organizer';
+      if (!organizerEmail) return;
+
+      const details: BookingAlertDetails = {
+        organizerName,
+        trekName: trek?.name ?? booking.trekSnapshot?.name ?? 'Trek',
+        bookingId: booking.id,
+        customerName: booking.metadata?.contactName ?? 'Traveller',
+        quantity: booking.quantity,
+        totalAmount: booking.totalAmountInr,
+      };
+
+      await this.mailerService.sendNewBookingAlertEmail(
+        organizerEmail,
+        details,
+      );
+    } catch (e) {
+      this.logger.error('Failed to send organizer booking alert', e as any);
+    }
+  }
+
+  private async sendTicketWithAttachment(
+    booking: Booking,
+    trek?: Trek | null,
+    _ticket?: any,
+  ) {
+    try {
+      const userEmail = booking.metadata?.contactEmail;
+      if (!userEmail) return;
+
+      const details: BookingDetails = {
+        name: booking.metadata?.contactName ?? 'Traveller',
+        trekName: trek?.name ?? booking.trekSnapshot?.name ?? 'Trek',
+        bookingId: booking.id,
+        amount: booking.totalAmountInr,
+        startDate: trek?.startDate?.toISOString() ?? 'TBD',
+        quantity: booking.quantity,
+        location: trek?.location ?? undefined,
+      };
+
+      await this.mailerService.sendTicketEmail(userEmail, details);
+    } catch (e) {
+      this.logger.error('Failed to send ticket email', e as any);
     }
   }
 
@@ -340,6 +434,19 @@ export class PaymentsService {
         refundReason: reason ?? null,
       } as any;
       await this.bookingRepo.save(booking);
+    }
+
+    try {
+      const userEmail = booking?.metadata?.contactEmail;
+      if (userEmail) {
+        await this.mailerService.sendRefundProcessedEmail(userEmail, {
+          name: booking.metadata?.contactName ?? 'Traveller',
+          bookingId: booking.id,
+          refundAmount: payment.amountInr,
+        });
+      }
+    } catch (e) {
+      this.logger.error('Failed to send refund email', e as any);
     }
 
     return { payment, booking };

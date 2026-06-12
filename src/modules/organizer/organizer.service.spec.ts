@@ -25,7 +25,18 @@ describe('OrganizerService', () => {
       save: jest.fn(),
     };
 
-    service = new OrganizerService(applicationRepo as never, userRepo as never);
+    const mailerService = { sendOrganizerApplicationReceivedEmail: jest.fn(), sendOrganizerApprovedEmail: jest.fn(), sendOrganizerRejectedEmail: jest.fn() } as never;
+
+    service = new OrganizerService(
+      applicationRepo as never,
+      userRepo as never,
+      mailerService,
+      null as never,
+      null as never,
+      null as never,
+      null as never,
+      null as never,
+    );
   });
 
   it('looks up pending applications with a typed nested user condition', async () => {

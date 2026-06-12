@@ -90,6 +90,9 @@ describe('BookingsService', () => {
       getSettings: jest.fn().mockResolvedValue({ holdWindowMinutes: 15 }),
     } as any;
 
+    const mailerService = { sendBookingCancellationEmail: jest.fn() } as any;
+    const notificationsService = {} as any;
+
     service = new BookingsService(
       bookingRepo as any,
       trekRepo as any,
@@ -97,6 +100,8 @@ describe('BookingsService', () => {
       settingsService,
       ticketService as any,
       dataSource as any,
+      notificationsService,
+      mailerService,
     );
   });
 

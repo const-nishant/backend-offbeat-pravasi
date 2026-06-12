@@ -34,6 +34,8 @@ describe('AdminService', () => {
     setByKey: jest.fn(),
   };
   const mockTicketPdfWorker: any = { generate: jest.fn() };
+  const mockNotificationsService: any = {};
+  const mockMailerService: any = { sendTrekPublishedEmail: jest.fn(), sendTrekRejectedEmail: jest.fn() };
 
   beforeEach(() => {
     service = new AdminService(
@@ -45,6 +47,8 @@ describe('AdminService', () => {
       mockOrganizerService,
       mockPlatformSettingsService,
       mockTicketPdfWorker,
+      mockNotificationsService,
+      mockMailerService,
     );
   });
 
