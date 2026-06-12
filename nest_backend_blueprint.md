@@ -6,7 +6,7 @@ This guide captures the production-ready design for migrating the Offbeat Pravas
 
 ### 1. High-Level Architecture
 
-- **Entry point**: NestJS (Node 20 LTS) running on Express adapter, packaged in Docker.
+- **Entry point**: NestJS (Node 22 LTS) running on Express adapter, packaged in Docker.
 - **Auth & Identity**: Native JWT auth with access/refresh tokens; Google OAuth via Passport strategy.
 - **Persistence**: PostgreSQL (primary relational store) with TypeORM migrations; Redis for caching, queues, and rate-limiting.
 - **File Storage**: Cloudflare R2 (S3-compatible) for media assets served via CDN; signed URLs for uploads/downloads.

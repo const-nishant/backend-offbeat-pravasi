@@ -288,6 +288,7 @@ All paths prefixed with `/api/v1`.
 | GET    | `/auth/google`               | Initiate Google OAuth (returns authorize URL) |
 | POST   | `/auth/google/exchange`      | Exchange Better Auth session cookie for local TokenPair |
 
+
 ---
 
 ## 🔹 Health Routes
