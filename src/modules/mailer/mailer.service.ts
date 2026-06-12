@@ -1,36 +1,37 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { MailService } from '@sendgrid/mail';
-
-const sgMail = new MailService();
-
-export interface SendEmailOptions {
-  to: string;
-  subject: string;
-  html: string;
-  text?: string;
-}
+import { Transporter } from 'nodemailer';
+import { MailerTemplateService } from './mailer-template.service';
+import { getMailerTransporter } from './mailer.config';
+import {
+  SendMailOptions,
+  BookingDetails,
+  BookingCancelDetails,
+  PaymentDetails,
+  RefundDetails,
+  BookingAlertDetails,
+  TrekReminderDetails,
+  CapacityWarningDetails,
+  TrekPublishedDetails,
+} from './interfaces/mailer.interface';
 
 @Injectable()
 export class MailerService {
   private readonly logger = new Logger(MailerService.name);
   private readonly fromEmail: string;
+  private transporter: Transporter | null = null;
 
-  constructor() {
-    const apiKey = process.env.SENDGRID_API_KEY;
-    if (!apiKey) {
-      this.logger.warn(
-        'SENDGRID_API_KEY not set. Email sending will be disabled.',
-      );
-    } else {
-      sgMail.setApiKey(apiKey);
-      this.logger.log('SendGrid initialized successfully');
-    }
-
+  constructor(private readonly templateService: MailerTemplateService) {
     this.fromEmail = process.env.EMAIL_FROM || 'noreply@offbeatpravasi.com';
+    this.transporter = getMailerTransporter();
+    if (!this.transporter) {
+      this.logger.warn(
+        'No mail transporter configured. Email sending will be disabled.',
+      );
+    }
   }
 
-  async sendEmail(options: SendEmailOptions): Promise<void> {
-    if (!process.env.SENDGRID_API_KEY) {
+  async sendMail(options: SendMailOptions): Promise<void> {
+    if (!this.transporter) {
       this.logger.warn(
         `Email sending disabled. Would send to ${options.to}: ${options.subject}`,
       );
@@ -38,379 +39,345 @@ export class MailerService {
     }
 
     try {
-      const msg = {
+      const html = this.templateService.render(
+        options.template,
+        options.context,
+      );
+      const msg: any = {
         to: options.to,
         from: this.fromEmail,
         subject: options.subject,
-        text: options.text || this.stripHtml(options.html),
-        html: options.html,
+        html,
       };
+      if (options.attachments?.length) {
+        msg.attachments = options.attachments;
+      }
 
-      await sgMail.send(msg);
+      await this.transporter.sendMail(msg);
       this.logger.log(`Email sent successfully to ${options.to}`);
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
-      const errorStack = error instanceof Error ? error.stack : undefined;
       this.logger.error(
         `Failed to send email to ${options.to}: ${errorMessage}`,
-        errorStack,
+      );
+      throw error;
+    }
+  }
+
+  async sendEmail(options: {
+    to: string;
+    subject: string;
+    html: string;
+    text?: string;
+  }): Promise<void> {
+    if (!this.transporter) {
+      this.logger.warn(
+        `Email sending disabled. Would send to ${options.to}: ${options.subject}`,
+      );
+      return;
+    }
+
+    try {
+      await this.transporter.sendMail({
+        to: options.to,
+        from: this.fromEmail,
+        subject: options.subject,
+        text: options.text,
+        html: options.html,
+      });
+      this.logger.log(`Email sent successfully to ${options.to}`);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(
+        `Failed to send email to ${options.to}: ${errorMessage}`,
       );
       throw error;
     }
   }
 
   async sendOtpEmail(email: string, otp: string): Promise<void> {
-    const subject = 'Your OTP for Offbeat Pravasi';
-    const html = this.getOtpEmailTemplate(otp);
-    const text = `Your OTP code is: ${otp}. This code will expire in 10 minutes.`;
-
-    await this.sendEmail({
+    await this.sendMail({
       to: email,
-      subject,
-      html,
-      text,
+      subject: 'Your OTP for Offbeat Pravasi',
+      template: 'auth/email-verification',
+      context: { otp },
     });
   }
 
-  private getOtpEmailTemplate(otp: string): string {
-    return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OTP Verification</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
-  <table role="presentation" style="width: 100%; border-collapse: collapse;">
-    <tr>
-      <td style="padding: 20px 0; text-align: center;">
-        <table role="presentation" style="width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-          <tr>
-            <td style="padding: 40px 20px; text-align: center; background-color: #4CAF50; border-radius: 8px 8px 0 0;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px;">Offbeat Pravasi</h1>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding: 40px 20px;">
-              <h2 style="margin: 0 0 20px 0; color: #333333; font-size: 24px;">Email Verification</h2>
-              <p style="margin: 0 0 20px 0; color: #666666; font-size: 16px; line-height: 1.5;">
-                Thank you for registering with Offbeat Pravasi! Please use the following OTP code to verify your email address:
-              </p>
-              <div style="text-align: center; margin: 30px 0;">
-                <div style="display: inline-block; padding: 20px 40px; background-color: #f0f0f0; border-radius: 8px; border: 2px dashed #4CAF50;">
-                  <span style="font-size: 32px; font-weight: bold; color: #4CAF50; letter-spacing: 5px;">${otp}</span>
-                </div>
-              </div>
-              <p style="margin: 20px 0 0 0; color: #666666; font-size: 14px; line-height: 1.5;">
-                This code will expire in <strong>10 minutes</strong>. Please do not share this code with anyone.
-              </p>
-              <p style="margin: 20px 0 0 0; color: #999999; font-size: 12px; line-height: 1.5;">
-                If you didn't request this code, please ignore this email.
-              </p>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding: 20px; text-align: center; background-color: #f9f9f9; border-radius: 0 0 8px 8px;">
-              <p style="margin: 0; color: #999999; font-size: 12px;">
-                © ${new Date().getFullYear()} Offbeat Pravasi. All rights reserved.
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-    `.trim();
+  async sendWelcomeEmail(email: string, name: string): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: 'Welcome to Offbeat Pravasi!',
+      template: 'auth/welcome',
+      context: { name },
+    });
   }
 
-  async sendWelcomeEmail(email: string, name: string): Promise<void> {
-    const subject = 'Welcome to Offbeat Pravasi!';
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome</title>
-</head>
-<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f4f4f4;">
-  <table role="presentation" style="width:100%;border-collapse:collapse;">
-    <tr><td style="padding:20px 0;text-align:center;">
-      <table role="presentation" style="width:600px;margin:0 auto;background-color:#ffffff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-        <tr><td style="padding:40px 20px;text-align:center;background-color:#4CAF50;border-radius:8px 8px 0 0;">
-          <h1 style="margin:0;color:#ffffff;font-size:28px;">Offbeat Pravasi</h1>
-        </td></tr>
-        <tr><td style="padding:40px 20px;">
-          <h2 style="margin:0 0 20px 0;color:#333333;font-size:24px;">Welcome, ${name}!</h2>
-          <p style="margin:0 0 20px 0;color:#666666;font-size:16px;line-height:1.5;">
-            Your email has been verified successfully. You are now ready to explore the great outdoors with Offbeat Pravasi!
-          </p>
-          <p style="margin:0 0 20px 0;color:#666666;font-size:16px;line-height:1.5;">
-            Start discovering amazing treks, connect with fellow trekkers, and book your next adventure.
-          </p>
-        </td></tr>
-        <tr><td style="padding:20px;text-align:center;background-color:#f9f9f9;border-radius:0 0 8px 8px;">
-          <p style="margin:0;color:#999999;font-size:12px;">
-            © ${new Date().getFullYear()} Offbeat Pravasi. All rights reserved.
-          </p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`.trim();
-    await this.sendEmail({ to: email, subject, html });
+  async sendPasswordResetEmail(email: string, otp: string): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: 'Reset Your Password - Offbeat Pravasi',
+      template: 'auth/password-reset',
+      context: { otp },
+    });
+  }
+
+  async sendPasswordResetSuccessEmail(
+    email: string,
+    name: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: 'Password Changed Successfully - Offbeat Pravasi',
+      template: 'auth/password-reset-success',
+      context: { name },
+    });
   }
 
   async sendBookingConfirmationEmail(
     email: string,
-    name: string,
-    trekName: string,
-    bookingId: string,
-    amount: number,
-    startDate: string,
+    details: BookingDetails,
   ): Promise<void> {
-    const subject = 'Booking Confirmed - Offbeat Pravasi';
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Booking Confirmed</title>
-</head>
-<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f4f4f4;">
-  <table role="presentation" style="width:100%;border-collapse:collapse;">
-    <tr><td style="padding:20px 0;text-align:center;">
-      <table role="presentation" style="width:600px;margin:0 auto;background-color:#ffffff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-        <tr><td style="padding:40px 20px;text-align:center;background-color:#2196F3;border-radius:8px 8px 0 0;">
-          <h1 style="margin:0;color:#ffffff;font-size:28px;">Booking Confirmed!</h1>
-        </td></tr>
-        <tr><td style="padding:40px 20px;">
-          <h2 style="margin:0 0 20px 0;color:#333333;">Hi ${name},</h2>
-          <p style="margin:0 0 20px 0;color:#666666;font-size:16px;line-height:1.5;">
-            Your booking for <strong>${trekName}</strong> has been confirmed.
-          </p>
-          <table style="width:100%;border-collapse:collapse;margin:20px 0;">
-            <tr><td style="padding:10px;border:1px solid #ddd;color:#666;">Booking ID</td>
-                <td style="padding:10px;border:1px solid #ddd;font-weight:bold;">${bookingId}</td></tr>
-            <tr><td style="padding:10px;border:1px solid #ddd;color:#666;">Trek</td>
-                <td style="padding:10px;border:1px solid #ddd;font-weight:bold;">${trekName}</td></tr>
-            <tr><td style="padding:10px;border:1px solid #ddd;color:#666;">Start Date</td>
-                <td style="padding:10px;border:1px solid #ddd;font-weight:bold;">${startDate}</td></tr>
-            <tr><td style="padding:10px;border:1px solid #ddd;color:#666;">Amount Paid</td>
-                <td style="padding:10px;border:1px solid #ddd;font-weight:bold;">₹${amount}</td></tr>
-          </table>
-          <p style="margin:20px 0 0 0;color:#666666;font-size:14px;">
-            Your ticket PDF has been attached to this email. Please keep it for check-in.
-          </p>
-        </td></tr>
-        <tr><td style="padding:20px;text-align:center;background-color:#f9f9f9;border-radius:0 0 8px 8px;">
-          <p style="margin:0;color:#999999;font-size:12px;">
-            © ${new Date().getFullYear()} Offbeat Pravasi. All rights reserved.
-          </p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`.trim();
-    await this.sendEmail({ to: email, subject, html });
+    await this.sendMail({
+      to: email,
+      subject: `Booking Confirmed - ${details.trekName}`,
+      template: 'bookings/booking-confirmation',
+      context: details,
+    });
   }
 
   async sendBookingCancellationEmail(
     email: string,
-    name: string,
-    trekName: string,
-    bookingId: string,
+    details: BookingCancelDetails,
   ): Promise<void> {
-    const subject = 'Booking Cancelled - Offbeat Pravasi';
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Booking Cancelled</title>
-</head>
-<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f4f4f4;">
-  <table role="presentation" style="width:100%;border-collapse:collapse;">
-    <tr><td style="padding:20px 0;text-align:center;">
-      <table role="presentation" style="width:600px;margin:0 auto;background-color:#ffffff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-        <tr><td style="padding:40px 20px;text-align:center;background-color:#f44336;border-radius:8px 8px 0 0;">
-          <h1 style="margin:0;color:#ffffff;font-size:28px;">Booking Cancelled</h1>
-        </td></tr>
-        <tr><td style="padding:40px 20px;">
-          <h2 style="margin:0 0 20px 0;color:#333333;">Hi ${name},</h2>
-          <p style="margin:0 0 20px 0;color:#666666;font-size:16px;line-height:1.5;">
-            Your booking for <strong>${trekName}</strong> (ID: ${bookingId}) has been cancelled.
-          </p>
-          <p style="margin:0 0 20px 0;color:#666666;font-size:16px;line-height:1.5;">
-            If a refund is applicable, it will be processed according to our cancellation policy.
-          </p>
-        </td></tr>
-        <tr><td style="padding:20px;text-align:center;background-color:#f9f9f9;border-radius:0 0 8px 8px;">
-          <p style="margin:0;color:#999999;font-size:12px;">
-            © ${new Date().getFullYear()} Offbeat Pravasi. All rights reserved.
-          </p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`.trim();
-    await this.sendEmail({ to: email, subject, html });
+    await this.sendMail({
+      to: email,
+      subject: 'Booking Cancelled - Offbeat Pravasi',
+      template: 'bookings/booking-cancelled',
+      context: details,
+    });
   }
 
-  async sendPasswordResetEmail(email: string, otp: string): Promise<void> {
-    const subject = 'Reset Your Password - Offbeat Pravasi';
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Password Reset</title>
-</head>
-<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f4f4f4;">
-  <table role="presentation" style="width:100%;border-collapse:collapse;">
-    <tr><td style="padding:20px 0;text-align:center;">
-      <table role="presentation" style="width:600px;margin:0 auto;background-color:#ffffff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-        <tr><td style="padding:40px 20px;text-align:center;background-color:#FF9800;border-radius:8px 8px 0 0;">
-          <h1 style="margin:0;color:#ffffff;font-size:28px;">Password Reset</h1>
-        </td></tr>
-        <tr><td style="padding:40px 20px;">
-          <p style="margin:0 0 20px 0;color:#666666;font-size:16px;line-height:1.5;">
-            You requested a password reset. Use the OTP below to reset your password:
-          </p>
-          <div style="text-align:center;margin:30px 0;">
-            <div style="display:inline-block;padding:20px 40px;background-color:#f0f0f0;border-radius:8px;border:2px dashed #FF9800;">
-              <span style="font-size:32px;font-weight:bold;color:#FF9800;letter-spacing:5px;">${otp}</span>
-            </div>
-          </div>
-          <p style="margin:20px 0 0 0;color:#999999;font-size:14px;">
-            This OTP will expire in 10 minutes. If you didn't request this, please ignore this email.
-          </p>
-        </td></tr>
-        <tr><td style="padding:20px;text-align:center;background-color:#f9f9f9;border-radius:0 0 8px 8px;">
-          <p style="margin:0;color:#999999;font-size:12px;">
-            © ${new Date().getFullYear()} Offbeat Pravasi. All rights reserved.
-          </p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`.trim();
-    await this.sendEmail({ to: email, subject, html });
+  async sendTicketEmail(
+    email: string,
+    details: BookingDetails,
+    pdfBuffer?: Buffer,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Your Ticket - ${details.trekName}`,
+      template: 'bookings/ticket-email',
+      context: details,
+      attachments: pdfBuffer
+        ? [{ filename: 'ticket.pdf', content: pdfBuffer }]
+        : undefined,
+    });
   }
 
-  async sendOrganizerApprovalEmail(
+  async sendPaymentReceiptEmail(
+    email: string,
+    details: PaymentDetails,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: 'Payment Receipt - Offbeat Pravasi',
+      template: 'bookings/payment-receipt',
+      context: details,
+    });
+  }
+
+  async sendRefundProcessedEmail(
+    email: string,
+    details: RefundDetails,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: 'Refund Processed - Offbeat Pravasi',
+      template: 'bookings/refund-processed',
+      context: details,
+    });
+  }
+
+  async sendNewBookingAlertEmail(
+    organizerEmail: string,
+    details: BookingAlertDetails,
+  ): Promise<void> {
+    await this.sendMail({
+      to: organizerEmail,
+      subject: `New Booking - ${details.trekName}`,
+      template: 'bookings/new-booking-alert',
+      context: details,
+    });
+  }
+
+  async sendTicketReissuedEmail(
+    email: string,
+    details: BookingDetails,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Ticket Re-Issued - ${details.trekName}`,
+      template: 'bookings/ticket-reissued',
+      context: details,
+    });
+  }
+
+  async sendOrganizerApplicationReceivedEmail(
     email: string,
     name: string,
     organizationName: string,
   ): Promise<void> {
-    const subject = 'Organizer Application Approved - Offbeat Pravasi';
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Application Approved</title>
-</head>
-<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f4f4f4;">
-  <table role="presentation" style="width:100%;border-collapse:collapse;">
-    <tr><td style="padding:20px 0;text-align:center;">
-      <table role="presentation" style="width:600px;margin:0 auto;background-color:#ffffff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-        <tr><td style="padding:40px 20px;text-align:center;background-color:#4CAF50;border-radius:8px 8px 0 0;">
-          <h1 style="margin:0;color:#ffffff;font-size:28px;">Congratulations!</h1>
-        </td></tr>
-        <tr><td style="padding:40px 20px;">
-          <h2 style="margin:0 0 20px 0;color:#333333;">Hi ${name},</h2>
-          <p style="margin:0 0 20px 0;color:#666666;font-size:16px;line-height:1.5;">
-            Your organizer application for <strong>${organizationName}</strong> has been approved!
-          </p>
-          <p style="margin:0 0 20px 0;color:#666666;font-size:16px;line-height:1.5;">
-            You can now create and manage treks, view bookings, and access the organizer dashboard.
-          </p>
-        </td></tr>
-        <tr><td style="padding:20px;text-align:center;background-color:#f9f9f9;border-radius:0 0 8px 8px;">
-          <p style="margin:0;color:#999999;font-size:12px;">
-            © ${new Date().getFullYear()} Offbeat Pravasi. All rights reserved.
-          </p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`.trim();
-    await this.sendEmail({ to: email, subject, html });
+    await this.sendMail({
+      to: email,
+      subject: 'Application Received - Offbeat Pravasi',
+      template: 'organizer/application-received',
+      context: { name, organizationName },
+    });
   }
 
-  async sendOrganizerRejectionEmail(
+  async sendOrganizerApprovedEmail(
+    email: string,
+    name: string,
+    organizationName: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: 'Organizer Application Approved - Offbeat Pravasi',
+      template: 'organizer/organizer-approved',
+      context: { name, organizationName },
+    });
+  }
+
+  async sendOrganizerRejectedEmail(
     email: string,
     name: string,
     organizationName: string,
     reason?: string,
   ): Promise<void> {
-    const subject = 'Organizer Application Status - Offbeat Pravasi';
-    const reasonHtml = reason
-      ? `<p style="margin:20px 0 0 0;color:#666666;font-size:16px;line-height:1.5;">Reason: ${reason}</p>`
-      : '';
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Application Update</title>
-</head>
-<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f4f4f4;">
-  <table role="presentation" style="width:100%;border-collapse:collapse;">
-    <tr><td style="padding:20px 0;text-align:center;">
-      <table role="presentation" style="width:600px;margin:0 auto;background-color:#ffffff;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-        <tr><td style="padding:40px 20px;text-align:center;background-color:#f44336;border-radius:8px 8px 0 0;">
-          <h1 style="margin:0;color:#ffffff;font-size:28px;">Application Update</h1>
-        </td></tr>
-        <tr><td style="padding:40px 20px;">
-          <h2 style="margin:0 0 20px 0;color:#333333;">Hi ${name},</h2>
-          <p style="margin:0 0 20px 0;color:#666666;font-size:16px;line-height:1.5;">
-            Thank you for your interest in becoming an organizer for <strong>${organizationName}</strong>.
-          </p>
-          <p style="margin:0 0 20px 0;color:#666666;font-size:16px;line-height:1.5;">
-            Unfortunately, your application could not be approved at this time.
-          </p>
-          ${reasonHtml}
-          <p style="margin:20px 0 0 0;color:#666666;font-size:14px;">
-            You are welcome to reapply after addressing the above concerns.
-          </p>
-        </td></tr>
-        <tr><td style="padding:20px;text-align:center;background-color:#f9f9f9;border-radius:0 0 8px 8px;">
-          <p style="margin:0;color:#999999;font-size:12px;">
-            © ${new Date().getFullYear()} Offbeat Pravasi. All rights reserved.
-          </p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`.trim();
-    await this.sendEmail({ to: email, subject, html });
+    await this.sendMail({
+      to: email,
+      subject: 'Organizer Application Status - Offbeat Pravasi',
+      template: 'organizer/organizer-rejected',
+      context: { name, organizationName, reason },
+    });
   }
 
-  private stripHtml(html: string): string {
-    return html
-      .replace(/<[^>]*>/g, '')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .trim();
+  async sendOrganizerNeedsMoreInfoEmail(
+    email: string,
+    name: string,
+    organizationName: string,
+    message?: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: 'Additional Information Required - Offbeat Pravasi',
+      template: 'organizer/organizer-needs-more-info',
+      context: { name, organizationName, message },
+    });
+  }
+
+  async sendTrekReminderEmail(
+    email: string,
+    details: TrekReminderDetails,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Reminder: ${details.trekName} starts soon!`,
+      template: 'treks/trek-reminder',
+      context: details,
+    });
+  }
+
+  async sendTrekCancelledEmail(
+    email: string,
+    name: string,
+    trekName: string,
+    reason?: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Trek Cancelled - ${trekName}`,
+      template: 'treks/trek-cancelled',
+      context: { name, trekName, reason },
+    });
+  }
+
+  async sendWaitlistPromotionEmail(
+    email: string,
+    name: string,
+    trekName: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Spot Opened Up - ${trekName}`,
+      template: 'treks/waitlist-promoted',
+      context: { name, trekName },
+    });
+  }
+
+  async sendTrekCapacityWarningEmail(
+    organizerEmail: string,
+    details: CapacityWarningDetails,
+  ): Promise<void> {
+    await this.sendMail({
+      to: organizerEmail,
+      subject: `Capacity Alert - ${details.trekName}`,
+      template: 'treks/capacity-warning',
+      context: details,
+    });
+  }
+
+  async sendTrekPublishedEmail(
+    email: string,
+    details: TrekPublishedDetails,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Trek Published - ${details.trekName}`,
+      template: 'treks/trek-published',
+      context: details,
+    });
+  }
+
+  async sendTrekRejectedEmail(
+    email: string,
+    name: string,
+    trekName: string,
+    reason?: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: `Trek Not Published - ${trekName}`,
+      template: 'treks/trek-rejected',
+      context: { name, trekName, reason },
+    });
+  }
+
+  async sendEmailChangeVerificationEmail(
+    email: string,
+    name: string,
+    newEmail: string,
+    otp: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: 'Email Change Verification - Offbeat Pravasi',
+      template: 'system/email-change-verification',
+      context: { name, newEmail, otp },
+    });
+  }
+
+  async sendAccountDeletionConfirmationEmail(
+    email: string,
+    name: string,
+  ): Promise<void> {
+    await this.sendMail({
+      to: email,
+      subject: 'Account Deleted - Offbeat Pravasi',
+      template: 'system/account-deletion-confirmation',
+      context: { name },
+    });
   }
 }

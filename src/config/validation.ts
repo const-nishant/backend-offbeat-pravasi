@@ -33,6 +33,11 @@ export const validationSchema = Joi.object({
 
   SENDGRID_API_KEY: Joi.string().optional(),
   EMAIL_FROM: Joi.string().email().optional(),
+  SMTP_HOST: Joi.string().optional(),
+  SMTP_PORT: Joi.number().port().optional(),
+  SMTP_SECURE: Joi.boolean().optional(),
+  SMTP_USER: Joi.string().optional(),
+  SMTP_PASSWORD: Joi.string().optional(),
 
   R2_ACCOUNT_ID: Joi.string().optional(),
   R2_ACCESS_KEY_ID: Joi.string().optional(),
