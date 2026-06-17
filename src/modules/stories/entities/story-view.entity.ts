@@ -1,29 +1,25 @@
 import {
-  Column,
   CreateDateColumn,
   Entity,
   Index,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Post } from './post.entity';
+import { Story } from './story.entity';
 import { User } from '../../users/entities/user.entity';
 
-@Entity({ name: 'comments' })
-@Index(['post'])
-export class Comment {
+@Entity({ name: 'story_views' })
+@Index(['story', 'user'], { unique: true })
+export class StoryView {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => Post, { nullable: false, onDelete: 'CASCADE' })
-  post!: Post;
+  @ManyToOne(() => Story, { nullable: false, onDelete: 'CASCADE' })
+  story!: Story;
 
   @ManyToOne(() => User, { eager: true, nullable: false, onDelete: 'CASCADE' })
   user!: User;
 
-  @Column({ type: 'varchar', length: 500 })
-  comment!: string;
-
   @CreateDateColumn({ type: 'timestamptz' })
-  createdAt!: Date;
+  viewedAt!: Date;
 }

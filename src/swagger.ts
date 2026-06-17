@@ -69,8 +69,8 @@ const providers = [
   { provide: NotificationsService, useValue: {} },
   { provide: OrganizerService, useValue: {} },
   { provide: PaymentsService, useValue: {} },
-  { provide: PostsService, useValue: {} },
-  { provide: StoriesService, useValue: {} },
+  { provide: PostsService, useValue: { create: async () => ({}), getFeed: async () => ({}), toggleLike: async () => ({}), addComment: async () => ({}), getComments: async () => ({}), delete: async () => {} } },
+  { provide: StoriesService, useValue: { create: async () => ({}), findActiveByFriends: async () => ({}), delete: async () => {}, markAsViewed: async () => ({}) } },
   { provide: TreksService, useValue: {} },
   { provide: UsersService, useValue: {} },
   {

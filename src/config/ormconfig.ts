@@ -5,6 +5,8 @@ import { TrekImage } from '../modules/treks/entities/trek-image.entity';
 import { TrekTag } from '../modules/treks/entities/trek-tag.entity';
 import { TrekReview } from '../modules/treks/entities/trek-review.entity';
 import { TrekInteraction } from '../modules/treks/entities/trek-interaction.entity';
+import { Bookmark } from '../modules/bookmarks/entities/bookmark.entity';
+import { FriendRequest } from '../modules/friendships/entities/friend-request.entity';
 
 export const ormConfig: DataSourceOptions = {
   type: 'postgres',
@@ -18,7 +20,16 @@ export const ormConfig: DataSourceOptions = {
   synchronize: process.env.TYPEORM_SYNC === 'true',
 
   // Auto-load all entity files
-  entities: [User, Trek, TrekImage, TrekTag, TrekReview, TrekInteraction],
+  entities: [
+    User,
+    Trek,
+    TrekImage,
+    TrekTag,
+    TrekReview,
+    TrekInteraction,
+    Bookmark,
+    FriendRequest,
+  ],
 
   // Support both compiled JS (dist) and TS (src) migrations so migrations
   // run in dev (ts-node) and production (compiled). Add PostGIS migration below.

@@ -1,5 +1,4 @@
 import {
-  Column,
   CreateDateColumn,
   Entity,
   Index,
@@ -9,9 +8,9 @@ import {
 import { Post } from './post.entity';
 import { User } from '../../users/entities/user.entity';
 
-@Entity({ name: 'comments' })
-@Index(['post'])
-export class Comment {
+@Entity({ name: 'post_likes' })
+@Index(['post', 'user'], { unique: true })
+export class PostLike {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
@@ -20,9 +19,6 @@ export class Comment {
 
   @ManyToOne(() => User, { eager: true, nullable: false, onDelete: 'CASCADE' })
   user!: User;
-
-  @Column({ type: 'varchar', length: 500 })
-  comment!: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;

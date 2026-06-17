@@ -1502,6 +1502,247 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
 
+  # ──────────────────────────────────────────────
+  # POSTS
+  # ──────────────────────────────────────────────
+  /posts/feed:
+    get:
+      operationId: postsFeed
+      summary: Get feed posts from friends and self
+      tags: [Posts]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Paginated feed posts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /posts:
+    post:
+      operationId: postsCreate
+      summary: Create a new post
+      tags: [Posts]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePostDto"
+      responses:
+        "201":
+          description: Post created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /posts/{id}/like:
+    post:
+      operationId: postsToggleLike
+      summary: Toggle like on a post
+      tags: [Posts]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Like toggled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  liked:
+                    type: boolean
+
+  /posts/{id}/comments:
+    post:
+      operationId: postsAddComment
+      summary: Comment on a post
+      tags: [Posts]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentPostDto"
+      responses:
+        "201":
+          description: Comment added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    get:
+      operationId: postsGetComments
+      summary: Get comments for a post
+      tags: [Posts]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Paginated comments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /posts/{id}:
+    delete:
+      operationId: postsDelete
+      summary: Delete own post
+      tags: [Posts]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Post deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ──────────────────────────────────────────────
+  # STORIES
+  # ──────────────────────────────────────────────
+  /stories:
+    get:
+      operationId: storiesActive
+      summary: Get active stories from friends and self
+      tags: [Stories]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: List of active stories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Story"
+    post:
+      operationId: storiesCreate
+      summary: Create a new story (24h expiry)
+      tags: [Stories]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateStoryDto"
+      responses:
+        "201":
+          description: Story created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /stories/{id}:
+    delete:
+      operationId: storiesDelete
+      summary: Delete own story
+      tags: [Stories]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Story deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /stories/{id}/view:
+    post:
+      operationId: storiesMarkAsViewed
+      summary: Mark story as viewed
+      tags: [Stories]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: View tracked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  viewed:
+                    type: boolean
+
 components:
   securitySchemes:
     access-token:
@@ -1750,3 +1991,113 @@ components:
           $ref: "#/components/schemas/TrekDecision"
         note:
           type: string
+
+    # ── Posts ──
+    CreatePostDto:
+      type: object
+      required: [caption, imageUrls]
+      properties:
+        caption:
+          type: string
+        imageUrls:
+          type: array
+          items:
+            type: string
+            format: uri
+        location:
+          type: string
+          nullable: true
+
+    CommentPostDto:
+      type: object
+      required: [comment]
+      properties:
+        comment:
+          type: string
+          maxLength: 500
+
+    Post:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user:
+          $ref: "#/components/schemas/User"
+        caption:
+          type: string
+        imageUrls:
+          type: array
+          items:
+            type: string
+            format: uri
+        location:
+          type: string
+          nullable: true
+        likesCount:
+          type: integer
+        commentsCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        fullName:
+          type: string
+          nullable: true
+        username:
+          type: string
+          nullable: true
+        profileImageUrl:
+          type: string
+          format: uri
+          nullable: true
+
+    # ── Stories ──
+    CreateStoryDto:
+      type: object
+      required: [mediaUrl, mediaType]
+      properties:
+        mediaUrl:
+          type: string
+          format: uri
+        mediaType:
+          type: string
+          description: Type of media (e.g., IMAGE, VIDEO)
+        caption:
+          type: string
+          nullable: true
+
+    Story:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user:
+          $ref: "#/components/schemas/User"
+        mediaUrl:
+          type: string
+          format: uri
+        mediaType:
+          type: string
+        caption:
+          type: string
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+        viewsCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
