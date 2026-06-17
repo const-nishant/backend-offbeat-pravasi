@@ -29,10 +29,8 @@ export const ormConfig: DataSourceOptions = {
   password: process.env.DB_PASSWORD ?? 'postgres',
   database: process.env.DB_NAME ?? 'offbeat_pravasi',
 
-  // Always turn OFF synchronize in production
   synchronize: process.env.TYPEORM_SYNC === 'true',
 
-  // Auto-load all entity files
   entities: [
     User,
     Trek,
@@ -57,13 +55,16 @@ export const ormConfig: DataSourceOptions = {
     Report,
   ],
 
-  // Support both compiled JS (dist) and TS (src) migrations so migrations
-  // run in dev (ts-node) and production (compiled). Add PostGIS migration below.
-  migrations: ['dist/database/migrations/*.js', 'src/database/migrations/*.ts'],
+  migrations: [
+    'dist/database/migrations/*.js',
+    'src/database/migrations/*.ts',
+  ],
   migrationsTableName: 'migrations',
 
   ssl:
-    process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+    process.env.DB_SSL === 'true'
+      ? { rejectUnauthorized: false }
+      : undefined,
 
   logging: process.env.DB_LOGGING === 'true',
 };

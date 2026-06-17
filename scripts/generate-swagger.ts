@@ -19,17 +19,29 @@ const swaggerConfig = new DocumentBuilder()
 async function bootstrap() {
   const { AppModule } = await import('../src/app.module');
   const app = await NestFactory.create(AppModule, { logger: false });
+
   const document = SwaggerModule.createDocument(app, swaggerConfig);
+
   const docsPath = join(process.cwd(), 'docs');
   mkdirSync(docsPath, { recursive: true });
+
   writeFileSync(
     join(docsPath, 'swagger.json'),
     JSON.stringify(document, null, 2),
     'utf8',
   );
+
+  writeFileSync(
+    join(docsPath, 'swagger.yaml'),
+    SwaggerModule.generateYaml(document),
+    'utf8',
+  );
+
   console.log(
     `Generated swagger.json (${Object.keys(document.paths ?? {}).length} paths)`,
   );
+  console.log('Generated swagger.yaml');
+
   await app.close();
 }
 
