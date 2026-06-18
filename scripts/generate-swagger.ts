@@ -1,13 +1,9 @@
 import { NestFactory } from '@nestjs/core';
-import {
-  SwaggerModule,
-  DocumentBuilder,
-  type SwaggerDocumentOptions,
-} from '@nestjs/swagger';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-const swaggerDocumentOptions: SwaggerDocumentOptions = new DocumentBuilder()
+const swaggerConfig = new DocumentBuilder()
   .setTitle('Offbeat प्रवासी API')
   .setDescription(
     'Full-scale, production-ready trek discovery and booking platform.',
@@ -23,21 +19,29 @@ const swaggerDocumentOptions: SwaggerDocumentOptions = new DocumentBuilder()
 async function bootstrap() {
   const { AppModule } = await import('../src/app.module');
   const app = await NestFactory.create(AppModule, { logger: false });
-  const document = SwaggerModule.createDocument(app, swaggerDocumentOptions);
+
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+
   const docsPath = join(process.cwd(), 'docs');
   mkdirSync(docsPath, { recursive: true });
+
   writeFileSync(
     join(docsPath, 'swagger.json'),
     JSON.stringify(document, null, 2),
     'utf8',
   );
+
   writeFileSync(
     join(docsPath, 'swagger.yaml'),
     SwaggerModule.generateYaml(document),
     'utf8',
   );
-  console.log(`Generated swagger.json (${Object.keys(document.paths ?? {}).length} paths)`);
+
+  console.log(
+    `Generated swagger.json (${Object.keys(document.paths ?? {}).length} paths)`,
+  );
   console.log('Generated swagger.yaml');
+
   await app.close();
 }
 

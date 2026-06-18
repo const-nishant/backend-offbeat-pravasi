@@ -22,6 +22,16 @@ function serveDocsYaml(app: INestApplication): void {
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
 
+  app.enableCors({
+    origin: process.env.FRONTEND_URL?.split(',') ?? ['http://localhost:3000'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
+    maxAge: 86400,
+  });
+
+  app.setGlobalPrefix('api/v1');
+
   const document = SwaggerModule.createDocument(app, swaggerDocumentOptions);
   SwaggerModule.setup('docs', app, document, swaggerCustomOptions);
 

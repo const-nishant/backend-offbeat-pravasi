@@ -36,6 +36,8 @@ import { TreksController } from './modules/treks/treks.controller';
 import { TreksService } from './modules/treks/treks.service';
 import { UsersController } from './modules/users/users.controller';
 import { UsersService } from './modules/users/users.service';
+import { ReportsController } from './modules/reports/reports.controller';
+import { ReportsService } from './modules/reports/reports.service';
 
 const controllers = [
   AppController,
@@ -54,6 +56,7 @@ const controllers = [
   StoriesController,
   TreksController,
   UsersController,
+  ReportsController,
 ];
 
 const providers = [
@@ -69,10 +72,29 @@ const providers = [
   { provide: NotificationsService, useValue: {} },
   { provide: OrganizerService, useValue: {} },
   { provide: PaymentsService, useValue: {} },
-  { provide: PostsService, useValue: { create: async () => ({}), getFeed: async () => ({}), toggleLike: async () => ({}), addComment: async () => ({}), getComments: async () => ({}), delete: async () => {} } },
-  { provide: StoriesService, useValue: { create: async () => ({}), findActiveByFriends: async () => ({}), delete: async () => {}, markAsViewed: async () => ({}) } },
+  {
+    provide: PostsService,
+    useValue: {
+      create: async () => ({}),
+      getFeed: async () => ({}),
+      toggleLike: async () => ({}),
+      addComment: async () => ({}),
+      getComments: async () => ({}),
+      delete: async () => {},
+    },
+  },
+  {
+    provide: StoriesService,
+    useValue: {
+      create: async () => ({}),
+      findActiveByFriends: async () => ({}),
+      delete: async () => {},
+      markAsViewed: async () => ({}),
+    },
+  },
   { provide: TreksService, useValue: {} },
   { provide: UsersService, useValue: {} },
+  { provide: ReportsService, useValue: {} },
   {
     provide: 'REDIS_CLIENT',
     useValue: {

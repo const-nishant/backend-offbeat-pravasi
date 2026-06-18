@@ -36,6 +36,17 @@ This project follows a structured release flow and keeps the backend clean, type
 - Code-style conventions and backend rules
 - Centralized Swagger configuration (`src/config/swagger.config.ts`), UI at `/docs`, and `npm run swagger:export` script that writes `docs/swagger.json`
 - Treks module with PostGIS-enabled migrations, geospatial search, nearby lookup, in-house recommendations, Swagger annotations, and unit tests
+- Auth `resend-otp`, `password/forgot`, `password/reset` endpoints
+- Users controller with 5 routes: `GET /users/me`, `PATCH /users/me`, `POST /users/me/onboarding`, `GET /users/search`, `GET /users/:id`
+- Users service with profile CRUD, onboarding (Redis-backed), and search
+- Bookmarks DTOs (`bookmark-query.dto.ts`)
+- Media entity (`Media` table with category enum)
+- Media DTOs (`presign.dto.ts`) with `filename`, `mimeType`, `category`
+- Media presign endpoints: generic, profile, banner, post, trek, story
+- `ConfigModule` with Joi validation schema for all env vars
+- `ThrottlerModule` for rate limiting (100 req/90s)
+- CORS configuration in `main.ts` using `FRONTEND_URL`
+- API versioning prefix `api/v1` via `app.setGlobalPrefix`
 
 ### Changed
 
@@ -43,10 +54,11 @@ This project follows a structured release flow and keeps the backend clean, type
 - Centralized Redis usage across queues and services
 - All environment variables accessed via `process.env.*`
 - Trek endpoint testing is still pending and will be covered in e2e follow-up work
+- `MediaService` generalized from single `presignTrekImage` to full multi-category presign
+- README API tables updated with new endpoints, completed work, and roadmap
 
 ### Removed
 
-- ConfigModule and validation schemas (project rule)
 - Unstructured success responses (now uses interceptor)
 
 ---
