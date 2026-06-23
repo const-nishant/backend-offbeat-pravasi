@@ -123,7 +123,14 @@ describe('PaymentsService', () => {
     const mailerService = {
       sendEmail: jest.fn(),
       sendOtpEmail: jest.fn(),
+      sendBookingConfirmationEmail: jest.fn(),
+      sendPaymentReceiptEmail: jest.fn(),
+      sendRefundProcessedEmail: jest.fn(),
+      sendTicketEmail: jest.fn(),
+      sendNewBookingAlertEmail: jest.fn(),
     } as any;
+
+    const notificationsService = {} as any;
 
     service = new PaymentsService(
       paymentRepo as any,
@@ -132,6 +139,7 @@ describe('PaymentsService', () => {
       ticketService as any,
       mailerService as any,
       dataSource as any,
+      notificationsService,
     );
   });
 

@@ -18,6 +18,8 @@ import {
 } from 'src/common/pagination/pagination.util';
 import { TicketService } from './ticket.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { MailerService } from '../mailer/mailer.service';
+import type { BookingCancelDetails } from '../mailer/interfaces/mailer.interface';
 
 @Injectable()
 export class BookingsService {
@@ -34,6 +36,7 @@ export class BookingsService {
     private readonly ticketService: TicketService,
     private readonly dataSource: DataSource,
     private readonly notificationsService: NotificationsService,
+    private readonly mailerService: MailerService,
   ) {}
 
   async createBooking(dto: CreateBookingDto, user: any) {
@@ -88,7 +91,11 @@ export class BookingsService {
         totalAmountInr: lockedTrek.costInr * dto.quantity,
         status: BookingStatus.PENDING,
         holdExpiresAt: new Date(Date.now() + holdMinutes * 60 * 1000),
-        metadata: { clientReference: dto.clientReference ?? null },
+        metadata: {
+          contactEmail: dto.contactEmail ?? null,
+          contactPhone: dto.contactPhone ?? null,
+          clientReference: dto.clientReference ?? null,
+        },
       } as Partial<Booking>);
 
       return em.save(booking);
@@ -159,6 +166,24 @@ export class BookingsService {
     this.notificationsService
       .notifyBookingCancelled(userId, id, trekSnapshotName)
       .catch((e) => this.logger.error('Cancellation push failed', e));
+
+    try {
+      const userEmail = booking.metadata?.contactEmail;
+      if (userEmail) {
+        const details: BookingCancelDetails = {
+          name: 'Traveller',
+          trekName: trekSnapshotName,
+          bookingId: booking.id,
+          refundInfo: payment ? 'A refund will be processed shortly.' : undefined,
+        };
+        await this.mailerService.sendBookingCancellationEmail(
+          userEmail,
+          details,
+        );
+      }
+    } catch (e) {
+      this.logger.error('Failed to send cancellation email', e as any);
+    }
 
     return { booking, refunded: !!payment };
   }

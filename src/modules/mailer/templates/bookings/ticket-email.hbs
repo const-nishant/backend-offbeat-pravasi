@@ -1,0 +1,15 @@
+<h2 style="margin:0 0 20px;color:#1a1a2e;">Your Trek Ticket</h2>
+<p style="margin:0 0 16px;color:#555555;">Hi {{name}},</p>
+<p style="margin:0 0 16px;color:#555555;">Please find your ticket attached for <strong>{{trekName}}</strong>.</p>
+<table style="width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;">
+  <tr><td style="padding:10px 12px;border:1px solid #e0e0e0;color:#666;background:#fafafa;">Booking ID</td>
+      <td style="padding:10px 12px;border:1px solid #e0e0e0;font-weight:600;">{{bookingId}}</td></tr>
+  <tr><td style="padding:10px 12px;border:1px solid #e0e0e0;color:#666;background:#fafafa;">Trek</td>
+      <td style="padding:10px 12px;border:1px solid #e0e0e0;font-weight:600;">{{trekName}}</td></tr>
+  <tr><td style="padding:10px 12px;border:1px solid #e0e0e0;color:#666;background:#fafafa;">Start Date</td>
+      <td style="padding:10px 12px;border:1px solid #e0e0e0;font-weight:600;">{{startDate}}</td></tr>
+  {{#if location}}
+  <tr><td style="padding:10px 12px;border:1px solid #e0e0e0;color:#666;background:#fafafa;">Location</td>
+      <td style="padding:10px 12px;border:1px solid #e0e0e0;font-weight:600;">{{location}}</td></tr>
+  {{/if}}
+</table>

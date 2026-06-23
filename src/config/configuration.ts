@@ -44,9 +44,16 @@ export default () => ({
     publicBaseUrl: process.env.R2_PUBLIC_BASE_URL,
   },
 
-  sendgrid: {
-    apiKey: process.env.SENDGRID_API_KEY,
+  mailer: {
+    transport: process.env.SENDGRID_API_KEY ? 'sendgrid' : 'smtp',
     from: process.env.EMAIL_FROM ?? 'noreply@offbeatpravasi.com',
+    smtp: {
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587,
+      secure: process.env.SMTP_SECURE === 'true',
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASSWORD,
+    },
   },
 
   stripe: {

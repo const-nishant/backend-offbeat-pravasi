@@ -9,6 +9,7 @@ import { UpdateOrganizerRequestDto } from '../organizer/dtos/update-organizer-re
 import { PlatformSettingsService } from './platform-settings.service';
 import { TicketPdfWorkerService } from '../../jobs/processors/ticket-pdf.processor';
 import { NotificationsService } from '../notifications/notifications.service';
+import { MailerService } from '../mailer/mailer.service';
 import { OrganizerApplication } from '../organizer/entities/organizer-application.entity';
 import { Trek } from '../treks/entities/trek.entity';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
@@ -33,6 +34,7 @@ export class AdminService {
     private readonly platformSettingsService: PlatformSettingsService,
     private readonly ticketPdfWorker: TicketPdfWorkerService,
     private readonly notificationsService: NotificationsService,
+    private readonly mailerService: MailerService,
   ) {}
 
   async recordAction(
@@ -188,6 +190,29 @@ export class AdminService {
     }
 
     await this.trekRepo.save(trek);
+
+    try {
+      const organizerName =
+        trek.organizer?.fullName ?? trek.organizer?.email ?? 'Organizer';
+      const organizerEmail = trek.organizer?.email;
+      if (organizerEmail) {
+        if (decisionDto.decision === 'APPROVE') {
+          await this.mailerService.sendTrekPublishedEmail(organizerEmail, {
+            name: organizerName,
+            trekName: trek.name,
+          });
+        } else {
+          await this.mailerService.sendTrekRejectedEmail(
+            organizerEmail,
+            organizerName,
+            trek.name,
+          );
+        }
+      }
+    } catch (e) {
+      this.logger.error('Failed to send trek decision email', e as any);
+    }
+
     await this.recordAction(
       actor,
       'TREK_DECISION',

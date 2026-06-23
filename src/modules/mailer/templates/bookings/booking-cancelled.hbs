@@ -1,0 +1,8 @@
+<h2 style="margin:0 0 20px;color:#1a1a2e;">Booking Cancelled</h2>
+<p style="margin:0 0 16px;color:#555555;">Hi {{name}},</p>
+<p style="margin:0 0 16px;color:#555555;">Your booking for <strong>{{trekName}}</strong> (ID: {{bookingId}}) has been cancelled.</p>
+{{#if refundInfo}}
+<p style="margin:0 0 16px;color:#555555;">{{refundInfo}}</p>
+{{else}}
+<p style="margin:0 0 16px;color:#555555;">If a refund is applicable, it will be processed according to our cancellation policy.</p>
+{{/if}}
