@@ -54,10 +54,9 @@ describe('TicketService', () => {
         userId: 'user-1',
       });
 
-      expect(jwtService.signAsync).toHaveBeenCalledWith(
-        expect.any(Object),
-        { expiresIn: '1440m' },
-      );
+      expect(jwtService.signAsync).toHaveBeenCalledWith(expect.any(Object), {
+        expiresIn: '1440m',
+      });
     });
   });
 

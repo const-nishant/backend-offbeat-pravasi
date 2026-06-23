@@ -6,7 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, LessThan } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { Booking, BookingStatus } from './entities/booking.entity';
 import { Payment, PaymentStatus } from './entities/payment.entity';
 import { Trek } from '../treks/entities/trek.entity';
@@ -17,6 +17,7 @@ import {
   buildPaginationMeta,
 } from 'src/common/pagination/pagination.util';
 import { TicketService } from './ticket.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class BookingsService {
@@ -32,6 +33,7 @@ export class BookingsService {
     private readonly settingsService: PlatformSettingsService,
     private readonly ticketService: TicketService,
     private readonly dataSource: DataSource,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async createBooking(dto: CreateBookingDto, user: any) {
@@ -152,6 +154,11 @@ export class BookingsService {
       } as any;
       await this.paymentRepo.save(payment);
     }
+
+    const trekSnapshotName = booking.trekSnapshot?.name ?? 'Trek';
+    this.notificationsService
+      .notifyBookingCancelled(userId, id, trekSnapshotName)
+      .catch((e) => this.logger.error('Cancellation push failed', e));
 
     return { booking, refunded: !!payment };
   }

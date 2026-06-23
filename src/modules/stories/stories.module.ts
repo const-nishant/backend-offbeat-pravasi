@@ -6,11 +6,13 @@ import { Story } from './entities/story.entity';
 import { StoryView } from './entities/story-view.entity';
 import { User } from '../users/entities/user.entity';
 import { FriendshipsModule } from '../friendships/friendships.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Story, StoryView, User]),
     FriendshipsModule,
+    NotificationsModule,
   ],
   controllers: [StoriesController],
   providers: [StoriesService],

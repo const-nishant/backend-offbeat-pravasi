@@ -47,7 +47,10 @@ describe('MediaController', () => {
       const result = controller.presignTrek(dto);
 
       expect(result).toEqual(mockResult);
-      expect(mediaService.presignTrek).toHaveBeenCalledWith('photo.jpg', 'image/jpeg');
+      expect(mediaService.presignTrek).toHaveBeenCalledWith(
+        'photo.jpg',
+        'image/jpeg',
+      );
     });
   });
 });

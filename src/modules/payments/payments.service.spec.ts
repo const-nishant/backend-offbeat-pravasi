@@ -1,31 +1,48 @@
-import { Test, type TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import type { Repository, DataSource } from 'typeorm';
 import { PaymentsService } from './payments.service';
-import { Payment, PaymentProvider, PaymentStatus } from '../bookings/entities/payment.entity';
-import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
-import { Trek } from '../treks/entities/trek.entity';
-import { TicketService } from '../bookings/ticket.service';
-import { MailerService } from '../mailer/mailer.service';
+import type { Payment } from '../bookings/entities/payment.entity';
 import {
-  NotFoundException,
-  BadRequestException,
-  ForbiddenException,
-} from '@nestjs/common';
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+  PaymentProvider,
+  PaymentStatus,
+} from '../bookings/entities/payment.entity';
+import type { Booking } from '../bookings/entities/booking.entity';
+import { BookingStatus } from '../bookings/entities/booking.entity';
+import type { Trek } from '../treks/entities/trek.entity';
+import type { TicketService } from '../bookings/ticket.service';
+import { NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  jest,
+  beforeAll,
+  afterEach,
+} from '@jest/globals';
 
 // Mock payment providers
 const mockStripeIntent = { id: 'pi_mock_123', client_secret: 'cs_mock_secret' };
-const mockRazorpayOrder = { id: 'order_mock_123', amount: 200000, currency: 'INR' };
+const mockRazorpayOrder = {
+  id: 'order_mock_123',
+  amount: 200000,
+  currency: 'INR',
+};
 
 jest.mock('./providers/stripe.provider', () => ({
-  createStripeClient: jest.fn(() => ({ paymentIntents: { create: jest.fn() }, webhooks: { constructEvent: jest.fn() }, refunds: { create: jest.fn() } })),
+  createStripeClient: jest.fn(() => ({
+    paymentIntents: { create: jest.fn() },
+    webhooks: { constructEvent: jest.fn() },
+    refunds: { create: jest.fn() },
+  })),
   createStripePaymentIntent: jest.fn(() => Promise.resolve(mockStripeIntent)),
   refundStripePayment: jest.fn(() => Promise.resolve({ id: 'refund_mock' })),
 }));
 
 jest.mock('./providers/razorpay.provider', () => ({
-  createRazorpayClient: jest.fn(() => ({ orders: { create: jest.fn() }, payments: { refund: jest.fn() } })),
+  createRazorpayClient: jest.fn(() => ({
+    orders: { create: jest.fn() },
+    payments: { refund: jest.fn() },
+  })),
   createRazorpayOrder: jest.fn(() => Promise.resolve(mockRazorpayOrder)),
   refundRazorpayPayment: jest.fn(() => Promise.resolve({ id: 'rfnd_mock' })),
 }));
@@ -199,17 +216,25 @@ describe('PaymentsService', () => {
   describe('handleProviderSuccess', () => {
     it('should confirm booking on successful payment', async () => {
       paymentRepo.findOne.mockResolvedValue(mockPayment);
-      paymentRepo.save.mockResolvedValue({ ...mockPayment, status: PaymentStatus.SUCCEEDED });
+      paymentRepo.save.mockResolvedValue({
+        ...mockPayment,
+        status: PaymentStatus.SUCCEEDED,
+      });
 
       // Mock transaction
       const mockTransactionalRepo = {
         getRepository: jest.fn().mockReturnValue({
           findOne: jest.fn().mockResolvedValue(mockBooking),
-          save: jest.fn().mockResolvedValue({ ...mockBooking, status: BookingStatus.CONFIRMED }),
+          save: jest.fn().mockResolvedValue({
+            ...mockBooking,
+            status: BookingStatus.CONFIRMED,
+          }),
           createQueryBuilder: jest.fn().mockReturnValue({
             setLock: jest.fn().mockReturnThis(),
             where: jest.fn().mockReturnThis(),
-            getOne: jest.fn().mockResolvedValue({ id: 'trek-1', name: 'Test Trek' }),
+            getOne: jest
+              .fn()
+              .mockResolvedValue({ id: 'trek-1', name: 'Test Trek' }),
             update: jest.fn().mockReturnThis(),
             set: jest.fn().mockReturnThis(),
             execute: jest.fn(),
@@ -254,8 +279,14 @@ describe('PaymentsService', () => {
     it('should mark payment and booking as failed', async () => {
       paymentRepo.findOne.mockResolvedValue(mockPayment);
       bookingRepo.findOne.mockResolvedValue(mockBooking);
-      paymentRepo.save.mockResolvedValue({ ...mockPayment, status: PaymentStatus.FAILED });
-      bookingRepo.save.mockResolvedValue({ ...mockBooking, status: BookingStatus.FAILED });
+      paymentRepo.save.mockResolvedValue({
+        ...mockPayment,
+        status: PaymentStatus.FAILED,
+      });
+      bookingRepo.save.mockResolvedValue({
+        ...mockBooking,
+        status: BookingStatus.FAILED,
+      });
 
       const result = await service.handleProviderFailure(
         PaymentProvider.STRIPE,
@@ -297,7 +328,10 @@ describe('PaymentsService', () => {
         status: BookingStatus.CANCELLED,
       });
 
-      const result = await service.refundPayment('payment-1', 'Customer request');
+      const result = await service.refundPayment(
+        'payment-1',
+        'Customer request',
+      );
 
       expect(result.payment.status).toBe(PaymentStatus.REFUNDED);
       expect(result.booking.status).toBe(BookingStatus.CANCELLED);

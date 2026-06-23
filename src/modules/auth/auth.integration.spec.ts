@@ -7,7 +7,15 @@ jest.mock('better-auth/node', () => ({ fromNodeHeaders: jest.fn() }));
 jest.mock('better-auth', () => ({ betterAuth: jest.fn() }));
 jest.mock('better-auth/minimal', () => ({ betterAuth: jest.fn() }));
 
-import { DataSource, Repository, Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  DataSource,
+  Repository,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { RedisService } from '../../common/utils/redis.service';
@@ -26,9 +34,15 @@ jest.mock('../../common/utils/otp.util');
 class SqliteUser {
   @PrimaryGeneratedColumn('uuid') id!: string;
   @Column({ type: 'varchar', length: 120 }) email!: string;
-  @Column({ type: 'varchar', length: 255, nullable: true }) passwordHash!: string | null;
-  @Column({ type: 'varchar', length: 80, nullable: true }) fullName!: string | null;
-  @Column({ type: 'varchar', length: 80, nullable: true }) username!: string | null;
+  @Column({ type: 'varchar', length: 255, nullable: true }) passwordHash!:
+    | string
+    | null;
+  @Column({ type: 'varchar', length: 80, nullable: true }) fullName!:
+    | string
+    | null;
+  @Column({ type: 'varchar', length: 80, nullable: true }) username!:
+    | string
+    | null;
   @Column({ type: 'varchar', nullable: true }) phone!: string | null;
   @Column({ type: 'varchar', nullable: true }) location!: string | null;
   @Column({ type: 'varchar', nullable: true }) gender!: string | null;

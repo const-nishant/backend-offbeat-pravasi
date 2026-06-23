@@ -8,6 +8,7 @@ import { Trek } from '../treks/entities/trek.entity';
 import { TrekReview } from '../treks/entities/trek-review.entity';
 import { Booking } from '../bookings/entities/booking.entity';
 import { Payment } from '../bookings/entities/payment.entity';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { Payment } from '../bookings/entities/payment.entity';
       Booking,
       Payment,
     ]),
+    NotificationsModule,
   ],
   controllers: [OrganizerController],
   providers: [OrganizerService],

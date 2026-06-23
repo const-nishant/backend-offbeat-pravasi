@@ -31,7 +31,9 @@ export class PaymentsController {
   }
 
   @Post('webhook/:provider')
-  @ApiOperation({ summary: 'Handle payment provider webhook (Stripe/Razorpay)' })
+  @ApiOperation({
+    summary: 'Handle payment provider webhook (Stripe/Razorpay)',
+  })
   async providerWebhook(
     @Param('provider') provider: string,
     @Req() req: any,

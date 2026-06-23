@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { AuditLogService } from './audit-log.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -8,6 +8,7 @@ import { UpdateUserStatusDto } from './dtos/update-user-status.dto';
 import { UpdateOrganizerRequestDto } from '../organizer/dtos/update-organizer-request.dto';
 import { PlatformSettingsService } from './platform-settings.service';
 import { TicketPdfWorkerService } from '../../jobs/processors/ticket-pdf.processor';
+import { NotificationsService } from '../notifications/notifications.service';
 import { OrganizerApplication } from '../organizer/entities/organizer-application.entity';
 import { Trek } from '../treks/entities/trek.entity';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
@@ -18,6 +19,8 @@ import {
 
 @Injectable()
 export class AdminService {
+  private readonly logger = new Logger(AdminService.name);
+
   constructor(
     private readonly auditLogService: AuditLogService,
     @InjectRepository(User) private readonly userRepo: Repository<User>,
@@ -29,6 +32,7 @@ export class AdminService {
     private readonly organizerService: OrganizerService,
     private readonly platformSettingsService: PlatformSettingsService,
     private readonly ticketPdfWorker: TicketPdfWorkerService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async recordAction(
@@ -135,6 +139,18 @@ export class AdminService {
       dto,
       req,
     );
+
+    const orgName = app.organizationName ?? 'your organization';
+    if (decisionDto.decision === 'APPROVE') {
+      this.notificationsService
+        .notifyOrganizerApproved(app.userId, orgName)
+        .catch((e) => this.logger.error('Approval push failed', e));
+    } else {
+      this.notificationsService
+        .notifyOrganizerRejected(app.userId, orgName, decisionDto.note)
+        .catch((e) => this.logger.error('Rejection push failed', e));
+    }
+
     return app;
   }
 

@@ -3,11 +3,14 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Gender } from '../enums/gender.enum';
 import { OrganizerStatus } from '../enums/organizer-status.enums';
+import { DeviceToken } from '../../notifications/entities/device-token.entity';
+import { Notification as NotificationEntity } from '../../notifications/entities/notification.entity';
 
 @Entity({ name: 'users' })
 @Index(['email'], { unique: true })
@@ -77,6 +80,12 @@ export class User {
 
   @Column({ type: 'boolean', default: false })
   isSuspended!: boolean;
+
+  @OneToMany(() => DeviceToken, (dt) => dt.user)
+  deviceTokens?: DeviceToken[];
+
+  @OneToMany(() => NotificationEntity, (n) => n.user)
+  notifications?: NotificationEntity[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;

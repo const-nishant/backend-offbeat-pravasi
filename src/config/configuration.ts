@@ -62,8 +62,14 @@ export default () => ({
   },
 
   admin: {
-    emails: (process.env.ADMIN_EMAILS ?? '').split(',').map((s) => s.trim()).filter(Boolean),
-    passwordHashes: (process.env.ADMIN_PASSWORD_HASHES ?? '').split(',').map((s) => s.trim()).filter(Boolean),
+    emails: (process.env.ADMIN_EMAILS ?? '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
+    passwordHashes: (process.env.ADMIN_PASSWORD_HASHES ?? '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
   },
 
   otp: {
@@ -74,4 +80,14 @@ export default () => ({
 
   apiKey: process.env.GLOBAL_API_KEY,
   apiKeyHeader: process.env.API_KEY_HEADER ?? 'x-api-key',
+
+  expo: {
+    accessToken: process.env.EXPO_ACCESS_TOKEN,
+  },
+
+  webPush: {
+    publicKey: process.env.VAPID_PUBLIC_KEY,
+    privateKey: process.env.VAPID_PRIVATE_KEY,
+    subject: process.env.VAPID_SUBJECT ?? 'mailto:hello@offbeatpravasi.com',
+  },
 });

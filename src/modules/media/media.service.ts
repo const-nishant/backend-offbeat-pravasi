@@ -18,7 +18,11 @@ export class MediaService {
     return map[category] ?? 'general';
   }
 
-  async presignUrl(category: MediaCategory, filename: string, mimeType: string) {
+  async presignUrl(
+    category: MediaCategory,
+    filename: string,
+    mimeType: string,
+  ) {
     const folder = this.folderForCategory(category);
     const ext = filename.includes('.') ? filename.split('.').pop() : 'bin';
     const key = `${folder}/${Date.now()}-${randomBytes(6).toString('hex')}.${ext}`;

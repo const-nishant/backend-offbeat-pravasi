@@ -1,18 +1,15 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
 import { PostsService } from './posts.service';
-import { Post } from './entities/post.entity';
-import { Comment } from './entities/comment.entity';
-import { PostLike } from './entities/post-like.entity';
-import { CreatePostDto } from './dtos/create-post.dto';
-import { CommentPostDto } from './dtos/comment-post.dto';
-import { User } from '../users/entities/user.entity';
-import { FriendshipsService } from '../friendships/friendships.service';
-import {
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import type { Post } from './entities/post.entity';
+import type { Comment } from './entities/comment.entity';
+import type { PostLike } from './entities/post-like.entity';
+import type { CreatePostDto } from './dtos/create-post.dto';
+import type { CommentPostDto } from './dtos/comment-post.dto';
+import type { User } from '../users/entities/user.entity';
+import type { FriendshipsService } from '../friendships/friendships.service';
+import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 describe('PostsService', () => {
@@ -178,9 +175,9 @@ describe('PostsService', () => {
     it('should throw NotFoundException if post not found', async () => {
       postRepo.findOne.mockResolvedValue(null);
 
-      await expect(
-        service.toggleLike('user-1', 'bad-id'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.toggleLike('user-1', 'bad-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -220,9 +217,9 @@ describe('PostsService', () => {
     it('should throw NotFoundException if post not found', async () => {
       postRepo.findOne.mockResolvedValue(null);
 
-      await expect(
-        service.addComment('user-1', 'bad-id', dto),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.addComment('user-1', 'bad-id', dto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

@@ -1,16 +1,44 @@
-import { DataSource, Repository, Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, ManyToMany, OneToMany, JoinTable, Index } from 'typeorm';
+import {
+  DataSource,
+  Repository,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  ManyToOne,
+  ManyToMany,
+  OneToMany,
+  JoinTable,
+  Index,
+} from 'typeorm';
 import { TreksService } from './treks.service';
 import { RedisService } from '../../common/utils/redis.service';
-import { describe, it, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  jest,
+} from '@jest/globals';
 
 // SQLite-compatible entities
 @Entity({ name: 'users' })
 class SqliteUser {
   @PrimaryGeneratedColumn('uuid') id!: string;
   @Column({ type: 'varchar', length: 120 }) email!: string;
-  @Column({ type: 'varchar', length: 255, nullable: true }) passwordHash!: string | null;
-  @Column({ type: 'varchar', length: 80, nullable: true }) fullName!: string | null;
-  @Column({ type: 'varchar', length: 80, nullable: true }) username!: string | null;
+  @Column({ type: 'varchar', length: 255, nullable: true }) passwordHash!:
+    | string
+    | null;
+  @Column({ type: 'varchar', length: 80, nullable: true }) fullName!:
+    | string
+    | null;
+  @Column({ type: 'varchar', length: 80, nullable: true }) username!:
+    | string
+    | null;
   @Column({ type: 'varchar', nullable: true }) phone!: string | null;
   @Column({ type: 'varchar', nullable: true }) location!: string | null;
   @Column({ type: 'varchar', nullable: true }) gender!: string | null;
@@ -34,13 +62,22 @@ class SqliteUser {
 @Index(['state'])
 class SqliteTrek {
   @PrimaryGeneratedColumn('uuid') id!: string;
-  @ManyToOne(() => SqliteUser, { nullable: true }) organizer!: SqliteUser | null;
+  @ManyToOne(() => SqliteUser, { nullable: true })
+  organizer!: SqliteUser | null;
   @Column({ type: 'varchar', length: 255 }) name!: string;
-  @Column({ type: 'varchar', length: 255, nullable: true }) slug!: string | null;
-  @Column({ type: 'varchar', length: 512, nullable: true }) shortDescription!: string | null;
+  @Column({ type: 'varchar', length: 255, nullable: true }) slug!:
+    | string
+    | null;
+  @Column({ type: 'varchar', length: 512, nullable: true }) shortDescription!:
+    | string
+    | null;
   @Column({ type: 'text', nullable: true }) fullDescription!: string | null;
-  @Column({ type: 'varchar', length: 80, nullable: true }) state!: string | null;
-  @Column({ type: 'varchar', length: 255, nullable: true }) location!: string | null;
+  @Column({ type: 'varchar', length: 80, nullable: true }) state!:
+    | string
+    | null;
+  @Column({ type: 'varchar', length: 255, nullable: true }) location!:
+    | string
+    | null;
   @Column({ type: 'float', nullable: true }) latitude!: number | null;
   @Column({ type: 'float', nullable: true }) longitude!: number | null;
   @Column({ type: 'datetime', nullable: true }) startDate!: Date | null;
@@ -54,22 +91,31 @@ class SqliteTrek {
   @Column({ type: 'float', default: 0 }) avgRating!: number;
   @Column({ type: 'int', default: 0 }) ratingCount!: number;
   @Column({ type: 'int', default: 0 }) popularityScore!: number;
-  @ManyToMany(() => SqliteTrekTag, (tag: any) => tag.treks) @JoinTable({ name: 'trek_tags_link' }) tags!: SqliteTrekTag[];
-  @OneToMany(() => SqliteTrekImage, (img: any) => img.trek) images!: SqliteTrekImage[];
+  @ManyToMany(() => SqliteTrekTag, (tag: any) => tag.treks)
+  @JoinTable({ name: 'trek_tags_link' })
+  tags!: SqliteTrekTag[];
+  @OneToMany(() => SqliteTrekImage, (img: any) => img.trek)
+  images!: SqliteTrekImage[];
   @CreateDateColumn({ type: 'datetime' }) createdAt!: Date;
   @UpdateDateColumn({ type: 'datetime' }) updatedAt!: Date;
-  @DeleteDateColumn({ type: 'datetime', nullable: true }) deletedAt!: Date | null;
+  @DeleteDateColumn({ type: 'datetime', nullable: true })
+  deletedAt!: Date | null;
 }
 
 @Entity({ name: 'trek_images' })
 class SqliteTrekImage {
   @PrimaryGeneratedColumn('uuid') id!: string;
-  @ManyToOne(() => SqliteTrek, (t: any) => t.images, { onDelete: 'CASCADE' }) trek!: SqliteTrek;
+  @ManyToOne(() => SqliteTrek, (t: any) => t.images, { onDelete: 'CASCADE' })
+  trek!: SqliteTrek;
   @Column({ type: 'varchar', length: 512 }) key!: string;
-  @Column({ type: 'varchar', length: 1024, nullable: true }) url!: string | null;
+  @Column({ type: 'varchar', length: 1024, nullable: true }) url!:
+    | string
+    | null;
   @Column({ type: 'boolean', default: false }) isPrimary!: boolean;
   @Column({ type: 'int', default: 0 }) order!: number;
-  @Column({ type: 'varchar', length: 255, nullable: true }) altText!: string | null;
+  @Column({ type: 'varchar', length: 255, nullable: true }) altText!:
+    | string
+    | null;
   @CreateDateColumn({ type: 'datetime' }) createdAt!: Date;
 }
 
@@ -94,7 +140,8 @@ class SqliteTrekReview {
 @Entity({ name: 'trek_interactions' })
 class SqliteTrekInteraction {
   @PrimaryGeneratedColumn('uuid') id!: string;
-  @ManyToOne(() => SqliteTrek, { nullable: false, onDelete: 'CASCADE' }) trek!: SqliteTrek;
+  @ManyToOne(() => SqliteTrek, { nullable: false, onDelete: 'CASCADE' })
+  trek!: SqliteTrek;
   @ManyToOne(() => SqliteUser) user!: SqliteUser;
   @Column({ type: 'varchar' }) type!: string;
   @Column({ type: 'int', default: 1 }) weight!: number;
@@ -115,7 +162,14 @@ describe('TreksService Integration (sqlite)', () => {
       type: 'sqlite',
       database: ':memory:',
       synchronize: true,
-      entities: [SqliteUser, SqliteTrek, SqliteTrekImage, SqliteTrekTag, SqliteTrekReview, SqliteTrekInteraction],
+      entities: [
+        SqliteUser,
+        SqliteTrek,
+        SqliteTrekImage,
+        SqliteTrekTag,
+        SqliteTrekReview,
+        SqliteTrekInteraction,
+      ],
     });
     await dataSource.initialize();
 

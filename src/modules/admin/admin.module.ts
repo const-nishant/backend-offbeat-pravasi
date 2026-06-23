@@ -14,6 +14,7 @@ import { AuditLogService } from './audit-log.service';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AuditInterceptor } from '../../common/interceptors/audit.interceptor';
 import { JobsModule } from '../../jobs/jobs.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { JobsModule } from '../../jobs/jobs.module';
     ]),
     OrganizerModule,
     JobsModule,
+    NotificationsModule,
   ],
   controllers: [AdminController],
   providers: [

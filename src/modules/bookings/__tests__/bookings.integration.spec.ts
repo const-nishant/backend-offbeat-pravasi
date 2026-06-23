@@ -1,19 +1,47 @@
-import { DataSource, Repository, Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, ManyToMany, OneToMany, JoinTable, Index } from 'typeorm';
+import {
+  DataSource,
+  Repository,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  ManyToOne,
+  ManyToMany,
+  OneToMany,
+  JoinTable,
+  Index,
+} from 'typeorm';
 import { BookingStatus } from '../entities/booking.entity';
 import { PaymentStatus } from '../entities/payment.entity';
 import { BookingsService } from '../bookings.service';
 import { TicketService } from '../ticket.service';
 import { JwtService } from '@nestjs/jwt';
-import { describe, beforeAll, afterAll, test, expect, beforeEach, jest } from '@jest/globals';
+import {
+  describe,
+  beforeAll,
+  afterAll,
+  test,
+  expect,
+  beforeEach,
+  jest,
+} from '@jest/globals';
 
 // SQLite-compatible User entity
 @Entity({ name: 'users' })
 class SqliteUser {
   @PrimaryGeneratedColumn('uuid') id!: string;
   @Column({ type: 'varchar', length: 120 }) email!: string;
-  @Column({ type: 'varchar', length: 255, nullable: true }) passwordHash!: string | null;
-  @Column({ type: 'varchar', length: 80, nullable: true }) fullName!: string | null;
-  @Column({ type: 'varchar', length: 80, nullable: true }) username!: string | null;
+  @Column({ type: 'varchar', length: 255, nullable: true }) passwordHash!:
+    | string
+    | null;
+  @Column({ type: 'varchar', length: 80, nullable: true }) fullName!:
+    | string
+    | null;
+  @Column({ type: 'varchar', length: 80, nullable: true }) username!:
+    | string
+    | null;
   @Column({ type: 'varchar', nullable: true }) phone!: string | null;
   @Column({ type: 'varchar', nullable: true }) location!: string | null;
   @Column({ type: 'varchar', nullable: true }) gender!: string | null;
@@ -38,13 +66,22 @@ class SqliteUser {
 @Index(['state'])
 class SqliteTrek {
   @PrimaryGeneratedColumn('uuid') id!: string;
-  @ManyToOne(() => SqliteUser, { nullable: true }) organizer!: SqliteUser | null;
+  @ManyToOne(() => SqliteUser, { nullable: true })
+  organizer!: SqliteUser | null;
   @Column({ type: 'varchar', length: 255 }) name!: string;
-  @Column({ type: 'varchar', length: 255, nullable: true }) slug!: string | null;
-  @Column({ type: 'varchar', length: 512, nullable: true }) shortDescription!: string | null;
+  @Column({ type: 'varchar', length: 255, nullable: true }) slug!:
+    | string
+    | null;
+  @Column({ type: 'varchar', length: 512, nullable: true }) shortDescription!:
+    | string
+    | null;
   @Column({ type: 'text', nullable: true }) fullDescription!: string | null;
-  @Column({ type: 'varchar', length: 80, nullable: true }) state!: string | null;
-  @Column({ type: 'varchar', length: 255, nullable: true }) location!: string | null;
+  @Column({ type: 'varchar', length: 80, nullable: true }) state!:
+    | string
+    | null;
+  @Column({ type: 'varchar', length: 255, nullable: true }) location!:
+    | string
+    | null;
   @Column({ type: 'float', nullable: true }) latitude!: number | null;
   @Column({ type: 'float', nullable: true }) longitude!: number | null;
   @Column({ type: 'datetime', nullable: true }) startDate!: Date | null;
@@ -60,7 +97,8 @@ class SqliteTrek {
   @Column({ type: 'int', default: 0 }) popularityScore!: number;
   @CreateDateColumn({ type: 'datetime' }) createdAt!: Date;
   @UpdateDateColumn({ type: 'datetime' }) updatedAt!: Date;
-  @DeleteDateColumn({ type: 'datetime', nullable: true }) deletedAt!: Date | null;
+  @DeleteDateColumn({ type: 'datetime', nullable: true })
+  deletedAt!: Date | null;
 }
 
 // SQLite-compatible Booking entity
@@ -75,7 +113,9 @@ class SqliteBooking {
   @Column('int') quantity!: number;
   @Column('int') unitPriceInr!: number;
   @Column('int') totalAmountInr!: number;
-  @Column({ type: 'varchar', length: 32, default: BookingStatus.PENDING }) @Index() status: BookingStatus = BookingStatus.PENDING;
+  @Column({ type: 'varchar', length: 32, default: BookingStatus.PENDING })
+  @Index()
+  status: BookingStatus = BookingStatus.PENDING;
   @Column('uuid', { nullable: true }) paymentId?: string;
   @Column({ type: 'datetime', nullable: true }) holdExpiresAt?: Date;
   @Column({ type: 'simple-json', nullable: true }) metadata?: any;
@@ -91,7 +131,9 @@ class SqlitePayment {
   @Column('uuid') bookingId!: string;
   @Column({ type: 'varchar', length: 32 }) provider!: string;
   @Column('varchar', { nullable: true }) providerPaymentId?: string;
-  @Column({ type: 'varchar', length: 32, default: PaymentStatus.CREATED }) @Index() status: PaymentStatus = PaymentStatus.CREATED;
+  @Column({ type: 'varchar', length: 32, default: PaymentStatus.CREATED })
+  @Index()
+  status: PaymentStatus = PaymentStatus.CREATED;
   @Column('int') amountInr!: number;
   @Column('varchar', { default: 'INR' }) currency: string = 'INR';
   @Column({ type: 'simple-json', nullable: true }) providerResponse?: any;
@@ -107,10 +149,14 @@ class SqliteTrekImage {
   @PrimaryGeneratedColumn('uuid') id!: string;
   @ManyToOne(() => SqliteTrek, { onDelete: 'CASCADE' }) trek!: SqliteTrek;
   @Column({ type: 'varchar', length: 512 }) key!: string;
-  @Column({ type: 'varchar', length: 1024, nullable: true }) url!: string | null;
+  @Column({ type: 'varchar', length: 1024, nullable: true }) url!:
+    | string
+    | null;
   @Column({ type: 'boolean', default: false }) isPrimary!: boolean;
   @Column({ type: 'int', default: 0 }) order!: number;
-  @Column({ type: 'varchar', length: 255, nullable: true }) altText!: string | null;
+  @Column({ type: 'varchar', length: 255, nullable: true }) altText!:
+    | string
+    | null;
   @CreateDateColumn({ type: 'datetime' }) createdAt!: Date;
 }
 
@@ -137,7 +183,8 @@ class SqliteTrekReview {
 @Entity({ name: 'trek_interactions' })
 class SqliteTrekInteraction {
   @PrimaryGeneratedColumn('uuid') id!: string;
-  @ManyToOne(() => SqliteTrek, { nullable: false, onDelete: 'CASCADE' }) trek!: SqliteTrek;
+  @ManyToOne(() => SqliteTrek, { nullable: false, onDelete: 'CASCADE' })
+  trek!: SqliteTrek;
   @ManyToOne(() => SqliteUser, { nullable: false }) user!: SqliteUser;
   @Column({ type: 'varchar' }) type!: string;
   @Column({ type: 'int', default: 1 }) weight!: number;
