@@ -1,0 +1,14 @@
+node_modules
+dist
+.git
+.gitignore
+*.md
+.env
+.env.*
+coverage
+test
+docs
+postman
+scripts
+.opencode
+.agents
