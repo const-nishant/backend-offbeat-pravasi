@@ -9,3 +9,9 @@ services:
     ports:
       - '4000:4000'
     env_file: .env
+    networks:
+      - coolify
+
+networks:
+  coolify:
+    external: true
