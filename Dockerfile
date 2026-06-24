@@ -4,17 +4,17 @@ COPY package*.json ./
 RUN npm install
 
 FROM base as dev
+COPY . .
+RUN npm run build
 ENV NODE_ENV=development
-# Source code will be mounted as volume in docker-compose for hot-reload
-# Ensure node_modules/.bin is in PATH
 ENV PATH="/app/node_modules/.bin:$PATH"
 EXPOSE 4000
-# Command will be overridden by docker-compose to install deps first
-CMD ["npm","run","start:dev"]
+CMD ["node", "dist/main"]
 
 FROM base as prod
+COPY . .
 RUN npm run build
 ENV NODE_ENV=production
 EXPOSE 4000
-CMD ["npm","run","start:prod"]
+CMD ["node", "dist/main"]
 
