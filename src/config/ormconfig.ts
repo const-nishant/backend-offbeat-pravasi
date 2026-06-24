@@ -31,6 +31,7 @@ export const ormConfig: DataSourceOptions = {
   password: process.env.DB_PASSWORD ?? 'postgres',
   database: process.env.DB_NAME ?? 'offbeat_pravasi',
 
+  uuidExtension: 'pgcrypto',
   synchronize: process.env.TYPEORM_SYNC === 'true',
 
   entities: [
