@@ -1,10 +1,11 @@
+import { randomUUID } from 'node:crypto';
 import {
   Column,
   CreateDateColumn,
   Entity,
   Index,
   ManyToOne,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { NotificationType } from '../enums/notification-type.enum';
@@ -13,8 +14,8 @@ import { NotificationType } from '../enums/notification-type.enum';
 @Index(['user', 'readAt'])
 @Index(['user', 'createdAt'])
 export class Notification {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  @PrimaryColumn({ type: 'uuid' })
+  id: string = randomUUID();
 
   @ManyToOne(() => User, (user) => user.notifications, { onDelete: 'CASCADE' })
   user!: User;

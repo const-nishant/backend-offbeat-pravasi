@@ -1,10 +1,11 @@
+import { randomUUID } from 'node:crypto';
 import {
   Column,
   CreateDateColumn,
   Entity,
   Index,
   ManyToOne,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
@@ -14,8 +15,8 @@ import { DevicePlatform } from '../enums/device-platform.enum';
 @Index(['token', 'platform'], { unique: true })
 @Index(['user'])
 export class DeviceToken {
-  @PrimaryGeneratedColumn('uuid')
-  id!: string;
+  @PrimaryColumn({ type: 'uuid' })
+  id: string = randomUUID();
 
   @ManyToOne(() => User, (user) => user.deviceTokens, { onDelete: 'CASCADE' })
   user!: User;
