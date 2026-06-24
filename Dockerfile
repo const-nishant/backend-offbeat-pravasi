@@ -1,7 +1,7 @@
 FROM node:22.22.1 as base
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 FROM base as dev
 ENV NODE_ENV=development
