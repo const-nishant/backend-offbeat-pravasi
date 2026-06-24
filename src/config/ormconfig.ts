@@ -20,6 +20,8 @@ import { PlatformSettings } from '../modules/admin/entities/platform-settings.en
 import { Media } from '../modules/media/entities/media.entity';
 import { LeaderboardEntry } from '../modules/leaderboard/entities/leaderboard-entry.entity';
 import { Report } from '../modules/reports/entities/report.entity';
+import { DeviceToken } from '../modules/notifications/entities/device-token.entity';
+import { Notification } from '../modules/notifications/entities/notification.entity';
 
 export const ormConfig: DataSourceOptions = {
   type: 'postgres',
@@ -53,18 +55,15 @@ export const ormConfig: DataSourceOptions = {
     Media,
     LeaderboardEntry,
     Report,
+    DeviceToken,
+    Notification,
   ],
 
-  migrations: [
-    'dist/database/migrations/*.js',
-    'src/database/migrations/*.ts',
-  ],
+  migrations: ['dist/database/migrations/*.js', 'src/database/migrations/*.ts'],
   migrationsTableName: 'migrations',
 
   ssl:
-    process.env.DB_SSL === 'true'
-      ? { rejectUnauthorized: false }
-      : undefined,
+    process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
 
   logging: process.env.DB_LOGGING === 'true',
 };
