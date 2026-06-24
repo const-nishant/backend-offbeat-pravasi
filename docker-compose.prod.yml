@@ -1,11 +1,11 @@
 services:
   api:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
+      context: .
+      dockerfile: Dockerfile
       target: prod
     container_name: offbeat-api-prod
     restart: always
     ports:
       - '4000:4000'
-    env_file: ../.env
+    env_file: .env

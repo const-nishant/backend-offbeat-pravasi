@@ -23,12 +23,12 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "swagger:export": "nest build && node dist/swagger.js",
     "swagger:build": "nest build",
-    "docker:dev": "docker compose -f docker/docker-compose.dev.yml up",
-    "docker:dev:build": "docker compose -f docker/docker-compose.dev.yml up --build",
-    "docker:prod": "docker compose -f docker/docker-compose.prod.yml up -d",
-    "docker:prod:build": "docker compose -f docker/docker-compose.prod.yml up -d --build",
-    "docker:prod:down": "docker compose -f docker/docker-compose.prod.yml down",
-    "docker:logs": "docker compose -f docker/docker-compose.prod.yml logs -f"
+    "docker:dev": "docker compose -f docker-compose.dev.yml up",
+    "docker:dev:build": "docker compose -f docker-compose.dev.yml up --build",
+    "docker:prod": "docker compose -f docker-compose.prod.yml up -d",
+    "docker:prod:build": "docker compose -f docker-compose.prod.yml up -d --build",
+    "docker:prod:down": "docker compose -f docker-compose.prod.yml down",
+    "docker:logs": "docker compose -f docker-compose.prod.yml logs -f"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1062.0",

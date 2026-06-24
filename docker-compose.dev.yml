@@ -1,14 +1,14 @@
 services:
   api:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
+      context: .
+      dockerfile: Dockerfile
       target: dev
     container_name: offbeat-api-dev
     ports:
       - '4000:4000'
     volumes:
-      - ..:/app
+      - .:/app
       - /app/node_modules
-    env_file: ../.env
+    env_file: .env
     command: sh -c "npm install && npm run start:dev"
