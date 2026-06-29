@@ -25,7 +25,11 @@ describe('OrganizerService', () => {
       save: jest.fn(),
     };
 
-    const mailerService = { sendOrganizerApplicationReceivedEmail: jest.fn(), sendOrganizerApprovedEmail: jest.fn(), sendOrganizerRejectedEmail: jest.fn() } as never;
+    const mailerService = {
+      sendOrganizerApplicationReceivedEmail: jest.fn(),
+      sendOrganizerApprovedEmail: jest.fn(),
+      sendOrganizerRejectedEmail: jest.fn(),
+    } as never;
 
     service = new OrganizerService(
       applicationRepo as never,

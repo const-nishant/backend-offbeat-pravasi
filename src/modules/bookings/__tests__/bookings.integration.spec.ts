@@ -244,10 +244,16 @@ describe('BookingsService integration (sqlite)', () => {
     } as unknown as JwtService);
 
     const mailerService = { sendBookingCancellationEmail: jest.fn() } as any;
-    const notificationsService = { notifyBookingCancelled: jest.fn().mockResolvedValue(undefined) } as any;
+    const notificationsService = {
+      notifyBookingCancelled: jest.fn().mockResolvedValue(undefined),
+    } as any;
     const policiesService = {
       createSnapshot: jest.fn().mockResolvedValue(undefined),
-      calculateRefund: jest.fn().mockResolvedValue({ refundPercentage: 0, refundAmount: 0, policyName: 'Standard' }),
+      calculateRefund: jest.fn().mockResolvedValue({
+        refundPercentage: 0,
+        refundAmount: 0,
+        policyName: 'Standard',
+      }),
     } as any;
 
     return new BookingsService(

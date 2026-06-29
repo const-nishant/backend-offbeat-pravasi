@@ -92,7 +92,7 @@ export class ItinerariesService {
 
     // Phase 1: move all days to temporary negative positions to avoid unique constraint violations
     for (const day of days) {
-      day.dayNumber = -(day.dayNumber);
+      day.dayNumber = -day.dayNumber;
     }
     await this.itineraryRepo.save(days);
 
