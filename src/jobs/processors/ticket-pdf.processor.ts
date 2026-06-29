@@ -42,7 +42,7 @@ export class TicketPdfWorkerService implements OnModuleInit, OnModuleDestroy {
         const { bookingId } = job.data as { bookingId: string };
 
         const bookings = await this.dataSource.query(
-          'SELECT id, user_id, trek_snapshot, quantity, total_amount_inr, metadata FROM bookings WHERE id = $1',
+          'SELECT id, "userId", "trekSnapshot", quantity, "totalAmountInr", metadata FROM bookings WHERE id = $1',
           [bookingId],
         );
         if (!bookings || !bookings.length) throw new Error('Booking not found');
@@ -52,14 +52,14 @@ export class TicketPdfWorkerService implements OnModuleInit, OnModuleDestroy {
         const buffers: Buffer[] = [];
         doc.on('data', (chunk: Buffer) => buffers.push(chunk));
 
-        const trek = booking.trek_snapshot || {};
+        const trek = booking.trekSnapshot || {};
         doc.fontSize(20).text('Offbeat Pravasi - Ticket', { align: 'center' });
         doc.moveDown();
         doc.fontSize(12).text(`Booking ID: ${booking.id}`);
-        doc.text(`User ID: ${booking.user_id}`);
+        doc.text(`User ID: ${booking.userId}`);
         doc.text(`Trek: ${trek.name ?? 'N/A'}`);
         doc.text(`Quantity: ${booking.quantity}`);
-        doc.text(`Total (INR): ${booking.total_amount_inr}`);
+        doc.text(`Total (INR): ${booking.totalAmountInr}`);
         doc.moveDown();
         doc.text('Enjoy your trek!', { align: 'center' });
         doc.end();
@@ -90,7 +90,7 @@ export class TicketPdfWorkerService implements OnModuleInit, OnModuleDestroy {
         const pdfUrl = `${process.env.R2_PUBLIC_BASE_URL?.replace(/\/$/, '') || ''}/${key}`;
 
         await this.dataSource.query(
-          `UPDATE bookings SET metadata = jsonb_set(COALESCE(metadata, '{}'), '{pdfUrl}', to_jsonb($1::text), true), updated_at = now() WHERE id = $2`,
+          `UPDATE bookings SET metadata = jsonb_set(COALESCE(metadata, '{}'), '{pdfUrl}', to_jsonb($1::text), true), "updatedAt" = now() WHERE id = $2`,
           [pdfUrl, bookingId],
         );
 
