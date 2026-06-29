@@ -42,7 +42,7 @@ describe('BookingsService', () => {
     unitPriceInr: 1000,
     totalAmountInr: 2000,
     status: BookingStatus.PENDING,
-    trekSnapshot: { id: 'trek-1', name: 'Test Trek' },
+    trekSnapshot: { id: 'trek-1', name: 'Test Trek', startDate: new Date(Date.now() + 86400000 * 30) },
     holdExpiresAt: new Date(Date.now() + 15 * 60 * 1000),
     metadata: {},
     createdAt: new Date(),
@@ -91,7 +91,11 @@ describe('BookingsService', () => {
     } as any;
 
     const mailerService = { sendBookingCancellationEmail: jest.fn() } as any;
-    const notificationsService = {} as any;
+    const notificationsService = { notifyBookingCancelled: jest.fn().mockResolvedValue(undefined) } as any;
+    const policiesService = {
+      createSnapshot: jest.fn().mockResolvedValue(undefined),
+      calculateRefund: jest.fn().mockResolvedValue({ refundPercentage: 0, refundAmount: 0, policyName: 'Standard' }),
+    } as any;
 
     service = new BookingsService(
       bookingRepo as any,
@@ -102,6 +106,7 @@ describe('BookingsService', () => {
       dataSource as any,
       notificationsService,
       mailerService,
+      policiesService,
     );
   });
 
