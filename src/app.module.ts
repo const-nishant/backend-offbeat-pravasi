@@ -33,6 +33,7 @@ import { JobsModule } from './jobs/jobs.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { ItinerariesModule } from './modules/itineraries/itineraries.module';
 import { PoliciesModule } from './modules/policies/policies.module';
+import { GearModule } from './modules/gear/gear.module';
 @Global()
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { PoliciesModule } from './modules/policies/policies.module';
     ReportsModule,
     ItinerariesModule,
     PoliciesModule,
+    GearModule,
   ],
   providers: [
     {
