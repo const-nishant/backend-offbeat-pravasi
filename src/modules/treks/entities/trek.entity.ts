@@ -15,6 +15,7 @@ import { User } from '../../users/entities/user.entity';
 import { TrekImage } from './trek-image.entity';
 import { TrekTag } from './trek-tag.entity';
 import { TrekReview } from './trek-review.entity';
+import { ItineraryDay } from '../../itineraries/entities/itinerary-day.entity';
 import { TrekDifficulty } from '../enums/trek-difficulty.enum';
 
 export enum TrekStatus {
@@ -109,6 +110,9 @@ export class Trek {
 
   @OneToMany(() => TrekReview, (r) => r.trek)
   reviews!: TrekReview[];
+
+  @OneToMany(() => ItineraryDay, (d) => d.trek)
+  itineraryDays!: ItineraryDay[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;

@@ -22,6 +22,7 @@ import { LeaderboardEntry } from '../modules/leaderboard/entities/leaderboard-en
 import { Report } from '../modules/reports/entities/report.entity';
 import { DeviceToken } from '../modules/notifications/entities/device-token.entity';
 import { Notification } from '../modules/notifications/entities/notification.entity';
+import { ItineraryDay } from '../modules/itineraries/entities/itinerary-day.entity';
 
 export const ormConfig: DataSourceOptions = {
   type: 'postgres',
@@ -58,6 +59,7 @@ export const ormConfig: DataSourceOptions = {
     Report,
     DeviceToken,
     Notification,
+    ItineraryDay,
   ],
 
   migrations: ['dist/database/migrations/*.js', 'src/database/migrations/*.ts'],
