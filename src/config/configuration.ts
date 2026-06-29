@@ -92,6 +92,12 @@ export default () => ({
     accessToken: process.env.EXPO_ACCESS_TOKEN,
   },
 
+  weather: {
+    apiKey: process.env.WEATHER_API_KEY,
+    baseUrl:
+      process.env.WEATHER_API_BASE_URL ?? 'https://api.weatherapi.com/v1',
+  },
+
   webPush: {
     publicKey: process.env.VAPID_PUBLIC_KEY,
     privateKey: process.env.VAPID_PRIVATE_KEY,

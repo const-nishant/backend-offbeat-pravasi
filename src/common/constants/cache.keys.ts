@@ -26,4 +26,8 @@ export const CacheKeys = {
 
   // Leaderboard score caching (future)
   leaderboardUser: (userId: string): string => `leaderboard:user:${userId}`,
+
+  // Weather cache
+  weatherTrek: (lat: number, lng: number, datesKey: string): string =>
+    `weather:coord:${lat}:${lng}:${datesKey}`,
 } as const;
