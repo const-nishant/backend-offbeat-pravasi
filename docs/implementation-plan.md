@@ -387,7 +387,8 @@ Two migrations: (1) `CREATE TABLE gear_items` with seed data for ~40 common item
 
 ---
 
-## Section 4 — Weather Integration (`weather`)
+## ✅ Section 4 — Weather Integration (`weather`) — **IMPLEMENTED**
+> **Status:** Complete. PR: [#15](https://github.com/const-nishant/backend-offbeat-pravasi/pull/15)
 
 ### 4.1 Module overview
 Creates `src/modules/weather/`. Fetches live weather forecasts for trek locations (lat/lng) via a third-party API. Caches aggressively in Redis. Shows current conditions, hourly breakdown, and 7-day forecast. No DB entities — all data is transient forecast data.
@@ -487,16 +488,16 @@ class WeatherQueryDto {
 None — no database persistence for weather.
 
 ### 4.10 Task checklist
-1. Generate `weather` module
-2. Create `WeatherProvider` interface + adapter factory
-3. Implement first provider (OpenWeatherMap / WeatherAPI.com)
-4. Create `WeatherService` with Redis caching logic
-5. Create `WeatherController` with 1 endpoint
-6. Create `WeatherQueryDto`
-7. Create weather-prefetch BullMQ processor + register in `queues.ts`
-8. Add WEATHER_API_KEY to `.env.example` + configuration
-9. Register module in `app.module.ts`
-10. Write unit tests (mock provider, test caching)
+- [x] 1. Generate `weather` module
+- [x] 2. Create `WeatherProvider` interface + adapter factory
+- [x] 3. Implement first provider (OpenWeatherMap / WeatherAPI.com)
+- [x] 4. Create `WeatherService` with Redis caching logic
+- [x] 5. Create `WeatherController` with 1 endpoint
+- [x] 6. Create `WeatherQueryDto`
+- [x] 7. Create weather-prefetch BullMQ processor + register in `queues.ts`
+- [x] 8. Add WEATHER_API_KEY to `.env.example` + configuration
+- [x] 9. Register module in `app.module.ts`
+- [x] 10. Write unit tests (mock provider, test caching)
 
 ---
 
