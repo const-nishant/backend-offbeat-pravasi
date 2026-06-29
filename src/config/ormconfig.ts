@@ -23,6 +23,10 @@ import { Report } from '../modules/reports/entities/report.entity';
 import { DeviceToken } from '../modules/notifications/entities/device-token.entity';
 import { Notification } from '../modules/notifications/entities/notification.entity';
 import { ItineraryDay } from '../modules/itineraries/entities/itinerary-day.entity';
+import { CancellationPolicy } from '../modules/policies/entities/cancellation-policy.entity';
+import { CancellationTier } from '../modules/policies/entities/cancellation-tier.entity';
+import { TrekPolicy } from '../modules/policies/entities/trek-policy.entity';
+import { BookingPolicySnapshot } from '../modules/policies/entities/booking-policy-snapshot.entity';
 
 export const ormConfig: DataSourceOptions = {
   type: 'postgres',
@@ -60,6 +64,10 @@ export const ormConfig: DataSourceOptions = {
     DeviceToken,
     Notification,
     ItineraryDay,
+    CancellationPolicy,
+    CancellationTier,
+    TrekPolicy,
+    BookingPolicySnapshot,
   ],
 
   migrations: ['dist/database/migrations/*.js', 'src/database/migrations/*.ts'],
