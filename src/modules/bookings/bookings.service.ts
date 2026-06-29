@@ -19,6 +19,7 @@ import {
 import { TicketService } from './ticket.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { MailerService } from '../mailer/mailer.service';
+import { PoliciesService } from '../policies/policies.service';
 import type { BookingCancelDetails } from '../mailer/interfaces/mailer.interface';
 
 @Injectable()
@@ -37,13 +38,14 @@ export class BookingsService {
     private readonly dataSource: DataSource,
     private readonly notificationsService: NotificationsService,
     private readonly mailerService: MailerService,
+    private readonly policiesService: PoliciesService,
   ) {}
 
   async createBooking(dto: CreateBookingDto, user: any) {
     const settings = await this.settingsService.getSettings();
     const holdMinutes = settings?.holdWindowMinutes ?? 15;
 
-    return await this.dataSource.transaction(async (em) => {
+    const booking = await this.dataSource.transaction(async (em) => {
       const lockedTrek = await em
         .getRepository(Trek)
         .createQueryBuilder('t')
@@ -100,6 +102,14 @@ export class BookingsService {
 
       return em.save(booking);
     });
+
+    try {
+      await this.policiesService.createSnapshot(booking.id, booking.trekId);
+    } catch (e) {
+      this.logger.error('Failed to create policy snapshot', e as any);
+    }
+
+    return booking;
   }
 
   async findByUser(userId: string, query: { page?: number; limit?: number }) {
@@ -139,6 +149,20 @@ export class BookingsService {
       throw new BadRequestException('Booking cannot be cancelled');
     }
 
+    let refundInfo = { refundPercentage: 0, refundAmount: 0, policyName: 'Standard' };
+    try {
+      const trekStartDate = (booking.trekSnapshot as any)?.startDate;
+      if (trekStartDate) {
+        refundInfo = await this.policiesService.calculateRefund(
+          booking.id,
+          booking.totalAmountInr,
+          new Date(trekStartDate),
+        );
+      }
+    } catch (e) {
+      this.logger.error('Failed to calculate refund', e as any);
+    }
+
     const payment = await this.paymentRepo.findOne({
       where: { bookingId: id, status: PaymentStatus.SUCCEEDED },
     });
@@ -149,6 +173,9 @@ export class BookingsService {
       cancelledAt: new Date().toISOString(),
       cancelReason: reason ?? null,
       refunded: !!payment,
+      refundPercentage: refundInfo.refundPercentage,
+      refundAmount: refundInfo.refundAmount,
+      refundPolicyName: refundInfo.policyName,
     } as any;
     await this.bookingRepo.save(booking);
 
@@ -158,6 +185,8 @@ export class BookingsService {
         ...(payment.metadata ?? {}),
         refundReason: reason ?? null,
         refundedAt: new Date().toISOString(),
+        refundPercentage: refundInfo.refundPercentage,
+        refundAmount: refundInfo.refundAmount,
       } as any;
       await this.paymentRepo.save(payment);
     }
