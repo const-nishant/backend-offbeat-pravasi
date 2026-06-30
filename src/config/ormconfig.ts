@@ -34,6 +34,8 @@ import { TrekSafetyInfo } from '../modules/safety/entities/trek-safety-info.enti
 import { UserEmergencyContact } from '../modules/safety/entities/user-emergency-contact.entity';
 import { TrekCheckIn } from '../modules/safety/entities/trek-check-in.entity';
 import { FitnessAssessment } from '../modules/assessments/entities/fitness-assessment.entity';
+import { TrekGroup } from '../modules/groups/entities/trek-group.entity';
+import { GroupMember } from '../modules/groups/entities/group-member.entity';
 
 export const ormConfig: DataSourceOptions = {
   type: 'postgres',
@@ -81,6 +83,8 @@ export const ormConfig: DataSourceOptions = {
     UserEmergencyContact,
     TrekCheckIn,
     FitnessAssessment,
+    TrekGroup,
+    GroupMember,
   ],
 
   migrations: ['dist/database/migrations/*.js', 'src/database/migrations/*.ts'],
