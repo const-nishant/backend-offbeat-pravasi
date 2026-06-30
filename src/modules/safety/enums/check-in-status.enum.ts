@@ -1,0 +1,6 @@
+export enum CheckInStatus {
+  ACTIVE = 'ACTIVE',
+  COMPLETED = 'COMPLETED',
+  ESCALATED = 'ESCALATED',
+  RESOLVED = 'RESOLVED',
+}
