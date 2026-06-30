@@ -39,6 +39,42 @@ describe('AdminService', () => {
     sendTrekPublishedEmail: jest.fn(),
     sendTrekRejectedEmail: jest.fn(),
   };
+  const mockReferralCodeRepo: any = {
+    find: jest.fn(),
+    findOne: jest.fn(),
+    count: jest.fn(),
+    createQueryBuilder: jest.fn(() => ({
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      offset: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      getManyAndCount: jest.fn(async () => [[], 0]),
+      addSelect: jest.fn().mockReturnThis(),
+      groupBy: jest.fn().mockReturnThis(),
+      getRawMany: jest.fn(async () => []),
+    })),
+  };
+  const mockReferralRepo: any = {
+    find: jest.fn(),
+    findOne: jest.fn(),
+    count: jest.fn(),
+    createQueryBuilder: jest.fn(() => ({
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      offset: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      getManyAndCount: jest.fn(async () => [[], 0]),
+      addSelect: jest.fn().mockReturnThis(),
+      groupBy: jest.fn().mockReturnThis(),
+      getRawMany: jest.fn(async () => []),
+    })),
+  };
 
   beforeEach(() => {
     service = new AdminService(
@@ -52,6 +88,8 @@ describe('AdminService', () => {
       mockTicketPdfWorker,
       mockNotificationsService,
       mockMailerService,
+      mockReferralCodeRepo,
+      mockReferralRepo,
     );
   });
 
