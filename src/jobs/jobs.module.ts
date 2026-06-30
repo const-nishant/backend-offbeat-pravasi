@@ -21,6 +21,11 @@ import { GroupExpiryScheduler } from './schedulers/group-expiry.scheduler';
 import { GroupExpiryWorkerService } from './processors/group-expiry.processor';
 import { ReferralsModule } from '../modules/referrals/referrals.module';
 import { ReferralRewardDeliveryWorkerService } from './processors/referral-reward-delivery.processor';
+import { RecommendationBuilderWorkerService } from './processors/recommendation-builder.processor';
+import { RecommendationBuilderScheduler } from './schedulers/recommendation-builder.scheduler';
+import { RecommendationsModule } from '../modules/recommendations/recommendations.module';
+import { PriceDropWorkerService } from './processors/price-drop.processor';
+import { PriceDropScheduler } from './schedulers/price-drop.scheduler';
 
 const workerProviders =
   process.env.WORKERS_ENABLED !== 'false'
@@ -36,6 +41,8 @@ const workerProviders =
         CheckInEmergencyWorkerService,
         GroupExpiryWorkerService,
         ReferralRewardDeliveryWorkerService,
+        RecommendationBuilderWorkerService,
+        PriceDropWorkerService,
       ]
     : [];
 
@@ -43,14 +50,16 @@ const workerProviders =
 const exportProviders = [TicketPdfWorkerService];
 
 @Module({
-  imports: [NotificationsModule, WeatherModule, SafetyModule, GroupsModule, ReferralsModule],
+  imports: [NotificationsModule, WeatherModule, SafetyModule, GroupsModule, ReferralsModule, RecommendationsModule],
   providers: [
     BookingReleaseScheduler,
     GroupExpiryScheduler,
+    RecommendationBuilderScheduler,
     StoryExpiryScheduler,
     BookingReminderScheduler,
     PackingReminderScheduler,
     WeatherPrefetchScheduler,
+    PriceDropScheduler,
     ...workerProviders,
     TicketPdfWorkerService,
     BookingReminderWorkerService,
