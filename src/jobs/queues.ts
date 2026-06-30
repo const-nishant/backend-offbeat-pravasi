@@ -49,6 +49,10 @@ export const checkInEmergencyQueue = new Queue('checkin-emergency-queue', {
   connection,
 });
 
+export const groupExpiryQueue = new Queue('group-expiry-queue', {
+  connection,
+});
+
 await (async () => {
   try {
     await recommendationQueue.add(

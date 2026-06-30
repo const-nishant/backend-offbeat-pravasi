@@ -16,6 +16,9 @@ import { WeatherPrefetchWorkerService } from './processors/weather-prefetch.proc
 import { CheckInFirstWarningWorkerService } from './processors/checkin-first-warning.processor';
 import { CheckInEmergencyWorkerService } from './processors/checkin-emergency.processor';
 import { SafetyModule } from '../modules/safety/safety.module';
+import { GroupsModule } from '../modules/groups/groups.module';
+import { GroupExpiryScheduler } from './schedulers/group-expiry.scheduler';
+import { GroupExpiryWorkerService } from './processors/group-expiry.processor';
 
 const workerProviders =
   process.env.WORKERS_ENABLED !== 'false'
@@ -29,6 +32,7 @@ const workerProviders =
         WeatherPrefetchWorkerService,
         CheckInFirstWarningWorkerService,
         CheckInEmergencyWorkerService,
+        GroupExpiryWorkerService,
       ]
     : [];
 
@@ -36,9 +40,10 @@ const workerProviders =
 const exportProviders = [TicketPdfWorkerService];
 
 @Module({
-  imports: [NotificationsModule, WeatherModule, SafetyModule],
+  imports: [NotificationsModule, WeatherModule, SafetyModule, GroupsModule],
   providers: [
     BookingReleaseScheduler,
+    GroupExpiryScheduler,
     StoryExpiryScheduler,
     BookingReminderScheduler,
     PackingReminderScheduler,
