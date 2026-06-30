@@ -30,6 +30,9 @@ import { BookingPolicySnapshot } from '../modules/policies/entities/booking-poli
 import { GearItem } from '../modules/gear/entities/gear-item.entity';
 import { TrekGearItem } from '../modules/gear/entities/trek-gear-item.entity';
 import { UserPackingListItem } from '../modules/gear/entities/user-packing-list-item.entity';
+import { TrekSafetyInfo } from '../modules/safety/entities/trek-safety-info.entity';
+import { UserEmergencyContact } from '../modules/safety/entities/user-emergency-contact.entity';
+import { TrekCheckIn } from '../modules/safety/entities/trek-check-in.entity';
 
 export const ormConfig: DataSourceOptions = {
   type: 'postgres',
@@ -38,7 +41,6 @@ export const ormConfig: DataSourceOptions = {
   username: process.env.DB_USER ?? 'postgres',
   password: process.env.DB_PASSWORD ?? 'postgres',
   database: process.env.DB_NAME ?? 'offbeat_pravasi',
-
   uuidExtension: 'pgcrypto',
   synchronize: process.env.TYPEORM_SYNC === 'true',
 
@@ -74,6 +76,9 @@ export const ormConfig: DataSourceOptions = {
     GearItem,
     TrekGearItem,
     UserPackingListItem,
+    TrekSafetyInfo,
+    UserEmergencyContact,
+    TrekCheckIn,
   ],
 
   migrations: ['dist/database/migrations/*.js', 'src/database/migrations/*.ts'],
