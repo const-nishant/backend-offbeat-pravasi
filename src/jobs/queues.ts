@@ -40,6 +40,15 @@ export const weatherPrefetchQueue = new Queue('weather-prefetch-queue', {
   connection,
 });
 
+export const checkInFirstWarningQueue = new Queue(
+  'checkin-first-warning-queue',
+  { connection },
+);
+
+export const checkInEmergencyQueue = new Queue('checkin-emergency-queue', {
+  connection,
+});
+
 await (async () => {
   try {
     await recommendationQueue.add(
