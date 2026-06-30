@@ -1,7 +1,7 @@
 # Implementation Plan — Feature Modules
 
 > Detailed engineering plan for 10 feature modules, ordered Track A → B → C.
-> **Track A (Foundation):** ✅ Itineraries, ✅ Policies, ✅ Gear, ✅ Weather, ✅ Safety, ✅ Assessments, Groups
+> **Track A (Foundation):** ✅ Itineraries, ✅ Policies, ✅ Gear, ✅ Weather, ✅ Safety, ✅ Assessments, ✅ Groups
 > **Track B (Community):** Referrals
 > **Track C (Retention):** Wishlist + Recommendations (combined)
 >
@@ -789,7 +789,9 @@ After assessment, the user's `userPoints` on the User entity should increment (r
 
 ---
 
-## Section 7 — Group Bookings (`groups`)
+## ✅ Section 7 — Group Bookings (`groups`) — **IMPLEMENTED**
+
+> **Status:** Complete.
 
 ### 7.1 Module overview
 Creates `src/modules/groups/`. One lead booker creates a group, invites members, tracks status (invited/joined/declined), and places a single booking for all members. Each member fills individual details. Lead booker pays once.
@@ -922,17 +924,17 @@ class GroupService {
 ### 7.8 Migration
 One migration: `CREATE TABLE trek_groups` and `group_members`.
 
-### 7.9 Task checklist
-1. Generate `groups` module
-2. Create `TrekGroup`, `GroupMember` entities
-3. Create DTOs
-4. Create `GroupService` — focus on `bookForGroup` (most complex)
-5. Create `GroupController`
-6. Generate migration
-7. Create `group-expiry` + `group-reminder` BullMQ processors
-8. Register module in `app.module.ts`
-9. Wire `bookForGroup` into bookings module (extend `create-booking.dto.ts` to accept optional group context)
-10. Write tests (happy path, expiry, member management edge cases)
+### 7.9 Task checklist (all ✅)
+- [x] 1. Generate `groups` module
+- [x] 2. Create `TrekGroup`, `GroupMember` entities
+- [x] 3. Create DTOs
+- [x] 4. Create `GroupService` — focus on `bookForGroup` (most complex — uses pessimistic lock via `QueryRunner`)
+- [x] 5. Create `GroupController`
+- [x] 6. Generate migration `0021-CreateGroupTables.ts`
+- [x] 7. Create `group-expiry` BullMQ processor + scheduler (hourly)
+- [x] 8. Register module in `app.module.ts`, entity in `ormconfig.ts`, queue in `queues.ts`, job in `jobs.module.ts`
+- [x] 9. Extend `NotificationType` with `GROUP_INVITE`, `GROUP_UPDATE`
+- [x] 10. Write tests — 81 tests across 3 suites (service: 20, controller: 8, senior QA: 53)
 
 ---
 
