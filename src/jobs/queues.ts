@@ -53,6 +53,11 @@ export const groupExpiryQueue = new Queue('group-expiry-queue', {
   connection,
 });
 
+export const referralRewardDeliveryQueue = new Queue(
+  'referral-reward-delivery-queue',
+  { connection },
+);
+
 await (async () => {
   try {
     await recommendationQueue.add(
