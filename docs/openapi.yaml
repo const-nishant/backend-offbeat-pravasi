@@ -875,9 +875,6 @@ paths:
             schema:
               type: object
               description: Raw webhook payload from provider
-            application/x-www-form-urlencoded:
-              schema:
-                type: object
       responses:
         "200":
           description: Webhook processed
@@ -1018,6 +1015,2038 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
+
+  # ──────────────────────────────────────────────
+  # ASSESSMENTS
+  # ──────────────────────────────────────────────
+  /assessments/questions:
+    get:
+      operationId: assessmentsGetQuestions
+      summary: Get quiz questions and options
+      tags: [Assessments]
+      responses:
+        "200":
+          description: Returns the quiz question bank
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /assessments/submit:
+    post:
+      operationId: assessmentsSubmit
+      summary: Submit quiz answers and get score + bracket
+      tags: [Assessments]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubmitAssessmentDto"
+      responses:
+        "201":
+          description: Assessment result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssessmentResultDto"
+
+  /assessments/my-result:
+    get:
+      operationId: assessmentsMyResult
+      summary: Get latest assessment result for current user
+      tags: [Assessments]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: Latest assessment result or null
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssessmentResultDto"
+
+  /users/{userId}/assessment-result:
+    get:
+      operationId: assessmentsUserBracket
+      summary: Get a user public assessment bracket
+      tags: [Assessments]
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: User public difficulty bracket
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  difficultyBracket:
+                    type: string
+                    nullable: true
+
+  # ──────────────────────────────────────────────
+  # BOOKMARKS
+  # ──────────────────────────────────────────────
+  /bookmarks:
+    get:
+      operationId: bookmarksList
+      summary: List my bookmarked treks
+      tags: [Bookmarks]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Paginated bookmarks
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /bookmarks/treks/{trekId}:
+    post:
+      operationId: bookmarksToggle
+      summary: Toggle bookmark on a trek
+      tags: [Bookmarks]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: trekId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Bookmark toggled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ──────────────────────────────────────────────
+  # FRIENDSHIPS
+  # ──────────────────────────────────────────────
+  /friend-requests:
+    post:
+      operationId: friendshipsSendRequest
+      summary: Send a friend request
+      tags: [Friendships]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [receiverId]
+              properties:
+                receiverId:
+                  type: string
+                  format: uuid
+      responses:
+        "201":
+          description: Friend request sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    get:
+      operationId: friendshipsPendingRequests
+      summary: List incoming pending friend requests
+      tags: [Friendships]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: List of pending requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /friend-requests/sent:
+    get:
+      operationId: friendshipsSentRequests
+      summary: List sent friend requests
+      tags: [Friendships]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: List of sent requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /friend-requests/{id}/accept:
+    post:
+      operationId: friendshipsAcceptRequest
+      summary: Accept a friend request
+      tags: [Friendships]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Friend request accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /friend-requests/{id}/decline:
+    post:
+      operationId: friendshipsDeclineRequest
+      summary: Decline a friend request
+      tags: [Friendships]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Friend request declined
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /friends:
+    get:
+      operationId: friendshipsList
+      summary: List all friends
+      tags: [Friendships]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: List of friends
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /friends/{id}:
+    delete:
+      operationId: friendshipsRemove
+      summary: Remove a friend
+      tags: [Friendships]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Friend removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ──────────────────────────────────────────────
+  # GEAR
+  # ──────────────────────────────────────────────
+  /gear-items:
+    get:
+      operationId: gearListAll
+      summary: List all master gear items
+      tags: [Gear]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: Master gear items list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    post:
+      operationId: gearCreateItem
+      summary: Create a master gear item (admin only)
+      tags: [Gear]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGearItemDto"
+      responses:
+        "201":
+          description: Gear item created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /gear-items/{id}:
+    put:
+      operationId: gearUpdateItem
+      summary: Update a master gear item (admin only)
+      tags: [Gear]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Partial gear item fields
+      responses:
+        "200":
+          description: Gear item updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /treks/{trekId}/gear:
+    get:
+      operationId: gearGetTrekGear
+      summary: Get gear list for a trek
+      tags: [Gear]
+      parameters:
+        - in: path
+          name: trekId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Trek gear list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    put:
+      operationId: gearSetTrekGear
+      summary: Set gear list for a trek (organizer only)
+      tags: [Gear]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: trekId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetTrekGearDto"
+      responses:
+        "200":
+          description: Trek gear updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /bookings/{bookingId}/packing-list:
+    get:
+      operationId: gearGetPackingList
+      summary: Get user packing list for a booking
+      tags: [Gear]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: bookingId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: User packing list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /bookings/{bookingId}/packing-list/items/{itemId}:
+    patch:
+      operationId: gearUpdatePackingItem
+      summary: Toggle packing list item fields
+      tags: [Gear]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: bookingId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: itemId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePackingItemDto"
+      responses:
+        "200":
+          description: Packing item updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /rentals/{bookingId}:
+    post:
+      operationId: gearConfirmRentals
+      summary: Confirm rental items for a booking
+      tags: [Gear]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: bookingId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Rentals confirmed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ──────────────────────────────────────────────
+  # GROUPS
+  # ──────────────────────────────────────────────
+  /groups:
+    post:
+      operationId: groupsCreate
+      summary: Create a new trek group
+      tags: [Groups]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGroupDto"
+      responses:
+        "201":
+          description: Group created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /groups/{id}:
+    get:
+      operationId: groupsGetById
+      summary: Get group details and members
+      tags: [Groups]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Group details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    patch:
+      operationId: groupsUpdate
+      summary: Update group name, maxSize, or expiresAt
+      tags: [Groups]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGroupDto"
+      responses:
+        "200":
+          description: Group updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    delete:
+      operationId: groupsCancel
+      summary: Cancel a group
+      tags: [Groups]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Group cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /groups/{id}/invite:
+    post:
+      operationId: groupsInvite
+      summary: Invite members to the group
+      tags: [Groups]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InviteMembersDto"
+      responses:
+        "201":
+          description: Members invited
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /groups/join/{shareCode}:
+    post:
+      operationId: groupsJoin
+      summary: Join a group via share code
+      tags: [Groups]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: shareCode
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Joined the group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /groups/{id}/members/{memberId}/status:
+    patch:
+      operationId: groupsUpdateMemberStatus
+      summary: Accept or decline invitation
+      tags: [Groups]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: memberId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMemberStatusDto"
+      responses:
+        "200":
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /groups/{id}/members/{memberId}:
+    delete:
+      operationId: groupsRemoveMember
+      summary: Remove a member from the group
+      tags: [Groups]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: memberId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Member removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /groups/{id}/book:
+    post:
+      operationId: groupsBook
+      summary: Book for all joined members
+      tags: [Groups]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ──────────────────────────────────────────────
+  # ITINERARIES
+  # ──────────────────────────────────────────────
+  /treks/{trekId}/itinerary:
+    get:
+      operationId: itinerariesGetByTrek
+      summary: Get full itinerary for a trek
+      tags: [Itineraries]
+      parameters:
+        - in: path
+          name: trekId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Itinerary days ordered by day number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    put:
+      operationId: itinerariesUpsertDays
+      summary: Bulk set/reorder all itinerary days (organizer only)
+      tags: [Itineraries]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: trekId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/CreateItineraryDayDto"
+      responses:
+        "200":
+          description: Updated itinerary days
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /treks/{trekId}/itinerary/days:
+    post:
+      operationId: itinerariesAddDay
+      summary: Add a single itinerary day (organizer only)
+      tags: [Itineraries]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: trekId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateItineraryDayDto"
+      responses:
+        "201":
+          description: Created itinerary day
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /treks/{trekId}/itinerary/days/{dayId}:
+    patch:
+      operationId: itinerariesUpdateDay
+      summary: Update a single itinerary day (organizer only)
+      tags: [Itineraries]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: trekId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: dayId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateItineraryDayDto"
+      responses:
+        "200":
+          description: Updated itinerary day
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    delete:
+      operationId: itinerariesDeleteDay
+      summary: Remove an itinerary day (organizer only)
+      tags: [Itineraries]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: trekId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: path
+          name: dayId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Day removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /treks/{trekId}/itinerary/reorder:
+    patch:
+      operationId: itinerariesReorder
+      summary: Reorder itinerary days (organizer only)
+      tags: [Itineraries]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: trekId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReorderItineraryDto"
+      responses:
+        "200":
+          description: Reordered itinerary days
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ──────────────────────────────────────────────
+  # LEADERBOARD
+  # ──────────────────────────────────────────────
+  /leaderboard/friends:
+    get:
+      operationId: leaderboardFriends
+      summary: Get friend leaderboard
+      tags: [Leaderboard]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: Friend leaderboard ranked by points
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /leaderboard/global:
+    get:
+      operationId: leaderboardGlobal
+      summary: Get global leaderboard
+      tags: [Leaderboard]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Global leaderboard ranked by points
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /leaderboard/rank:
+    get:
+      operationId: leaderboardUserRank
+      summary: Get current user rank
+      tags: [Leaderboard]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: Current user rank and points
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ──────────────────────────────────────────────
+  # NOTIFICATIONS
+  # ──────────────────────────────────────────────
+  /notifications:
+    get:
+      operationId: notificationsList
+      summary: Get paginated notification history
+      tags: [Notifications]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Paginated notifications
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /notifications/device-tokens:
+    post:
+      operationId: notificationsRegisterDevice
+      summary: Register a device token for push notifications
+      tags: [Notifications]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterDeviceDto"
+      responses:
+        "201":
+          description: Device token registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /notifications/device-tokens/{token}:
+    delete:
+      operationId: notificationsUnregisterDevice
+      summary: Unregister a device token
+      tags: [Notifications]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Device token removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /notifications/{id}/read:
+    patch:
+      operationId: notificationsMarkAsRead
+      summary: Mark a notification as read
+      tags: [Notifications]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /notifications/read-all:
+    patch:
+      operationId: notificationsMarkAllAsRead
+      summary: Mark all notifications as read
+      tags: [Notifications]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: All marked as read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ──────────────────────────────────────────────
+  # POLICIES
+  # ──────────────────────────────────────────────
+  /admin/policies:
+    get:
+      operationId: policiesListAll
+      summary: List all cancellation policies (admin only)
+      tags: [Policies]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: All cancellation policies
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    post:
+      operationId: policiesCreate
+      summary: Create a cancellation policy with tiers (admin only)
+      tags: [Policies]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePolicyDto"
+      responses:
+        "201":
+          description: Policy created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/policies/{id}:
+    patch:
+      operationId: policiesUpdate
+      summary: Update a cancellation policy (admin only)
+      tags: [Policies]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Partial policy fields to update
+      responses:
+        "200":
+          description: Policy updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    delete:
+      operationId: policiesDelete
+      summary: Delete a cancellation policy (admin only)
+      tags: [Policies]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Policy deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /treks/{trekId}/policy:
+    get:
+      operationId: policiesGetForTrek
+      summary: Get cancellation policy for a trek
+      tags: [Policies]
+      parameters:
+        - in: path
+          name: trekId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Trek cancellation policy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    put:
+      operationId: policiesAssignToTrek
+      summary: Assign cancellation policy to a trek (admin only)
+      tags: [Policies]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: trekId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignPolicyDto"
+      responses:
+        "200":
+          description: Policy assigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /bookings/{bookingId}/refund-estimate:
+    get:
+      operationId: policiesRefundEstimate
+      summary: Get real-time refund estimate for a booking
+      tags: [Policies]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: bookingId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Refund estimate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ──────────────────────────────────────────────
+  # RECOMMENDATIONS
+  # ──────────────────────────────────────────────
+  /recommendations:
+    get:
+      operationId: recommendationsList
+      summary: Get personalized trek recommendations
+      tags: [Recommendations]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Personalized trek recommendations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecommendationResultDto"
+
+  /recommendations/refresh:
+    get:
+      operationId: recommendationsRefresh
+      summary: Force refresh recommendations
+      tags: [Recommendations]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: Refreshed recommendations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecommendationResultDto"
+
+  /recommendations/preferences:
+    get:
+      operationId: recommendationsGetPreferences
+      summary: Get recommendation preferences
+      tags: [Recommendations]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: User preferences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecommendationPreferenceDto"
+    put:
+      operationId: recommendationsSetPreferences
+      summary: Set recommendation preferences
+      tags: [Recommendations]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecommendationPreferenceDto"
+      responses:
+        "200":
+          description: Preferences updated
+
+  /treks/{trekId}/recommendations:
+    get:
+      operationId: recommendationsSimilarTreks
+      summary: Get similar treks for a specific trek
+      tags: [Recommendations]
+      parameters:
+        - in: path
+          name: trekId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Similar treks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SimilarTrekDto"
+
+  # ──────────────────────────────────────────────
+  # REFERRALS
+  # ──────────────────────────────────────────────
+  /referrals/my-code:
+    get:
+      operationId: referralsMyCode
+      summary: Get own referral code + stats
+      tags: [Referrals]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: Referral code and stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralCodeResponse"
+
+  /referrals/generate:
+    post:
+      operationId: referralsGenerate
+      summary: Generate or fetch existing referral code
+      tags: [Referrals]
+      security:
+        - access-token: []
+      responses:
+        "201":
+          description: Referral code generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReferralCodeResponse"
+
+  /referrals/my-referrals:
+    get:
+      operationId: referralsMyReferrals
+      summary: List all referrals made (paginated)
+      tags: [Referrals]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Paginated referrals list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReferralResponse"
+
+  /referrals/leaderboard:
+    get:
+      operationId: referralsLeaderboard
+      summary: Top referrers
+      tags: [Referrals]
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Leaderboard of top referrers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReferralLeaderboardEntry"
+
+  /referrals/claim/{code}:
+    get:
+      operationId: referralsClaimInfo
+      summary: Get referral info for landing page
+      tags: [Referrals]
+      parameters:
+        - in: path
+          name: code
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Referral claim info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClaimReferralInfo"
+
+  # ──────────────────────────────────────────────
+  # REPORTS
+  # ──────────────────────────────────────────────
+  /reports:
+    post:
+      operationId: reportsCreate
+      summary: Report inappropriate content
+      tags: [Reports]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReportDto"
+      responses:
+        "201":
+          description: Report created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/moderation/pending:
+    get:
+      operationId: reportsListPending
+      summary: List pending reports (admin only)
+      tags: [Reports]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Pending reports
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/moderation/reports/{id}:
+    patch:
+      operationId: reportsReview
+      summary: Review a report (admin only)
+      tags: [Reports]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewReportDto"
+      responses:
+        "200":
+          description: Report reviewed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ──────────────────────────────────────────────
+  # SAFETY
+  # ──────────────────────────────────────────────
+  /treks/{trekId}/safety:
+    get:
+      operationId: safetyGetTrekSafety
+      summary: Get safety info for a trek
+      tags: [Safety]
+      parameters:
+        - in: path
+          name: trekId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Safety information for the trek
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    put:
+      operationId: safetyUpsertTrekSafety
+      summary: Upsert safety info for a trek (organizer only)
+      tags: [Safety]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: trekId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertSafetyInfoDto"
+      responses:
+        "200":
+          description: Safety info upserted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /profile/emergency-contacts:
+    get:
+      operationId: safetyListEmergencyContacts
+      summary: List user emergency contacts
+      tags: [Safety]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: List of emergency contacts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    post:
+      operationId: safetyAddEmergencyContact
+      summary: Add emergency contact
+      tags: [Safety]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEmergencyContactDto"
+      responses:
+        "201":
+          description: Emergency contact created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /profile/emergency-contacts/{id}:
+    patch:
+      operationId: safetyUpdateEmergencyContact
+      summary: Update emergency contact
+      tags: [Safety]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEmergencyContactDto"
+      responses:
+        "200":
+          description: Emergency contact updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+    delete:
+      operationId: safetyDeleteEmergencyContact
+      summary: Delete emergency contact
+      tags: [Safety]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Emergency contact deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /bookings/{bookingId}/check-in:
+    post:
+      operationId: safetyCheckIn
+      summary: Check in to a trek
+      tags: [Safety]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: bookingId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckInDto"
+      responses:
+        "201":
+          description: Check-in created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /bookings/{bookingId}/check-out:
+    post:
+      operationId: safetyCheckOut
+      summary: Check out from a trek
+      tags: [Safety]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: bookingId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckOutDto"
+      responses:
+        "201":
+          description: Check-out completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /bookings/{bookingId}/check-in-status:
+    get:
+      operationId: safetyCheckInStatus
+      summary: Get check-in/out status
+      tags: [Safety]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: bookingId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Check-in status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /check-in/{checkInId}/acknowledge:
+    post:
+      operationId: safetyAcknowledge
+      summary: Acknowledge safety and cancel escalation
+      tags: [Safety]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: checkInId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Safety acknowledged
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ──────────────────────────────────────────────
+  # WEATHER
+  # ──────────────────────────────────────────────
+  /treks/{trekId}/weather:
+    get:
+      operationId: weatherGetForTrek
+      summary: Get weather for a trek location
+      tags: [Weather]
+      parameters:
+        - in: path
+          name: trekId
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: dates
+          schema:
+            type: array
+            items:
+              type: string
+              format: date
+          description: Filter to specific dates
+      responses:
+        "200":
+          description: Trek weather data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  # ──────────────────────────────────────────────
+  # WISHLIST
+  # ──────────────────────────────────────────────
+  /wishlist/collections:
+    get:
+      operationId: wishlistListCollections
+      summary: List user wishlist collections
+      tags: [Wishlist]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: User wishlist collections
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WishlistCollectionResponse"
+    post:
+      operationId: wishlistCreateCollection
+      summary: Create a wishlist collection
+      tags: [Wishlist]
+      security:
+        - access-token: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWishlistCollectionDto"
+      responses:
+        "201":
+          description: Collection created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WishlistCollectionResponse"
+
+  /wishlist/collections/{id}:
+    patch:
+      operationId: wishlistUpdateCollection
+      summary: Update a wishlist collection
+      tags: [Wishlist]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateWishlistCollectionDto"
+      responses:
+        "200":
+          description: Collection updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WishlistCollectionResponse"
+    delete:
+      operationId: wishlistDeleteCollection
+      summary: Delete a wishlist collection and its items
+      tags: [Wishlist]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Collection deleted
+
+  /wishlist/collections/{id}/items:
+    get:
+      operationId: wishlistListItems
+      summary: List items in a collection
+      tags: [Wishlist]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Items in collection
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WishlistItemResponse"
+    post:
+      operationId: wishlistAddItem
+      summary: Add trek to a collection
+      tags: [Wishlist]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddToWishlistCollectionDto"
+      responses:
+        "201":
+          description: Item added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WishlistItemResponse"
+
+  /wishlist/collections/{id}/share:
+    post:
+      operationId: wishlistShareCollection
+      summary: Generate share token for a collection
+      tags: [Wishlist]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Share token generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  shareToken:
+                    type: string
+
+  /wishlist/shared/{token}:
+    get:
+      operationId: wishlistGetShared
+      summary: View a shared wishlist collection
+      tags: [Wishlist]
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Shared collection data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WishlistCollectionResponse"
+
+  /wishlist/items:
+    get:
+      operationId: wishlistAllItems
+      summary: Flat paginated list of all saved treks
+      tags: [Wishlist]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Paginated wishlist items
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /wishlist/items/{id}:
+    patch:
+      operationId: wishlistUpdateItem
+      summary: Update wishlist item notes/priority
+      tags: [Wishlist]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateWishlistItemDto"
+      responses:
+        "200":
+          description: Item updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WishlistItemResponse"
+    delete:
+      operationId: wishlistRemoveItem
+      summary: Remove item from wishlist
+      tags: [Wishlist]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Item removed
+
+  /wishlist/quick-add/{trekId}:
+    post:
+      operationId: wishlistQuickAdd
+      summary: Quick-add trek to default collection
+      tags: [Wishlist]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: trekId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Trek added to default collection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WishlistItemResponse"
+
+  /wishlist/treks/{trekId}/toggle:
+    post:
+      operationId: wishlistToggleSave
+      summary: Toggle trek save
+      tags: [Wishlist]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: trekId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Save toggled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  saved:
+                    type: boolean
+
+  /wishlist/treks/{trekId}/status:
+    get:
+      operationId: wishlistTrekStatus
+      summary: Check if trek is saved and in which collections
+      tags: [Wishlist]
+      security:
+        - access-token: []
+      parameters:
+        - in: path
+          name: trekId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Trek wishlist status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  saved:
+                    type: boolean
+                  collectionIds:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid
 
   # ──────────────────────────────────────────────
   # ORGANIZER
@@ -1707,14 +3736,6 @@ paths:
             type: integer
             minimum: 1
             maximum: 200
-        - in: query
-          name: isSuspended
-          schema:
-            type: boolean
-        - in: query
-          name: organizerStatus
-          schema:
-            type: string
       responses:
         "200":
           description: Bookings report
@@ -1790,6 +3811,106 @@ paths:
       responses:
         "201":
           description: Job enqueued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/referrals:
+    get:
+      operationId: adminListReferrals
+      summary: List all referrals with filters (admin only)
+      tags: [Admin]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+        - in: query
+          name: referrerId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: query
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+      responses:
+        "200":
+          description: List of referrals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/referrals/codes:
+    get:
+      operationId: adminListReferralCodes
+      summary: List all referral codes with stats (admin only)
+      tags: [Admin]
+      security:
+        - access-token: []
+      parameters:
+        - in: query
+          name: query
+          schema:
+            type: string
+        - in: query
+          name: tier
+          schema:
+            type: string
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+      responses:
+        "200":
+          description: List of referral codes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/referrals/summary:
+    get:
+      operationId: adminReferralSummary
+      summary: Aggregate referral stats (admin only)
+      tags: [Admin]
+      security:
+        - access-token: []
+      responses:
+        "200":
+          description: Referral summary stats
           content:
             application/json:
               schema:
@@ -2119,6 +4240,42 @@ components:
       type: string
       enum: [APPROVE, REJECT]
 
+    MediaCategory:
+      type: string
+      enum: [PROFILE, BANNER, POST, TREK, STORY]
+
+    ReportStatus:
+      type: string
+      enum: [PENDING, REVIEWED, DISMISSED, ACTION_TAKEN]
+
+    ReportTargetType:
+      type: string
+      enum: [POST, COMMENT, USER, TREK, REVIEW]
+
+    ReportReason:
+      type: string
+      enum: [SPAM, HARASSMENT, INAPPROPRIATE, MISINFORMATION, OTHER]
+
+    MemberStatus:
+      type: string
+      enum: [PENDING, JOINED, DECLINED, REMOVED]
+
+    Gender:
+      type: string
+      enum: [MALE, FEMALE, OTHER]
+
+    DevicePlatform:
+      type: string
+      enum: [IOS, ANDROID, WEB]
+
+    ActivityType:
+      type: string
+      enum: [TREK, HIKE, DRIVE, FLY, REST, SIGHTSEEING, OTHER]
+
+    AccommodationType:
+      type: string
+      enum: [TENT, HOMESTAY, HOTEL, CAMP, NONE]
+
     # ── DTOs ──
     CreateTrekDto:
       type: object
@@ -2207,8 +4364,7 @@ components:
         location:
           type: string
         gender:
-          type: string
-          enum: [MALE, FEMALE, OTHER]
+          $ref: "#/components/schemas/Gender"
         dateOfBirth:
           type: string
           format: date
@@ -2249,10 +4405,6 @@ components:
           example: image/jpeg
         category:
           $ref: "#/components/schemas/MediaCategory"
-
-    MediaCategory:
-      type: string
-      enum: [PROFILE, BANNER, POST, TREK, STORY]
 
     CreateOrganizerRequestDto:
       type: object
@@ -2426,7 +4578,7 @@ components:
           format: uri
         mediaType:
           type: string
-          description: Type of media (e.g., IMAGE, VIDEO)
+          description: Type of media (IMAGE, VIDEO, etc.)
         caption:
           type: string
           nullable: true
@@ -2453,5 +4605,547 @@ components:
         viewsCount:
           type: integer
         createdAt:
+          type: string
+          format: date-time
+
+    # ── Assessments ──
+    SubmitAssessmentDto:
+      type: object
+      required: [answers]
+      properties:
+        answers:
+          type: array
+          items:
+            type: object
+            required: [questionId, selectedOption]
+            properties:
+              questionId:
+                type: string
+              selectedOption:
+                type: string
+
+    AssessmentResultDto:
+      type: object
+      properties:
+        totalScore:
+          type: integer
+        difficultyBracket:
+          type: string
+        recommendedDifficultyLabel:
+          type: string
+        completedAt:
+          type: string
+          format: date-time
+
+    # ── Gear ──
+    CreateGearItemDto:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        isRequired:
+          type: boolean
+          default: false
+        weightG:
+          type: integer
+          nullable: true
+
+    SetTrekGearDto:
+      type: object
+      properties:
+        gearItemIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UpdatePackingItemDto:
+      type: object
+      properties:
+        isPacked:
+          type: boolean
+        isRented:
+          type: boolean
+
+    # ── Groups ──
+    CreateGroupDto:
+      type: object
+      required: [trekId, maxSize, expiresAt]
+      properties:
+        trekId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 120
+        maxSize:
+          type: integer
+          minimum: 1
+        expiresAt:
+          type: string
+          format: date-time
+
+    UpdateGroupDto:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 120
+        maxSize:
+          type: integer
+          minimum: 1
+        expiresAt:
+          type: string
+          format: date-time
+
+    InviteMembersDto:
+      type: object
+      required: [invites]
+      properties:
+        invites:
+          type: array
+          items:
+            type: object
+            required: [email]
+            properties:
+              email:
+                type: string
+                format: email
+
+    UpdateMemberStatusDto:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: "#/components/schemas/MemberStatus"
+        fullName:
+          type: string
+        phone:
+          type: string
+        medicalConditions:
+          type: string
+
+    # ── Itineraries ──
+    CreateItineraryDayDto:
+      type: object
+      required: [dayNumber, title, activityType]
+      properties:
+        dayNumber:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        distanceKm:
+          type: number
+        altitudeGainM:
+          type: integer
+        altitudeLossM:
+          type: integer
+        maxAltitudeM:
+          type: integer
+        mealPlan:
+          type: object
+          properties:
+            breakfast:
+              type: string
+            lunch:
+              type: string
+            dinner:
+              type: string
+        accommodationType:
+          $ref: "#/components/schemas/AccommodationType"
+        activityType:
+          $ref: "#/components/schemas/ActivityType"
+
+    UpdateItineraryDayDto:
+      type: object
+      properties:
+        dayNumber:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        distanceKm:
+          type: number
+        altitudeGainM:
+          type: integer
+        altitudeLossM:
+          type: integer
+        maxAltitudeM:
+          type: integer
+        accommodationType:
+          $ref: "#/components/schemas/AccommodationType"
+        activityType:
+          $ref: "#/components/schemas/ActivityType"
+
+    ReorderItineraryDto:
+      type: object
+      required: [dayIds]
+      properties:
+        dayIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    # ── Notifications ──
+    RegisterDeviceDto:
+      type: object
+      required: [token, platform]
+      properties:
+        token:
+          type: string
+          maxLength: 512
+        platform:
+          $ref: "#/components/schemas/DevicePlatform"
+        appVersion:
+          type: string
+          maxLength: 20
+
+    # ── Policies ──
+    CreatePolicyDto:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        tiers:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              daysBeforeStart:
+                type: integer
+              refundPercent:
+                type: integer
+
+    AssignPolicyDto:
+      type: object
+      required: [policyId]
+      properties:
+        policyId:
+          type: string
+          format: uuid
+
+    # ── Recommendations ──
+    RecommendationPreferenceDto:
+      type: object
+      properties:
+        preferredDifficulty:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrekDifficulty"
+          description: Preferred difficulty levels
+        preferredStates:
+          type: array
+          items:
+            type: string
+          description: Preferred states
+        maxBudget:
+          type: integer
+          minimum: 0
+          description: Max budget in INR
+        preferredDurationDays:
+          type: array
+          items:
+            type: integer
+          maxItems: 2
+          description: Preferred duration range [min, max] in days
+        interests:
+          type: array
+          items:
+            type: string
+          description: Interest tag IDs
+
+    RecommendationResultDto:
+      type: object
+      properties:
+        trekId:
+          type: string
+          format: uuid
+        score:
+          type: number
+        reason:
+          type: string
+
+    SimilarTrekDto:
+      type: object
+      properties:
+        trekId:
+          type: string
+          format: uuid
+        score:
+          type: number
+        reason:
+          type: string
+
+    # ── Referrals ──
+    ReferralCodeResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        shareLink:
+          type: string
+          format: uri
+        tier:
+          type: string
+        totalReferrals:
+          type: integer
+        successfulReferrals:
+          type: integer
+        totalEarnedInr:
+          type: integer
+
+    ReferralResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        refereeEmail:
+          type: string
+          format: email
+        status:
+          type: string
+        rewardType:
+          type: string
+          nullable: true
+        rewardValueInr:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    ReferralLeaderboardEntry:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        successfulReferrals:
+          type: integer
+
+    ClaimReferralInfo:
+      type: object
+      properties:
+        referrerName:
+          type: string
+        discountAmount:
+          type: integer
+        code:
+          type: string
+
+    # ── Reports ──
+    CreateReportDto:
+      type: object
+      required: [targetType, targetId, reason]
+      properties:
+        targetType:
+          $ref: "#/components/schemas/ReportTargetType"
+        targetId:
+          type: string
+          format: uuid
+        reason:
+          $ref: "#/components/schemas/ReportReason"
+        description:
+          type: string
+
+    ReviewReportDto:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: "#/components/schemas/ReportStatus"
+        adminNotes:
+          type: string
+
+    # ── Safety ──
+    UpsertSafetyInfoDto:
+      type: object
+      properties:
+        terrainRisks:
+          type: string
+        altitudeWarnings:
+          type: string
+        wildlifeAdvisories:
+          type: string
+        generalGuidelines:
+          type: string
+        baseCampContact:
+          type: string
+          maxLength: 32
+        localRescueContact:
+          type: string
+          maxLength: 32
+        nearestHospital:
+          type: string
+          maxLength: 255
+
+    CreateEmergencyContactDto:
+      type: object
+      required: [name, phone, relationship]
+      properties:
+        name:
+          type: string
+          maxLength: 120
+        phone:
+          type: string
+          maxLength: 20
+        relationship:
+          type: string
+          maxLength: 40
+        isPrimary:
+          type: boolean
+
+    UpdateEmergencyContactDto:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 120
+        phone:
+          type: string
+          maxLength: 20
+        relationship:
+          type: string
+          maxLength: 40
+        isPrimary:
+          type: boolean
+
+    CheckInDto:
+      type: object
+      required: [latitude, longitude]
+      properties:
+        latitude:
+          type: number
+          description: Latitude of check-in location
+        longitude:
+          type: number
+          description: Longitude of check-in location
+
+    CheckOutDto:
+      type: object
+      properties:
+        latitude:
+          type: number
+          description: Latitude of check-out location
+        longitude:
+          type: number
+          description: Longitude of check-out location
+
+    # ── Wishlist ──
+    CreateWishlistCollectionDto:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+          example: Monsoon Plans
+        description:
+          type: string
+          maxLength: 512
+
+    UpdateWishlistCollectionDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 512
+
+    AddToWishlistCollectionDto:
+      type: object
+      required: [trekId]
+      properties:
+        trekId:
+          type: string
+          format: uuid
+        notes:
+          type: string
+          maxLength: 512
+        priority:
+          type: integer
+          minimum: 0
+          maximum: 2
+          default: 0
+
+    UpdateWishlistItemDto:
+      type: object
+      properties:
+        notes:
+          type: string
+          maxLength: 512
+        priority:
+          type: integer
+          minimum: 0
+          maximum: 2
+
+    WishlistItemResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        trekId:
+          type: string
+          format: uuid
+        notes:
+          type: string
+          nullable: true
+        priority:
+          type: integer
+        sortOrder:
+          type: integer
+        addedAt:
+          type: string
+          format: date-time
+        basePriceInr:
+          type: integer
+          nullable: true
+
+    WishlistCollectionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        sortOrder:
+          type: integer
+        shareToken:
+          type: string
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/WishlistItemResponse"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
           type: string
           format: date-time

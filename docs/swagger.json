@@ -1,24 +1,63 @@
 {
   "openapi": "3.0.0",
+  "info": {
+    "title": "Offbeat प्रवासी API",
+    "description": "Full-scale, production-ready trek discovery and booking platform.",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "servers": [
+    {
+      "url": "http://localhost:4000",
+      "description": "Local development"
+    },
+    {
+      "url": "https://api.offbeatpravasi.com",
+      "description": "Production"
+    }
+  ],
   "paths": {
     "/": {
       "get": {
-        "operationId": "AppController_getHello",
-        "parameters": [],
+        "operationId": "appHello",
+        "summary": "Health check / welcome",
+        "tags": ["App"],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Hello world string"
           }
-        },
-        "tags": [
-          "App"
-        ]
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "healthBase",
+        "summary": "Base health check",
+        "tags": ["Health"],
+        "responses": {
+          "200": {
+            "description": "Health status"
+          }
+        }
+      }
+    },
+    "/health/redis": {
+      "get": {
+        "operationId": "healthRedis",
+        "summary": "Redis health check",
+        "tags": ["Health"],
+        "responses": {
+          "200": {
+            "description": "Redis ping result"
+          }
+        }
       }
     },
     "/auth/register": {
       "post": {
-        "operationId": "AuthController_register",
-        "parameters": [],
+        "operationId": "authRegister",
+        "summary": "Register a new user",
+        "tags": ["Auth"],
         "requestBody": {
           "required": true,
           "content": {
@@ -31,18 +70,16 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "User registered"
           }
-        },
-        "tags": [
-          "Auth"
-        ]
+        }
       }
     },
     "/auth/login": {
       "post": {
-        "operationId": "AuthController_login",
-        "parameters": [],
+        "operationId": "authLogin",
+        "summary": "Login with email and password",
+        "tags": ["Auth"],
         "requestBody": {
           "required": true,
           "content": {
@@ -54,19 +91,17 @@
           }
         },
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "Login successful"
           }
-        },
-        "tags": [
-          "Auth"
-        ]
+        }
       }
     },
     "/auth/email/send-otp": {
       "post": {
-        "operationId": "AuthController_sendOtp",
-        "parameters": [],
+        "operationId": "authSendOtp",
+        "summary": "Send email OTP",
+        "tags": ["Auth"],
         "requestBody": {
           "required": true,
           "content": {
@@ -79,18 +114,16 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "OTP sent"
           }
-        },
-        "tags": [
-          "Auth"
-        ]
+        }
       }
     },
     "/auth/email/verify-otp": {
       "post": {
-        "operationId": "AuthController_verifyOtp",
-        "parameters": [],
+        "operationId": "authVerifyOtp",
+        "summary": "Verify email OTP",
+        "tags": ["Auth"],
         "requestBody": {
           "required": true,
           "content": {
@@ -103,18 +136,111 @@
         },
         "responses": {
           "201": {
-            "description": ""
+            "description": "OTP verified"
+          }
+        }
+      }
+    },
+    "/auth/email/resend-otp": {
+      "post": {
+        "operationId": "authResendOtp",
+        "summary": "Resend email verification OTP",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
           }
         },
-        "tags": [
-          "Auth"
-        ]
+        "responses": {
+          "201": {
+            "description": "OTP resent"
+          }
+        }
+      }
+    },
+    "/auth/password/forgot": {
+      "post": {
+        "operationId": "authForgotPassword",
+        "summary": "Request password reset OTP",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OTP sent if email exists"
+          }
+        }
+      }
+    },
+    "/auth/password/reset": {
+      "post": {
+        "operationId": "authResetPassword",
+        "summary": "Reset password using OTP",
+        "tags": ["Auth"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "otp", "newPassword"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "otp": {
+                    "type": "string",
+                    "pattern": "^\\d{6}$"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "minLength": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset"
+          }
+        }
       }
     },
     "/auth/refresh": {
       "post": {
-        "operationId": "AuthController_refresh",
-        "parameters": [],
+        "operationId": "authRefresh",
+        "summary": "Refresh JWT token pair",
+        "tags": ["Auth"],
         "requestBody": {
           "required": true,
           "content": {
@@ -126,193 +252,93 @@
           }
         },
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "Tokens refreshed"
           }
-        },
-        "tags": [
-          "Auth"
-        ]
+        }
       }
     },
     "/auth/logout": {
       "post": {
-        "operationId": "AuthController_logout",
-        "parameters": [],
-        "responses": {
-          "201": {
-            "description": ""
+        "operationId": "authLogout",
+        "summary": "Logout and invalidate session",
+        "tags": ["Auth"],
+        "security": [
+          {
+            "access-token": []
           }
-        },
-        "tags": [
-          "Auth"
-        ]
+        ],
+        "responses": {
+          "200": {
+            "description": "Logged out"
+          }
+        }
       }
     },
     "/auth/me": {
       "get": {
-        "operationId": "AuthController_me",
-        "parameters": [],
+        "operationId": "authMe",
+        "summary": "Get current authenticated user",
+        "tags": ["Auth"],
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Current user profile"
           }
-        },
-        "tags": [
-          "Auth"
-        ]
+        }
       }
     },
     "/auth/google": {
       "get": {
-        "operationId": "AuthController_googleAuth",
-        "parameters": [],
+        "operationId": "authGoogle",
+        "summary": "Initiate Google OAuth flow",
+        "tags": ["Auth"],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Google authorize URL"
           }
-        },
-        "tags": [
-          "Auth"
-        ]
+        }
       }
     },
     "/auth/google/exchange": {
       "post": {
-        "operationId": "AuthController_googleExchange",
-        "parameters": [],
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "Auth"
-        ]
-      }
-    },
-    "/health": {
-      "get": {
-        "operationId": "HealthController_base",
-        "parameters": [],
+        "operationId": "authGoogleExchange",
+        "summary": "Exchange Google OAuth session for JWT tokens",
+        "tags": ["Auth"],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Login successful"
           }
-        },
-        "tags": [
-          "Health"
-        ]
+        }
       }
     },
-    "/health/redis": {
+    "/users/me": {
       "get": {
-        "operationId": "HealthController_redisCheck",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "Health"
-        ]
-      }
-    },
-    "/media/presign/trek": {
-      "post": {
-        "operationId": "MediaController_presignTrek",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PresignDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "Media"
-        ]
-      }
-    },
-    "/organizer/applications": {
-      "post": {
-        "operationId": "OrganizerController_createApplication",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOrganizerRequestDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "Organizer"
-        ]
-      }
-    },
-    "/organizer/applications/me": {
-      "get": {
-        "operationId": "OrganizerController_myApplication",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "tags": [
-          "Organizer"
-        ]
-      }
-    },
-    "/organizer/applications/{id}": {
-      "get": {
-        "operationId": "OrganizerController_getApplication",
-        "parameters": [
+        "operationId": "usersGetProfile",
+        "summary": "Get current user profile",
+        "tags": ["Users"],
+        "security": [
           {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
+            "access-token": []
           }
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Current user profile"
           }
-        },
-        "tags": [
-          "Organizer"
-        ]
+        }
       },
       "patch": {
-        "operationId": "OrganizerController_updateApplication",
-        "parameters": [
+        "operationId": "usersUpdateProfile",
+        "summary": "Update current user profile",
+        "tags": ["Users"],
+        "security": [
           {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
+            "access-token": []
           }
         ],
         "requestBody": {
@@ -320,25 +346,115 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateOrganizerRequestDto"
+                "$ref": "#/components/schemas/UpdateProfileDto"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "Profile updated"
+          }
+        }
+      }
+    },
+    "/users/me/onboarding": {
+      "post": {
+        "operationId": "usersSaveOnboarding",
+        "summary": "Save onboarding answers",
+        "tags": ["Users"],
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertOnboardingDto"
+              }
+            }
           }
         },
-        "tags": [
-          "Organizer"
-        ]
+        "responses": {
+          "201": {
+            "description": "Onboarding answers saved"
+          }
+        }
+      }
+    },
+    "/users/search": {
+      "get": {
+        "operationId": "usersSearch",
+        "summary": "Search users by username or name",
+        "tags": ["Users"],
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "schema": { "type": "string" },
+            "description": "Search query"
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": { "type": "integer", "minimum": 1 }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated user list"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "operationId": "usersGetById",
+        "summary": "Get user by ID",
+        "tags": ["Users"],
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile"
+          }
+        }
       }
     },
     "/treks": {
       "post": {
-        "operationId": "TreksController_create",
-        "parameters": [],
+        "operationId": "treksCreate",
+        "summary": "Create a trek (organizer only)",
+        "tags": ["Treks"],
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -350,276 +466,3087 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Created trek"
           }
-        },
-        "summary": "Create a trek",
-        "tags": [
-          "Treks"
-        ]
+        }
       },
       "get": {
-        "operationId": "TreksController_list",
-        "parameters": [],
+        "operationId": "treksList",
+        "summary": "List and search treks",
+        "tags": ["Treks"],
+        "parameters": [
+          { "in": "query", "name": "q", "schema": { "type": "string" }, "description": "Full-text search query" },
+          { "in": "query", "name": "state", "schema": { "type": "string" }, "description": "Filter by state" },
+          { "in": "query", "name": "difficulty", "schema": { "$ref": "#/components/schemas/TrekDifficulty" }, "description": "Filter by difficulty" },
+          { "in": "query", "name": "minCost", "schema": { "type": "integer", "minimum": 0 }, "description": "Minimum cost filter" },
+          { "in": "query", "name": "maxCost", "schema": { "type": "integer", "minimum": 0 }, "description": "Maximum cost filter" },
+          { "in": "query", "name": "sort", "schema": { "type": "string", "enum": ["relevance", "newest", "popular", "distance"] }, "description": "Sort order" },
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 }, "description": "Page number" },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1 }, "description": "Items per page" }
+        ],
         "responses": {
           "200": {
             "description": "Paginated trek list"
           }
-        },
-        "summary": "List and search treks",
-        "tags": [
-          "Treks"
-        ]
+        }
       }
     },
     "/treks/nearby": {
       "get": {
-        "operationId": "TreksController_nearby",
-        "parameters": [],
+        "operationId": "treksNearby",
+        "summary": "Find treks near a location",
+        "tags": ["Treks"],
+        "parameters": [
+          { "in": "query", "name": "latitude", "required": true, "schema": { "type": "number" }, "description": "Latitude coordinate" },
+          { "in": "query", "name": "longitude", "required": true, "schema": { "type": "number" }, "description": "Longitude coordinate" },
+          { "in": "query", "name": "radiusMeters", "schema": { "type": "integer", "minimum": 10, "default": 5000 }, "description": "Search radius in meters" },
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1 } }
+        ],
         "responses": {
           "200": {
             "description": "Treks near the provided coordinates"
           }
-        },
-        "summary": "Find treks near a location",
-        "tags": [
-          "Treks"
-        ]
+        }
       }
     },
     "/treks/recommendations": {
       "get": {
-        "operationId": "TreksController_recommendations",
+        "operationId": "treksRecommendations",
+        "summary": "Get trek recommendations",
+        "tags": ["Treks"],
         "parameters": [
-          {
-            "name": "limit",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "lat",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "lon",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          }
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "default": 10 }, "description": "Number of recommendations" },
+          { "in": "query", "name": "lat", "schema": { "type": "number" }, "description": "User latitude for geo-aware recs" },
+          { "in": "query", "name": "lon", "schema": { "type": "number" }, "description": "User longitude for geo-aware recs" }
         ],
         "responses": {
           "200": {
             "description": "Recommended treks"
           }
-        },
-        "summary": "Get trek recommendations",
-        "tags": [
-          "Treks"
-        ]
+        }
       }
     },
     "/treks/{id}": {
       "get": {
-        "operationId": "TreksController_get",
+        "operationId": "treksGet",
+        "summary": "Get trek details by ID",
+        "tags": ["Treks"],
         "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
         ],
         "responses": {
           "200": {
             "description": "Trek details"
           }
+        }
+      }
+    },
+    "/bookings": {
+      "post": {
+        "operationId": "bookingsCreate",
+        "summary": "Create a booking",
+        "tags": ["Bookings"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateBookingDto" }
+            }
+          }
         },
-        "summary": "Get trek details",
-        "tags": [
-          "Treks"
-        ]
+        "responses": {
+          "201": { "description": "Booking created" }
+        }
+      },
+      "get": {
+        "operationId": "bookingsList",
+        "summary": "List my bookings",
+        "tags": ["Bookings"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1 } }
+        ],
+        "responses": {
+          "200": { "description": "User's bookings" }
+        }
+      }
+    },
+    "/bookings/verify": {
+      "post": {
+        "operationId": "bookingsVerify",
+        "summary": "Verify a booking QR token",
+        "tags": ["Bookings"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["qrToken"],
+                "properties": {
+                  "qrToken": { "type": "string", "description": "QR token from booking ticket" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Verification result" }
+        }
+      }
+    },
+    "/bookings/release-expired": {
+      "patch": {
+        "operationId": "bookingsReleaseExpired",
+        "summary": "Release expired booking holds (admin only)",
+        "tags": ["Bookings"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "Expired holds released" }
+        }
+      }
+    },
+    "/bookings/{id}": {
+      "get": {
+        "operationId": "bookingsGet",
+        "summary": "Get booking detail",
+        "tags": ["Bookings"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Booking detail" }
+        }
+      }
+    },
+    "/bookings/{id}/cancel": {
+      "post": {
+        "operationId": "bookingsCancel",
+        "summary": "Cancel a booking",
+        "tags": ["Bookings"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": { "type": "string", "description": "Cancellation reason" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Booking cancelled" }
+        }
+      }
+    },
+    "/bookings/{id}/ticket": {
+      "get": {
+        "operationId": "bookingsTicket",
+        "summary": "Download booking ticket PDF",
+        "tags": ["Bookings"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF ticket file",
+            "content": {
+              "application/pdf": {
+                "schema": { "type": "string", "format": "binary" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/checkout": {
+      "post": {
+        "operationId": "paymentsCheckout",
+        "summary": "Create a payment checkout session",
+        "tags": ["Payments"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateCheckoutDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Checkout session created" }
+        }
+      }
+    },
+    "/payments/webhook/{provider}": {
+      "post": {
+        "operationId": "paymentsWebhook",
+        "summary": "Handle payment provider webhook (Stripe / Razorpay)",
+        "tags": ["Payments"],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "provider",
+            "required": true,
+            "schema": { "type": "string", "enum": ["stripe", "razorpay"] },
+            "description": "Payment provider slug"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Raw webhook payload from provider"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Webhook processed" }
+        }
+      }
+    },
+    "/media/presign": {
+      "post": {
+        "operationId": "mediaPresign",
+        "summary": "Get presigned upload URL for any media category",
+        "tags": ["Media"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PresignDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Presigned URL generated" }
+        }
+      }
+    },
+    "/media/presign/profile": {
+      "post": {
+        "operationId": "mediaPresignProfile",
+        "summary": "Get presigned URL for profile image",
+        "tags": ["Media"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PresignDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Presigned URL generated" }
+        }
+      }
+    },
+    "/media/presign/banner": {
+      "post": {
+        "operationId": "mediaPresignBanner",
+        "summary": "Get presigned URL for banner image",
+        "tags": ["Media"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PresignDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Presigned URL generated" }
+        }
+      }
+    },
+    "/media/presign/post": {
+      "post": {
+        "operationId": "mediaPresignPost",
+        "summary": "Get presigned URL for post image",
+        "tags": ["Media"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PresignDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Presigned URL generated" }
+        }
+      }
+    },
+    "/media/presign/trek": {
+      "post": {
+        "operationId": "mediaPresignTrek",
+        "summary": "Get presigned URL for trek image",
+        "tags": ["Media"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PresignDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Presigned URL generated" }
+        }
+      }
+    },
+    "/media/presign/story": {
+      "post": {
+        "operationId": "mediaPresignStory",
+        "summary": "Get presigned URL for story media",
+        "tags": ["Media"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PresignDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Presigned URL generated" }
+        }
+      }
+    },
+    "/assessments/questions": {
+      "get": {
+        "operationId": "assessmentsGetQuestions",
+        "summary": "Get quiz questions and options",
+        "tags": ["Assessments"],
+        "responses": {
+          "200": { "description": "Returns the quiz question bank" }
+        }
+      }
+    },
+    "/assessments/submit": {
+      "post": {
+        "operationId": "assessmentsSubmit",
+        "summary": "Submit quiz answers and get score + bracket",
+        "tags": ["Assessments"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SubmitAssessmentDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Assessment result" }
+        }
+      }
+    },
+    "/assessments/my-result": {
+      "get": {
+        "operationId": "assessmentsMyResult",
+        "summary": "Get latest assessment result for current user",
+        "tags": ["Assessments"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "Latest assessment result or null" }
+        }
+      }
+    },
+    "/users/{userId}/assessment-result": {
+      "get": {
+        "operationId": "assessmentsUserBracket",
+        "summary": "Get a user public assessment bracket",
+        "tags": ["Assessments"],
+        "parameters": [
+          { "in": "path", "name": "userId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "User public difficulty bracket" }
+        }
+      }
+    },
+    "/bookmarks": {
+      "get": {
+        "operationId": "bookmarksList",
+        "summary": "List my bookmarked treks",
+        "tags": ["Bookmarks"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1 } }
+        ],
+        "responses": {
+          "200": { "description": "Paginated bookmarks" }
+        }
+      }
+    },
+    "/bookmarks/treks/{trekId}": {
+      "post": {
+        "operationId": "bookmarksToggle",
+        "summary": "Toggle bookmark on a trek",
+        "tags": ["Bookmarks"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "trekId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Bookmark toggled" }
+        }
+      }
+    },
+    "/friend-requests": {
+      "post": {
+        "operationId": "friendshipsSendRequest",
+        "summary": "Send a friend request",
+        "tags": ["Friendships"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["receiverId"],
+                "properties": {
+                  "receiverId": { "type": "string", "format": "uuid" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Friend request sent" }
+        }
+      },
+      "get": {
+        "operationId": "friendshipsPendingRequests",
+        "summary": "List incoming pending friend requests",
+        "tags": ["Friendships"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "List of pending requests" }
+        }
+      }
+    },
+    "/friend-requests/sent": {
+      "get": {
+        "operationId": "friendshipsSentRequests",
+        "summary": "List sent friend requests",
+        "tags": ["Friendships"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "List of sent requests" }
+        }
+      }
+    },
+    "/friend-requests/{id}/accept": {
+      "post": {
+        "operationId": "friendshipsAcceptRequest",
+        "summary": "Accept a friend request",
+        "tags": ["Friendships"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Friend request accepted" }
+        }
+      }
+    },
+    "/friend-requests/{id}/decline": {
+      "post": {
+        "operationId": "friendshipsDeclineRequest",
+        "summary": "Decline a friend request",
+        "tags": ["Friendships"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Friend request declined" }
+        }
+      }
+    },
+    "/friends": {
+      "get": {
+        "operationId": "friendshipsList",
+        "summary": "List all friends",
+        "tags": ["Friendships"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "List of friends" }
+        }
+      }
+    },
+    "/friends/{id}": {
+      "delete": {
+        "operationId": "friendshipsRemove",
+        "summary": "Remove a friend",
+        "tags": ["Friendships"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Friend removed" }
+        }
+      }
+    },
+    "/gear-items": {
+      "get": {
+        "operationId": "gearListAll",
+        "summary": "List all master gear items",
+        "tags": ["Gear"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "Master gear items list" }
+        }
+      },
+      "post": {
+        "operationId": "gearCreateItem",
+        "summary": "Create a master gear item (admin only)",
+        "tags": ["Gear"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateGearItemDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Gear item created" }
+        }
+      }
+    },
+    "/gear-items/{id}": {
+      "put": {
+        "operationId": "gearUpdateItem",
+        "summary": "Update a master gear item (admin only)",
+        "tags": ["Gear"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "description": "Partial gear item fields" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Gear item updated" }
+        }
+      }
+    },
+    "/treks/{trekId}/gear": {
+      "get": {
+        "operationId": "gearGetTrekGear",
+        "summary": "Get gear list for a trek",
+        "tags": ["Gear"],
+        "parameters": [
+          { "in": "path", "name": "trekId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Trek gear list" }
+        }
+      },
+      "put": {
+        "operationId": "gearSetTrekGear",
+        "summary": "Set gear list for a trek (organizer only)",
+        "tags": ["Gear"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "trekId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SetTrekGearDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Trek gear updated" }
+        }
+      }
+    },
+    "/bookings/{bookingId}/packing-list": {
+      "get": {
+        "operationId": "gearGetPackingList",
+        "summary": "Get user packing list for a booking",
+        "tags": ["Gear"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "bookingId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "User packing list" }
+        }
+      }
+    },
+    "/bookings/{bookingId}/packing-list/items/{itemId}": {
+      "patch": {
+        "operationId": "gearUpdatePackingItem",
+        "summary": "Toggle packing list item fields",
+        "tags": ["Gear"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "bookingId", "required": true, "schema": { "type": "string", "format": "uuid" } },
+          { "in": "path", "name": "itemId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdatePackingItemDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Packing item updated" }
+        }
+      }
+    },
+    "/rentals/{bookingId}": {
+      "post": {
+        "operationId": "gearConfirmRentals",
+        "summary": "Confirm rental items for a booking",
+        "tags": ["Gear"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "bookingId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "201": { "description": "Rentals confirmed" }
+        }
+      }
+    },
+    "/groups": {
+      "post": {
+        "operationId": "groupsCreate",
+        "summary": "Create a new trek group",
+        "tags": ["Groups"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateGroupDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Group created" }
+        }
+      }
+    },
+    "/groups/join/{shareCode}": {
+      "post": {
+        "operationId": "groupsJoin",
+        "summary": "Join a group via share code",
+        "tags": ["Groups"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "shareCode", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Joined the group" }
+        }
+      }
+    },
+    "/groups/{id}": {
+      "get": {
+        "operationId": "groupsGetById",
+        "summary": "Get group details and members",
+        "tags": ["Groups"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Group details" }
+        }
+      },
+      "patch": {
+        "operationId": "groupsUpdate",
+        "summary": "Update group name, maxSize, or expiresAt",
+        "tags": ["Groups"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateGroupDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Group updated" }
+        }
+      },
+      "delete": {
+        "operationId": "groupsCancel",
+        "summary": "Cancel a group",
+        "tags": ["Groups"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Group cancelled" }
+        }
+      }
+    },
+    "/groups/{id}/invite": {
+      "post": {
+        "operationId": "groupsInvite",
+        "summary": "Invite members to the group",
+        "tags": ["Groups"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/InviteMembersDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Members invited" }
+        }
+      }
+    },
+    "/groups/{id}/members/{memberId}/status": {
+      "patch": {
+        "operationId": "groupsUpdateMemberStatus",
+        "summary": "Accept or decline invitation",
+        "tags": ["Groups"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } },
+          { "in": "path", "name": "memberId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateMemberStatusDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Status updated" }
+        }
+      }
+    },
+    "/groups/{id}/members/{memberId}": {
+      "delete": {
+        "operationId": "groupsRemoveMember",
+        "summary": "Remove a member from the group",
+        "tags": ["Groups"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } },
+          { "in": "path", "name": "memberId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Member removed" }
+        }
+      }
+    },
+    "/groups/{id}/book": {
+      "post": {
+        "operationId": "groupsBook",
+        "summary": "Book for all joined members",
+        "tags": ["Groups"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "201": { "description": "Booking created" }
+        }
+      }
+    },
+    "/treks/{trekId}/itinerary": {
+      "get": {
+        "operationId": "itinerariesGetByTrek",
+        "summary": "Get full itinerary for a trek",
+        "tags": ["Itineraries"],
+        "parameters": [
+          { "in": "path", "name": "trekId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Itinerary days ordered by day number" }
+        }
+      },
+      "put": {
+        "operationId": "itinerariesUpsertDays",
+        "summary": "Bulk set/reorder all itinerary days (organizer only)",
+        "tags": ["Itineraries"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "trekId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/CreateItineraryDayDto" }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Updated itinerary days" }
+        }
+      }
+    },
+    "/treks/{trekId}/itinerary/days": {
+      "post": {
+        "operationId": "itinerariesAddDay",
+        "summary": "Add a single itinerary day (organizer only)",
+        "tags": ["Itineraries"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "trekId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateItineraryDayDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Created itinerary day" }
+        }
+      }
+    },
+    "/treks/{trekId}/itinerary/days/{dayId}": {
+      "patch": {
+        "operationId": "itinerariesUpdateDay",
+        "summary": "Update a single itinerary day (organizer only)",
+        "tags": ["Itineraries"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "trekId", "required": true, "schema": { "type": "string", "format": "uuid" } },
+          { "in": "path", "name": "dayId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateItineraryDayDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Updated itinerary day" }
+        }
+      },
+      "delete": {
+        "operationId": "itinerariesDeleteDay",
+        "summary": "Remove an itinerary day (organizer only)",
+        "tags": ["Itineraries"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "trekId", "required": true, "schema": { "type": "string", "format": "uuid" } },
+          { "in": "path", "name": "dayId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Day removed" }
+        }
+      }
+    },
+    "/treks/{trekId}/itinerary/reorder": {
+      "patch": {
+        "operationId": "itinerariesReorder",
+        "summary": "Reorder itinerary days (organizer only)",
+        "tags": ["Itineraries"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "trekId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ReorderItineraryDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Reordered itinerary days" }
+        }
+      }
+    },
+    "/leaderboard/friends": {
+      "get": {
+        "operationId": "leaderboardFriends",
+        "summary": "Get friend leaderboard",
+        "tags": ["Leaderboard"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "Friend leaderboard ranked by points" }
+        }
+      }
+    },
+    "/leaderboard/global": {
+      "get": {
+        "operationId": "leaderboardGlobal",
+        "summary": "Get global leaderboard",
+        "tags": ["Leaderboard"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1 } }
+        ],
+        "responses": {
+          "200": { "description": "Global leaderboard ranked by points" }
+        }
+      }
+    },
+    "/leaderboard/rank": {
+      "get": {
+        "operationId": "leaderboardUserRank",
+        "summary": "Get current user rank",
+        "tags": ["Leaderboard"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "Current user rank and points" }
+        }
+      }
+    },
+    "/notifications": {
+      "get": {
+        "operationId": "notificationsList",
+        "summary": "Get paginated notification history",
+        "tags": ["Notifications"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1 } }
+        ],
+        "responses": {
+          "200": { "description": "Paginated notifications" }
+        }
+      }
+    },
+    "/notifications/device-tokens": {
+      "post": {
+        "operationId": "notificationsRegisterDevice",
+        "summary": "Register a device token for push notifications",
+        "tags": ["Notifications"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterDeviceDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Device token registered" }
+        }
+      }
+    },
+    "/notifications/device-tokens/{token}": {
+      "delete": {
+        "operationId": "notificationsUnregisterDevice",
+        "summary": "Unregister a device token",
+        "tags": ["Notifications"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "token", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Device token removed" }
+        }
+      }
+    },
+    "/notifications/{id}/read": {
+      "patch": {
+        "operationId": "notificationsMarkAsRead",
+        "summary": "Mark a notification as read",
+        "tags": ["Notifications"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Marked as read" }
+        }
+      }
+    },
+    "/notifications/read-all": {
+      "patch": {
+        "operationId": "notificationsMarkAllAsRead",
+        "summary": "Mark all notifications as read",
+        "tags": ["Notifications"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "All marked as read" }
+        }
+      }
+    },
+    "/admin/policies": {
+      "get": {
+        "operationId": "policiesListAll",
+        "summary": "List all cancellation policies (admin only)",
+        "tags": ["Policies"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "All cancellation policies" }
+        }
+      },
+      "post": {
+        "operationId": "policiesCreate",
+        "summary": "Create a cancellation policy with tiers (admin only)",
+        "tags": ["Policies"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreatePolicyDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Policy created" }
+        }
+      }
+    },
+    "/admin/policies/{id}": {
+      "patch": {
+        "operationId": "policiesUpdate",
+        "summary": "Update a cancellation policy (admin only)",
+        "tags": ["Policies"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "type": "object", "description": "Partial policy fields to update" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Policy updated" }
+        }
+      },
+      "delete": {
+        "operationId": "policiesDelete",
+        "summary": "Delete a cancellation policy (admin only)",
+        "tags": ["Policies"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Policy deleted" }
+        }
+      }
+    },
+    "/treks/{trekId}/policy": {
+      "get": {
+        "operationId": "policiesGetForTrek",
+        "summary": "Get cancellation policy for a trek",
+        "tags": ["Policies"],
+        "parameters": [
+          { "in": "path", "name": "trekId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Trek cancellation policy" }
+        }
+      },
+      "put": {
+        "operationId": "policiesAssignToTrek",
+        "summary": "Assign cancellation policy to a trek (admin only)",
+        "tags": ["Policies"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "trekId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AssignPolicyDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Policy assigned" }
+        }
+      }
+    },
+    "/bookings/{bookingId}/refund-estimate": {
+      "get": {
+        "operationId": "policiesRefundEstimate",
+        "summary": "Get real-time refund estimate for a booking",
+        "tags": ["Policies"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "bookingId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Refund estimate" }
+        }
+      }
+    },
+    "/recommendations": {
+      "get": {
+        "operationId": "recommendationsList",
+        "summary": "Get personalized trek recommendations",
+        "tags": ["Recommendations"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1, "maximum": 50 } }
+        ],
+        "responses": {
+          "200": { "description": "Personalized trek recommendations" }
+        }
+      }
+    },
+    "/recommendations/refresh": {
+      "get": {
+        "operationId": "recommendationsRefresh",
+        "summary": "Force refresh recommendations",
+        "tags": ["Recommendations"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "Refreshed recommendations" }
+        }
+      }
+    },
+    "/recommendations/preferences": {
+      "get": {
+        "operationId": "recommendationsGetPreferences",
+        "summary": "Get recommendation preferences",
+        "tags": ["Recommendations"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "User preferences" }
+        }
+      },
+      "put": {
+        "operationId": "recommendationsSetPreferences",
+        "summary": "Set recommendation preferences",
+        "tags": ["Recommendations"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RecommendationPreferenceDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Preferences updated" }
+        }
+      }
+    },
+    "/treks/{trekId}/recommendations": {
+      "get": {
+        "operationId": "recommendationsSimilarTreks",
+        "summary": "Get similar treks for a specific trek",
+        "tags": ["Recommendations"],
+        "parameters": [
+          { "in": "path", "name": "trekId", "required": true, "schema": { "type": "string", "format": "uuid" } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1, "maximum": 50 } }
+        ],
+        "responses": {
+          "200": { "description": "Similar treks" }
+        }
+      }
+    },
+    "/referrals/my-code": {
+      "get": {
+        "operationId": "referralsMyCode",
+        "summary": "Get own referral code + stats",
+        "tags": ["Referrals"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "Referral code and stats" }
+        }
+      }
+    },
+    "/referrals/generate": {
+      "post": {
+        "operationId": "referralsGenerate",
+        "summary": "Generate or fetch existing referral code",
+        "tags": ["Referrals"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "201": { "description": "Referral code generated" }
+        }
+      }
+    },
+    "/referrals/my-referrals": {
+      "get": {
+        "operationId": "referralsMyReferrals",
+        "summary": "List all referrals made (paginated)",
+        "tags": ["Referrals"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1 } }
+        ],
+        "responses": {
+          "200": { "description": "Paginated referrals list" }
+        }
+      }
+    },
+    "/referrals/leaderboard": {
+      "get": {
+        "operationId": "referralsLeaderboard",
+        "summary": "Top referrers",
+        "tags": ["Referrals"],
+        "parameters": [
+          { "in": "query", "name": "limit", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": { "description": "Leaderboard of top referrers" }
+        }
+      }
+    },
+    "/referrals/claim/{code}": {
+      "get": {
+        "operationId": "referralsClaimInfo",
+        "summary": "Get referral info for landing page",
+        "tags": ["Referrals"],
+        "parameters": [
+          { "in": "path", "name": "code", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Referral claim info" }
+        }
+      }
+    },
+    "/reports": {
+      "post": {
+        "operationId": "reportsCreate",
+        "summary": "Report inappropriate content",
+        "tags": ["Reports"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateReportDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Report created" }
+        }
+      }
+    },
+    "/admin/moderation/pending": {
+      "get": {
+        "operationId": "reportsListPending",
+        "summary": "List pending reports (admin only)",
+        "tags": ["Reports"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1 } }
+        ],
+        "responses": {
+          "200": { "description": "Pending reports" }
+        }
+      }
+    },
+    "/admin/moderation/reports/{id}": {
+      "patch": {
+        "operationId": "reportsReview",
+        "summary": "Review a report (admin only)",
+        "tags": ["Reports"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ReviewReportDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Report reviewed" }
+        }
+      }
+    },
+    "/treks/{trekId}/safety": {
+      "get": {
+        "operationId": "safetyGetTrekSafety",
+        "summary": "Get safety info for a trek",
+        "tags": ["Safety"],
+        "parameters": [
+          { "in": "path", "name": "trekId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Safety information for the trek" }
+        }
+      },
+      "put": {
+        "operationId": "safetyUpsertTrekSafety",
+        "summary": "Upsert safety info for a trek (organizer only)",
+        "tags": ["Safety"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "trekId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpsertSafetyInfoDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Safety info upserted" }
+        }
+      }
+    },
+    "/profile/emergency-contacts": {
+      "get": {
+        "operationId": "safetyListEmergencyContacts",
+        "summary": "List user emergency contacts",
+        "tags": ["Safety"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "List of emergency contacts" }
+        }
+      },
+      "post": {
+        "operationId": "safetyAddEmergencyContact",
+        "summary": "Add emergency contact",
+        "tags": ["Safety"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateEmergencyContactDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Emergency contact created" }
+        }
+      }
+    },
+    "/profile/emergency-contacts/{id}": {
+      "patch": {
+        "operationId": "safetyUpdateEmergencyContact",
+        "summary": "Update emergency contact",
+        "tags": ["Safety"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateEmergencyContactDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Emergency contact updated" }
+        }
+      },
+      "delete": {
+        "operationId": "safetyDeleteEmergencyContact",
+        "summary": "Delete emergency contact",
+        "tags": ["Safety"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Emergency contact deleted" }
+        }
+      }
+    },
+    "/bookings/{bookingId}/check-in": {
+      "post": {
+        "operationId": "safetyCheckIn",
+        "summary": "Check in to a trek",
+        "tags": ["Safety"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "bookingId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CheckInDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Check-in created" }
+        }
+      }
+    },
+    "/bookings/{bookingId}/check-out": {
+      "post": {
+        "operationId": "safetyCheckOut",
+        "summary": "Check out from a trek",
+        "tags": ["Safety"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "bookingId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CheckOutDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Check-out completed" }
+        }
+      }
+    },
+    "/bookings/{bookingId}/check-in-status": {
+      "get": {
+        "operationId": "safetyCheckInStatus",
+        "summary": "Get check-in/out status",
+        "tags": ["Safety"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "bookingId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Check-in status" }
+        }
+      }
+    },
+    "/check-in/{checkInId}/acknowledge": {
+      "post": {
+        "operationId": "safetyAcknowledge",
+        "summary": "Acknowledge safety and cancel escalation",
+        "tags": ["Safety"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "checkInId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Safety acknowledged" }
+        }
+      }
+    },
+    "/treks/{trekId}/weather": {
+      "get": {
+        "operationId": "weatherGetForTrek",
+        "summary": "Get weather for a trek location",
+        "tags": ["Weather"],
+        "parameters": [
+          { "in": "path", "name": "trekId", "required": true, "schema": { "type": "string", "format": "uuid" } },
+          { "in": "query", "name": "dates", "schema": { "type": "array", "items": { "type": "string", "format": "date" } }, "description": "Filter to specific dates" }
+        ],
+        "responses": {
+          "200": { "description": "Trek weather data" }
+        }
+      }
+    },
+    "/wishlist/collections": {
+      "get": {
+        "operationId": "wishlistListCollections",
+        "summary": "List user wishlist collections",
+        "tags": ["Wishlist"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "User wishlist collections" }
+        }
+      },
+      "post": {
+        "operationId": "wishlistCreateCollection",
+        "summary": "Create a wishlist collection",
+        "tags": ["Wishlist"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateWishlistCollectionDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Collection created" }
+        }
+      }
+    },
+    "/wishlist/collections/{id}": {
+      "patch": {
+        "operationId": "wishlistUpdateCollection",
+        "summary": "Update a wishlist collection",
+        "tags": ["Wishlist"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateWishlistCollectionDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Collection updated" }
+        }
+      },
+      "delete": {
+        "operationId": "wishlistDeleteCollection",
+        "summary": "Delete a wishlist collection and its items",
+        "tags": ["Wishlist"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Collection deleted" }
+        }
+      }
+    },
+    "/wishlist/collections/{id}/items": {
+      "get": {
+        "operationId": "wishlistListItems",
+        "summary": "List items in a collection",
+        "tags": ["Wishlist"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Items in collection" }
+        }
+      },
+      "post": {
+        "operationId": "wishlistAddItem",
+        "summary": "Add trek to a collection",
+        "tags": ["Wishlist"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AddToWishlistCollectionDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Item added" }
+        }
+      }
+    },
+    "/wishlist/collections/{id}/share": {
+      "post": {
+        "operationId": "wishlistShareCollection",
+        "summary": "Generate share token for a collection",
+        "tags": ["Wishlist"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "201": { "description": "Share token generated" }
+        }
+      }
+    },
+    "/wishlist/shared/{token}": {
+      "get": {
+        "operationId": "wishlistGetShared",
+        "summary": "View a shared wishlist collection",
+        "tags": ["Wishlist"],
+        "parameters": [
+          { "in": "path", "name": "token", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Shared collection data" }
+        }
+      }
+    },
+    "/wishlist/items": {
+      "get": {
+        "operationId": "wishlistAllItems",
+        "summary": "Flat paginated list of all saved treks",
+        "tags": ["Wishlist"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1 } }
+        ],
+        "responses": {
+          "200": { "description": "Paginated wishlist items" }
+        }
+      }
+    },
+    "/wishlist/items/{id}": {
+      "patch": {
+        "operationId": "wishlistUpdateItem",
+        "summary": "Update wishlist item notes/priority",
+        "tags": ["Wishlist"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateWishlistItemDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Item updated" }
+        }
+      },
+      "delete": {
+        "operationId": "wishlistRemoveItem",
+        "summary": "Remove item from wishlist",
+        "tags": ["Wishlist"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Item removed" }
+        }
+      }
+    },
+    "/wishlist/quick-add/{trekId}": {
+      "post": {
+        "operationId": "wishlistQuickAdd",
+        "summary": "Quick-add trek to default collection",
+        "tags": ["Wishlist"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "trekId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "201": { "description": "Trek added to default collection" }
+        }
+      }
+    },
+    "/wishlist/treks/{trekId}/toggle": {
+      "post": {
+        "operationId": "wishlistToggleSave",
+        "summary": "Toggle trek save",
+        "tags": ["Wishlist"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "trekId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Save toggled" }
+        }
+      }
+    },
+    "/wishlist/treks/{trekId}/status": {
+      "get": {
+        "operationId": "wishlistTrekStatus",
+        "summary": "Check if trek is saved and in which collections",
+        "tags": ["Wishlist"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "trekId", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Trek wishlist status" }
+        }
+      }
+    },
+    "/organizer/applications": {
+      "post": {
+        "operationId": "organizerCreateApplication",
+        "summary": "Submit organizer application",
+        "tags": ["Organizer"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateOrganizerRequestDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Application submitted" }
+        }
+      }
+    },
+    "/organizer/applications/me": {
+      "get": {
+        "operationId": "organizerMyApplication",
+        "summary": "Get my organizer application status",
+        "tags": ["Organizer"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "User's application status" }
+        }
+      }
+    },
+    "/organizer/applications/{id}": {
+      "get": {
+        "operationId": "organizerGetApplication",
+        "summary": "Get organizer application detail (admin only)",
+        "tags": ["Organizer"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Application detail" }
+        }
+      },
+      "patch": {
+        "operationId": "organizerUpdateApplication",
+        "summary": "Update organizer application (admin only)",
+        "tags": ["Organizer"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateOrganizerRequestDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Application updated" }
+        }
+      }
+    },
+    "/organizer/dashboard": {
+      "get": {
+        "operationId": "organizerDashboard",
+        "summary": "Get organizer dashboard",
+        "tags": ["Organizer"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "Dashboard data" }
+        }
+      }
+    },
+    "/organizer/treks": {
+      "get": {
+        "operationId": "organizerListTreks",
+        "summary": "List organizer's treks",
+        "tags": ["Organizer"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "status", "schema": { "$ref": "#/components/schemas/TrekStatus" } },
+          { "in": "query", "name": "startDateFrom", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "startDateTo", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1, "maximum": 100 } }
+        ],
+        "responses": {
+          "200": { "description": "Organizer's treks" }
+        }
+      }
+    },
+    "/organizer/treks/{id}": {
+      "get": {
+        "operationId": "organizerGetTrek",
+        "summary": "Get organizer trek detail",
+        "tags": ["Organizer"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Trek detail" }
+        }
+      }
+    },
+    "/organizer/treks/{id}/status": {
+      "patch": {
+        "operationId": "organizerUpdateTrekStatus",
+        "summary": "Update trek status",
+        "tags": ["Organizer"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {
+                  "status": { "type": "string", "description": "New trek status" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Trek status updated" }
+        }
+      }
+    },
+    "/organizer/treks/{id}/bookings": {
+      "get": {
+        "operationId": "organizerGetTrekBookings",
+        "summary": "Get bookings for a trek",
+        "tags": ["Organizer"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } },
+          { "in": "query", "name": "trekId", "schema": { "type": "string", "format": "uuid" } },
+          { "in": "query", "name": "status", "schema": { "$ref": "#/components/schemas/BookingStatusFilter" } },
+          { "in": "query", "name": "bookingDateFrom", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "bookingDateTo", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1, "maximum": 100 } }
+        ],
+        "responses": {
+          "200": { "description": "Trek bookings" }
+        }
+      }
+    },
+    "/organizer/treks/{id}/reviews": {
+      "get": {
+        "operationId": "organizerGetTrekReviews",
+        "summary": "Get reviews for a trek",
+        "tags": ["Organizer"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Trek reviews" }
+        }
+      }
+    },
+    "/organizer/bookings": {
+      "get": {
+        "operationId": "organizerListBookings",
+        "summary": "List organizer bookings across treks",
+        "tags": ["Organizer"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "trekId", "schema": { "type": "string", "format": "uuid" } },
+          { "in": "query", "name": "status", "schema": { "$ref": "#/components/schemas/BookingStatusFilter" } },
+          { "in": "query", "name": "bookingDateFrom", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "bookingDateTo", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1, "maximum": 100 } }
+        ],
+        "responses": {
+          "200": { "description": "Organizer bookings" }
+        }
+      }
+    },
+    "/organizer/analytics": {
+      "get": {
+        "operationId": "organizerAnalytics",
+        "summary": "Get organizer analytics",
+        "tags": ["Organizer"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "startDate", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "endDate", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "trekId", "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Analytics data" }
+        }
+      }
+    },
+    "/organizer/revenue": {
+      "get": {
+        "operationId": "organizerRevenue",
+        "summary": "Get organizer revenue data",
+        "tags": ["Organizer"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "startDate", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "endDate", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "trekId", "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Revenue data" }
+        }
+      }
+    },
+    "/organizer/participants": {
+      "get": {
+        "operationId": "organizerParticipants",
+        "summary": "List organizer participants",
+        "tags": ["Organizer"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "trekId", "schema": { "type": "string", "format": "uuid" } },
+          { "in": "query", "name": "status", "schema": { "$ref": "#/components/schemas/BookingStatusFilter" } },
+          { "in": "query", "name": "bookingDateFrom", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "bookingDateTo", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1, "maximum": 100 } }
+        ],
+        "responses": {
+          "200": { "description": "Participants list" }
+        }
+      }
+    },
+    "/admin/platform-settings": {
+      "get": {
+        "operationId": "adminGetPlatformSettings",
+        "summary": "Get platform settings (admin only)",
+        "tags": ["Admin"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "Platform settings" }
+        }
+      },
+      "patch": {
+        "operationId": "adminUpdatePlatformSettings",
+        "summary": "Update platform settings (admin only)",
+        "tags": ["Admin"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdatePlatformSettingsDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Settings updated" }
+        }
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "operationId": "adminListUsers",
+        "summary": "List users (admin only)",
+        "tags": ["Admin"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "query", "schema": { "type": "string" }, "description": "Search query" },
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1, "maximum": 200 } },
+          { "in": "query", "name": "isSuspended", "schema": { "type": "boolean" } },
+          { "in": "query", "name": "organizerStatus", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "List of users" }
+        }
+      }
+    },
+    "/admin/users/{id}/status": {
+      "patch": {
+        "operationId": "adminUpdateUserStatus",
+        "summary": "Update user status (admin only)",
+        "tags": ["Admin"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateUserStatusDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "User status updated" }
+        }
+      }
+    },
+    "/admin/organizer-requests": {
+      "get": {
+        "operationId": "adminListOrganizerRequests",
+        "summary": "List organizer requests (admin only)",
+        "tags": ["Admin"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "query", "schema": { "type": "string" } },
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1, "maximum": 200 } },
+          { "in": "query", "name": "isSuspended", "schema": { "type": "boolean" } },
+          { "in": "query", "name": "organizerStatus", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "List of organizer requests" }
+        }
+      }
+    },
+    "/admin/organizer-requests/{id}": {
+      "patch": {
+        "operationId": "adminDecideOrganizerRequest",
+        "summary": "Approve or reject an organizer request (admin only)",
+        "tags": ["Admin"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/OrganizerRequestDecisionDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Decision processed" }
+        }
+      }
+    },
+    "/admin/treks/pending": {
+      "get": {
+        "operationId": "adminListPendingTreks",
+        "summary": "List pending treks for approval (admin only)",
+        "tags": ["Admin"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "query", "schema": { "type": "string" } },
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1, "maximum": 200 } },
+          { "in": "query", "name": "isSuspended", "schema": { "type": "boolean" } },
+          { "in": "query", "name": "organizerStatus", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Pending treks" }
+        }
+      }
+    },
+    "/admin/treks/{id}/decision": {
+      "patch": {
+        "operationId": "adminDecideTrek",
+        "summary": "Approve or reject a trek (admin only)",
+        "tags": ["Admin"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TrekDecisionDto" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Trek decision processed" }
+        }
+      }
+    },
+    "/admin/bookings/report": {
+      "get": {
+        "operationId": "adminBookingsReport",
+        "summary": "Get bookings report (admin only)",
+        "tags": ["Admin"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "query", "schema": { "type": "string" } },
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1, "maximum": 200 } }
+        ],
+        "responses": {
+          "200": { "description": "Bookings report" }
+        }
+      }
+    },
+    "/admin/audit-logs": {
+      "get": {
+        "operationId": "adminAuditLogs",
+        "summary": "Query audit logs (admin only)",
+        "tags": ["Admin"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "actorId", "schema": { "type": "string", "format": "uuid" } },
+          { "in": "query", "name": "action", "schema": { "type": "string" } },
+          { "in": "query", "name": "resourceType", "schema": { "type": "string" } },
+          { "in": "query", "name": "from", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "to", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1, "maximum": 200 } }
+        ],
+        "responses": {
+          "200": { "description": "Audit log entries" }
+        }
+      }
+    },
+    "/admin/bookings/{id}/generate-ticket-pdf": {
+      "post": {
+        "operationId": "adminGenerateTicketPdf",
+        "summary": "Enqueue ticket PDF generation for a booking (admin only)",
+        "tags": ["Admin"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "201": { "description": "Job enqueued" }
+        }
+      }
+    },
+    "/admin/referrals": {
+      "get": {
+        "operationId": "adminListReferrals",
+        "summary": "List all referrals with filters (admin only)",
+        "tags": ["Admin"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "status", "schema": { "type": "string" } },
+          { "in": "query", "name": "referrerId", "schema": { "type": "string", "format": "uuid" } },
+          { "in": "query", "name": "startDate", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "endDate", "schema": { "type": "string", "format": "date-time" } },
+          { "in": "query", "name": "query", "schema": { "type": "string" } },
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1, "maximum": 200 } }
+        ],
+        "responses": {
+          "200": { "description": "List of referrals" }
+        }
+      }
+    },
+    "/admin/referrals/codes": {
+      "get": {
+        "operationId": "adminListReferralCodes",
+        "summary": "List all referral codes with stats (admin only)",
+        "tags": ["Admin"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "query", "schema": { "type": "string" } },
+          { "in": "query", "name": "tier", "schema": { "type": "string" } },
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1, "maximum": 200 } }
+        ],
+        "responses": {
+          "200": { "description": "List of referral codes" }
+        }
+      }
+    },
+    "/admin/referrals/summary": {
+      "get": {
+        "operationId": "adminReferralSummary",
+        "summary": "Aggregate referral stats (admin only)",
+        "tags": ["Admin"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "Referral summary stats" }
+        }
+      }
+    },
+    "/posts/feed": {
+      "get": {
+        "operationId": "postsFeed",
+        "summary": "Get feed posts from friends and self",
+        "tags": ["Posts"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1 } }
+        ],
+        "responses": {
+          "200": { "description": "Paginated feed posts" }
+        }
+      }
+    },
+    "/posts": {
+      "post": {
+        "operationId": "postsCreate",
+        "summary": "Create a new post",
+        "tags": ["Posts"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreatePostDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Post created" }
+        }
+      }
+    },
+    "/posts/{id}/like": {
+      "post": {
+        "operationId": "postsToggleLike",
+        "summary": "Toggle like on a post",
+        "tags": ["Posts"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Like toggled" }
+        }
+      }
+    },
+    "/posts/{id}/comments": {
+      "post": {
+        "operationId": "postsAddComment",
+        "summary": "Comment on a post",
+        "tags": ["Posts"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CommentPostDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Comment added" }
+        }
+      },
+      "get": {
+        "operationId": "postsGetComments",
+        "summary": "Get comments for a post",
+        "tags": ["Posts"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } },
+          { "in": "query", "name": "page", "schema": { "type": "integer", "minimum": 1 } },
+          { "in": "query", "name": "limit", "schema": { "type": "integer", "minimum": 1 } }
+        ],
+        "responses": {
+          "200": { "description": "Paginated comments" }
+        }
+      }
+    },
+    "/posts/{id}": {
+      "delete": {
+        "operationId": "postsDelete",
+        "summary": "Delete own post",
+        "tags": ["Posts"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Post deleted" }
+        }
+      }
+    },
+    "/stories": {
+      "get": {
+        "operationId": "storiesActive",
+        "summary": "Get active stories from friends and self",
+        "tags": ["Stories"],
+        "security": [{ "access-token": [] }],
+        "responses": {
+          "200": { "description": "List of active stories" }
+        }
+      },
+      "post": {
+        "operationId": "storiesCreate",
+        "summary": "Create a new story (24h expiry)",
+        "tags": ["Stories"],
+        "security": [{ "access-token": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateStoryDto" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Story created" }
+        }
+      }
+    },
+    "/stories/{id}": {
+      "delete": {
+        "operationId": "storiesDelete",
+        "summary": "Delete own story",
+        "tags": ["Stories"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Story deleted" }
+        }
+      }
+    },
+    "/stories/{id}/view": {
+      "post": {
+        "operationId": "storiesMarkAsViewed",
+        "summary": "Mark story as viewed",
+        "tags": ["Stories"],
+        "security": [{ "access-token": [] }],
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "View tracked" }
+        }
       }
     }
   },
-  "info": {
-    "title": "Offbeat प्रवासी API",
-    "description": "Full-scale, production-ready trek discovery and booking platform.",
-    "version": "1.0.0",
-    "contact": {}
-  },
   "tags": [],
-  "servers": [
-    {
-      "url": "http://localhost:4000",
-      "description": "Local development"
-    }
-  ],
   "components": {
     "securitySchemes": {
       "access-token": {
+        "type": "http",
         "scheme": "bearer",
-        "bearerFormat": "JWT",
-        "type": "http"
+        "bearerFormat": "JWT"
+      },
+      "ApiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key"
       }
     },
     "schemas": {
       "RegisterDto": {
         "type": "object",
-        "properties": {}
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string", "minLength": 8 },
+          "fullName": { "type": "string" }
+        }
       },
       "LoginDto": {
         "type": "object",
-        "properties": {}
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string" }
+        }
       },
       "SendOtpDto": {
         "type": "object",
-        "properties": {}
+        "required": ["email"],
+        "properties": {
+          "email": { "type": "string", "format": "email" }
+        }
       },
       "VerifyOtpDto": {
         "type": "object",
-        "properties": {}
+        "required": ["email", "otp"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "otp": { "type": "string", "pattern": "^\\d{6}$" }
+        }
       },
       "RefreshDto": {
         "type": "object",
-        "properties": {}
+        "required": ["refreshToken"],
+        "properties": {
+          "refreshToken": { "type": "string" }
+        }
       },
       "PresignDto": {
         "type": "object",
-        "properties": {}
+        "required": ["filename", "mimeType", "category"],
+        "properties": {
+          "filename": { "type": "string", "description": "Desired filename with extension" },
+          "mimeType": { "type": "string", "example": "image/jpeg" },
+          "category": { "$ref": "#/components/schemas/MediaCategory" }
+        }
       },
       "CreateOrganizerRequestDto": {
         "type": "object",
+        "required": ["organizationName", "contactPhone", "bio"],
         "properties": {
-          "organizationName": {
-            "type": "string",
-            "description": "Name of the organization",
-            "maxLength": 160
-          },
-          "contactPerson": {
-            "type": "string",
-            "description": "Contact person name",
-            "maxLength": 160
-          },
-          "contactPhone": {
-            "type": "string",
-            "description": "Contact phone number",
-            "maxLength": 20
-          },
-          "website": {
-            "type": "string",
-            "description": "Website URL",
-            "maxLength": 160
-          },
-          "bio": {
-            "type": "string",
-            "description": "Short bio about the organization"
-          },
-          "yearsOfExperience": {
-            "type": "number",
-            "description": "Years of experience",
-            "example": 5
-          },
-          "documentUrls": {
-            "type": "object",
-            "description": "Document URLs map",
-            "example": {
-              "licence": "https://..."
-            }
-          },
-          "certificateUrls": {
-            "type": "object",
-            "description": "Certificate URLs map",
-            "example": {
-              "certificate": "https://..."
-            }
-          }
-        },
-        "required": [
-          "organizationName",
-          "contactPhone",
-          "bio"
-        ]
+          "organizationName": { "type": "string", "minLength": 1, "maxLength": 160 },
+          "contactPerson": { "type": "string", "maxLength": 160 },
+          "contactPhone": { "type": "string", "minLength": 3, "maxLength": 20 },
+          "website": { "type": "string", "format": "uri", "maxLength": 160 },
+          "bio": { "type": "string" },
+          "yearsOfExperience": { "type": "integer", "minimum": 0, "example": 5 },
+          "documentUrls": { "type": "object", "additionalProperties": { "type": "string", "format": "uri" } },
+          "certificateUrls": { "type": "object", "additionalProperties": { "type": "string", "format": "uri" } }
+        }
       },
       "UpdateOrganizerRequestDto": {
-        "type": "object",
-        "properties": {
-          "organizationName": {
-            "type": "string",
-            "description": "Name of the organization",
-            "maxLength": 160
-          },
-          "contactPerson": {
-            "type": "string",
-            "description": "Contact person name",
-            "maxLength": 160
-          },
-          "contactPhone": {
-            "type": "string",
-            "description": "Contact phone number",
-            "maxLength": 20
-          },
-          "website": {
-            "type": "string",
-            "description": "Website URL",
-            "maxLength": 160
-          },
-          "bio": {
-            "type": "string",
-            "description": "Short bio about the organization"
-          },
-          "yearsOfExperience": {
-            "type": "number",
-            "description": "Years of experience",
-            "example": 5
-          },
-          "documentUrls": {
+        "allOf": [
+          { "$ref": "#/components/schemas/CreateOrganizerRequestDto" },
+          {
             "type": "object",
-            "description": "Document URLs map",
-            "example": {
-              "licence": "https://..."
+            "properties": {
+              "status": { "$ref": "#/components/schemas/OrganizerStatus" },
+              "adminNotes": { "type": "string", "maxLength": 1000 },
+              "reviewedAt": { "type": "string", "format": "date-time" }
             }
-          },
-          "certificateUrls": {
-            "type": "object",
-            "description": "Certificate URLs map",
-            "example": {
-              "certificate": "https://..."
-            }
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "NONE",
-              "PENDING",
-              "APPROVED",
-              "REJECTED"
-            ]
-          },
-          "adminNotes": {
-            "type": "string",
-            "description": "Admin notes"
-          },
-          "reviewedAt": {
-            "type": "string",
-            "description": "When the application was reviewed"
           }
-        }
+        ]
       },
       "CreateTrekDto": {
         "type": "object",
-        "properties": {}
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "maxLength": 255 },
+          "shortDescription": { "type": "string", "maxLength": 512 },
+          "fullDescription": { "type": "string" },
+          "state": { "type": "string" },
+          "location": { "type": "string" },
+          "latitude": { "type": "number", "format": "double" },
+          "longitude": { "type": "number", "format": "double" },
+          "difficulty": { "$ref": "#/components/schemas/TrekDifficulty" },
+          "costInr": { "type": "integer", "minimum": 0 },
+          "maxParticipants": { "type": "integer", "minimum": 1 },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "imageKeys": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "CreateBookingDto": {
+        "type": "object",
+        "required": ["trekId", "quantity"],
+        "properties": {
+          "trekId": { "type": "string", "format": "uuid" },
+          "quantity": { "type": "integer", "minimum": 1 },
+          "participants": { "type": "array", "items": { "type": "object" } },
+          "contactPhone": { "type": "string" },
+          "contactEmail": { "type": "string", "format": "email" },
+          "clientReference": { "type": "string" }
+        }
+      },
+      "CreateCheckoutDto": {
+        "type": "object",
+        "required": ["bookingId", "provider"],
+        "properties": {
+          "bookingId": { "type": "string", "format": "uuid" },
+          "provider": { "$ref": "#/components/schemas/PaymentProvider" },
+          "idempotencyKey": { "type": "string" }
+        }
+      },
+      "UpdateProfileDto": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string", "maxLength": 80 },
+          "fullName": { "type": "string", "maxLength": 120 },
+          "phone": { "type": "string" },
+          "location": { "type": "string" },
+          "gender": { "$ref": "#/components/schemas/Gender" },
+          "dateOfBirth": { "type": "string", "format": "date" },
+          "profileImageUrl": { "type": "string", "format": "uri" },
+          "bannerImageUrl": { "type": "string", "format": "uri" }
+        }
+      },
+      "UpsertOnboardingDto": {
+        "type": "object",
+        "required": ["answers"],
+        "properties": {
+          "answers": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/OnboardingAnswerDto" }
+          }
+        }
+      },
+      "OnboardingAnswerDto": {
+        "type": "object",
+        "required": ["questionId", "value"],
+        "properties": {
+          "questionId": { "type": "string" },
+          "value": { "type": "string" }
+        }
+      },
+      "CreatePostDto": {
+        "type": "object",
+        "required": ["caption", "imageUrls"],
+        "properties": {
+          "caption": { "type": "string" },
+          "imageUrls": { "type": "array", "items": { "type": "string", "format": "uri" } },
+          "location": { "type": "string", "nullable": true }
+        }
+      },
+      "CommentPostDto": {
+        "type": "object",
+        "required": ["comment"],
+        "properties": {
+          "comment": { "type": "string", "maxLength": 500 }
+        }
+      },
+      "CreateStoryDto": {
+        "type": "object",
+        "required": ["mediaUrl", "mediaType"],
+        "properties": {
+          "mediaUrl": { "type": "string", "format": "uri" },
+          "mediaType": { "type": "string", "description": "Type of media (IMAGE, VIDEO, etc.)" },
+          "caption": { "type": "string", "nullable": true }
+        }
+      },
+      "SubmitAssessmentDto": {
+        "type": "object",
+        "required": ["answers"],
+        "properties": {
+          "answers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["questionId", "selectedOption"],
+              "properties": {
+                "questionId": { "type": "string" },
+                "selectedOption": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "CreateGearItemDto": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "category": { "type": "string" },
+          "isRequired": { "type": "boolean", "default": false },
+          "weightG": { "type": "integer", "nullable": true }
+        }
+      },
+      "SetTrekGearDto": {
+        "type": "object",
+        "properties": {
+          "gearItemIds": { "type": "array", "items": { "type": "string", "format": "uuid" } }
+        }
+      },
+      "UpdatePackingItemDto": {
+        "type": "object",
+        "properties": {
+          "isPacked": { "type": "boolean" },
+          "isRented": { "type": "boolean" }
+        }
+      },
+      "CreateGroupDto": {
+        "type": "object",
+        "required": ["trekId", "maxSize", "expiresAt"],
+        "properties": {
+          "trekId": { "type": "string", "format": "uuid" },
+          "name": { "type": "string", "maxLength": 120 },
+          "maxSize": { "type": "integer", "minimum": 1 },
+          "expiresAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "UpdateGroupDto": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "maxLength": 120 },
+          "maxSize": { "type": "integer", "minimum": 1 },
+          "expiresAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "InviteMembersDto": {
+        "type": "object",
+        "required": ["invites"],
+        "properties": {
+          "invites": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["email"],
+              "properties": { "email": { "type": "string", "format": "email" } }
+            }
+          }
+        }
+      },
+      "UpdateMemberStatusDto": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": { "$ref": "#/components/schemas/MemberStatus" },
+          "fullName": { "type": "string" },
+          "phone": { "type": "string" },
+          "medicalConditions": { "type": "string" }
+        }
+      },
+      "CreateItineraryDayDto": {
+        "type": "object",
+        "required": ["dayNumber", "title", "activityType"],
+        "properties": {
+          "dayNumber": { "type": "integer", "minimum": 1 },
+          "title": { "type": "string", "maxLength": 255 },
+          "description": { "type": "string" },
+          "distanceKm": { "type": "number" },
+          "altitudeGainM": { "type": "integer" },
+          "altitudeLossM": { "type": "integer" },
+          "maxAltitudeM": { "type": "integer" },
+          "mealPlan": {
+            "type": "object",
+            "properties": {
+              "breakfast": { "type": "string" },
+              "lunch": { "type": "string" },
+              "dinner": { "type": "string" }
+            }
+          },
+          "accommodationType": { "$ref": "#/components/schemas/AccommodationType" },
+          "activityType": { "$ref": "#/components/schemas/ActivityType" }
+        }
+      },
+      "UpdateItineraryDayDto": {
+        "type": "object",
+        "properties": {
+          "dayNumber": { "type": "integer", "minimum": 1 },
+          "title": { "type": "string", "maxLength": 255 },
+          "description": { "type": "string" },
+          "distanceKm": { "type": "number" },
+          "altitudeGainM": { "type": "integer" },
+          "altitudeLossM": { "type": "integer" },
+          "maxAltitudeM": { "type": "integer" },
+          "accommodationType": { "$ref": "#/components/schemas/AccommodationType" },
+          "activityType": { "$ref": "#/components/schemas/ActivityType" }
+        }
+      },
+      "ReorderItineraryDto": {
+        "type": "object",
+        "required": ["dayIds"],
+        "properties": {
+          "dayIds": { "type": "array", "items": { "type": "string", "format": "uuid" } }
+        }
+      },
+      "RegisterDeviceDto": {
+        "type": "object",
+        "required": ["token", "platform"],
+        "properties": {
+          "token": { "type": "string", "maxLength": 512 },
+          "platform": { "$ref": "#/components/schemas/DevicePlatform" },
+          "appVersion": { "type": "string", "maxLength": 20 }
+        }
+      },
+      "CreatePolicyDto": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "tiers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "daysBeforeStart": { "type": "integer" },
+                "refundPercent": { "type": "integer" }
+              }
+            }
+          }
+        }
+      },
+      "AssignPolicyDto": {
+        "type": "object",
+        "required": ["policyId"],
+        "properties": {
+          "policyId": { "type": "string", "format": "uuid" }
+        }
+      },
+      "RecommendationPreferenceDto": {
+        "type": "object",
+        "properties": {
+          "preferredDifficulty": { "type": "array", "items": { "$ref": "#/components/schemas/TrekDifficulty" } },
+          "preferredStates": { "type": "array", "items": { "type": "string" } },
+          "maxBudget": { "type": "integer", "minimum": 0 },
+          "preferredDurationDays": { "type": "array", "items": { "type": "integer" }, "maxItems": 2 },
+          "interests": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "CreateReportDto": {
+        "type": "object",
+        "required": ["targetType", "targetId", "reason"],
+        "properties": {
+          "targetType": { "$ref": "#/components/schemas/ReportTargetType" },
+          "targetId": { "type": "string", "format": "uuid" },
+          "reason": { "$ref": "#/components/schemas/ReportReason" },
+          "description": { "type": "string" }
+        }
+      },
+      "ReviewReportDto": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": { "$ref": "#/components/schemas/ReportStatus" },
+          "adminNotes": { "type": "string" }
+        }
+      },
+      "UpsertSafetyInfoDto": {
+        "type": "object",
+        "properties": {
+          "terrainRisks": { "type": "string" },
+          "altitudeWarnings": { "type": "string" },
+          "wildlifeAdvisories": { "type": "string" },
+          "generalGuidelines": { "type": "string" },
+          "baseCampContact": { "type": "string", "maxLength": 32 },
+          "localRescueContact": { "type": "string", "maxLength": 32 },
+          "nearestHospital": { "type": "string", "maxLength": 255 }
+        }
+      },
+      "CreateEmergencyContactDto": {
+        "type": "object",
+        "required": ["name", "phone", "relationship"],
+        "properties": {
+          "name": { "type": "string", "maxLength": 120 },
+          "phone": { "type": "string", "maxLength": 20 },
+          "relationship": { "type": "string", "maxLength": 40 },
+          "isPrimary": { "type": "boolean" }
+        }
+      },
+      "UpdateEmergencyContactDto": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "maxLength": 120 },
+          "phone": { "type": "string", "maxLength": 20 },
+          "relationship": { "type": "string", "maxLength": 40 },
+          "isPrimary": { "type": "boolean" }
+        }
+      },
+      "CheckInDto": {
+        "type": "object",
+        "required": ["latitude", "longitude"],
+        "properties": {
+          "latitude": { "type": "number", "description": "Latitude of check-in location" },
+          "longitude": { "type": "number", "description": "Longitude of check-in location" }
+        }
+      },
+      "CheckOutDto": {
+        "type": "object",
+        "properties": {
+          "latitude": { "type": "number" },
+          "longitude": { "type": "number" }
+        }
+      },
+      "CreateWishlistCollectionDto": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "description": { "type": "string", "maxLength": 512 }
+        }
+      },
+      "UpdateWishlistCollectionDto": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "description": { "type": "string", "maxLength": 512 }
+        }
+      },
+      "AddToWishlistCollectionDto": {
+        "type": "object",
+        "required": ["trekId"],
+        "properties": {
+          "trekId": { "type": "string", "format": "uuid" },
+          "notes": { "type": "string", "maxLength": 512 },
+          "priority": { "type": "integer", "minimum": 0, "maximum": 2, "default": 0 }
+        }
+      },
+      "UpdateWishlistItemDto": {
+        "type": "object",
+        "properties": {
+          "notes": { "type": "string", "maxLength": 512 },
+          "priority": { "type": "integer", "minimum": 0, "maximum": 2 }
+        }
+      },
+      "UpdatePlatformSettingsDto": {
+        "type": "object",
+        "required": ["settings"],
+        "properties": {
+          "settings": { "type": "object", "description": "Arbitrary platform settings object" },
+          "message": { "type": "string" }
+        }
+      },
+      "UpdateUserStatusDto": {
+        "type": "object",
+        "properties": {
+          "isSuspended": { "type": "boolean" },
+          "organizerStatus": { "type": "string" },
+          "note": { "type": "string" }
+        }
+      },
+      "OrganizerRequestDecisionDto": {
+        "type": "object",
+        "required": ["decision"],
+        "properties": {
+          "decision": { "$ref": "#/components/schemas/Decision" },
+          "note": { "type": "string" }
+        }
+      },
+      "TrekDecisionDto": {
+        "type": "object",
+        "required": ["decision"],
+        "properties": {
+          "decision": { "$ref": "#/components/schemas/TrekDecision" },
+          "note": { "type": "string" }
+        }
+      },
+      "TrekDifficulty": {
+        "type": "string",
+        "enum": ["EASY", "MODERATE", "DIFFICULT", "EXTREME"]
+      },
+      "TrekStatus": {
+        "type": "string",
+        "enum": ["DRAFT", "PUBLISHED", "CANCELLED", "COMPLETED"]
+      },
+      "BookingStatus": {
+        "type": "string",
+        "enum": ["PENDING", "CONFIRMED", "CANCELLED", "FAILED"]
+      },
+      "BookingStatusFilter": {
+        "type": "string",
+        "enum": ["PENDING", "CONFIRMED", "CANCELLED", "FAILED"]
+      },
+      "PaymentProvider": {
+        "type": "string",
+        "enum": ["STRIPE", "RAZORPAY"]
+      },
+      "OrganizerStatus": {
+        "type": "string",
+        "enum": ["NONE", "PENDING", "APPROVED", "REJECTED"]
+      },
+      "Decision": {
+        "type": "string",
+        "enum": ["APPROVE", "REJECT"]
+      },
+      "TrekDecision": {
+        "type": "string",
+        "enum": ["APPROVE", "REJECT"]
+      },
+      "MediaCategory": {
+        "type": "string",
+        "enum": ["PROFILE", "BANNER", "POST", "TREK", "STORY"]
+      },
+      "ReportStatus": {
+        "type": "string",
+        "enum": ["PENDING", "REVIEWED", "DISMISSED", "ACTION_TAKEN"]
+      },
+      "ReportTargetType": {
+        "type": "string",
+        "enum": ["POST", "COMMENT", "USER", "TREK", "REVIEW"]
+      },
+      "ReportReason": {
+        "type": "string",
+        "enum": ["SPAM", "HARASSMENT", "INAPPROPRIATE", "MISINFORMATION", "OTHER"]
+      },
+      "MemberStatus": {
+        "type": "string",
+        "enum": ["PENDING", "JOINED", "DECLINED", "REMOVED"]
+      },
+      "Gender": {
+        "type": "string",
+        "enum": ["MALE", "FEMALE", "OTHER"]
+      },
+      "DevicePlatform": {
+        "type": "string",
+        "enum": ["IOS", "ANDROID", "WEB"]
+      },
+      "ActivityType": {
+        "type": "string",
+        "enum": ["TREK", "HIKE", "DRIVE", "FLY", "REST", "SIGHTSEEING", "OTHER"]
+      },
+      "AccommodationType": {
+        "type": "string",
+        "enum": ["TENT", "HOMESTAY", "HOTEL", "CAMP", "NONE"]
+      },
+      "AuthenticatedUser": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "email": { "type": "string", "format": "email" },
+          "isAdmin": { "type": "boolean" },
+          "organizerStatus": { "type": "string", "nullable": true }
+        }
+      },
+      "TokenPair": {
+        "type": "object",
+        "properties": {
+          "accessToken": { "type": "string" },
+          "refreshToken": { "type": "string" },
+          "expiresIn": { "type": "integer" }
+        }
+      },
+      "AssessmentResultDto": {
+        "type": "object",
+        "properties": {
+          "totalScore": { "type": "integer" },
+          "difficultyBracket": { "type": "string" },
+          "recommendedDifficultyLabel": { "type": "string" },
+          "completedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "RecommendationResultDto": {
+        "type": "object",
+        "properties": {
+          "trekId": { "type": "string", "format": "uuid" },
+          "score": { "type": "number" },
+          "reason": { "type": "string" }
+        }
+      },
+      "SimilarTrekDto": {
+        "type": "object",
+        "properties": {
+          "trekId": { "type": "string", "format": "uuid" },
+          "score": { "type": "number" },
+          "reason": { "type": "string" }
+        }
+      },
+      "ReferralCodeResponse": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "shareLink": { "type": "string", "format": "uri" },
+          "tier": { "type": "string" },
+          "totalReferrals": { "type": "integer" },
+          "successfulReferrals": { "type": "integer" },
+          "totalEarnedInr": { "type": "integer" }
+        }
+      },
+      "ReferralResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "refereeEmail": { "type": "string", "format": "email" },
+          "status": { "type": "string" },
+          "rewardType": { "type": "string", "nullable": true },
+          "rewardValueInr": { "type": "integer", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ReferralLeaderboardEntry": {
+        "type": "object",
+        "properties": {
+          "userId": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "successfulReferrals": { "type": "integer" }
+        }
+      },
+      "ClaimReferralInfo": {
+        "type": "object",
+        "properties": {
+          "referrerName": { "type": "string" },
+          "discountAmount": { "type": "integer" },
+          "code": { "type": "string" }
+        }
+      },
+      "Post": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "user": { "$ref": "#/components/schemas/User" },
+          "caption": { "type": "string" },
+          "imageUrls": { "type": "array", "items": { "type": "string", "format": "uri" } },
+          "location": { "type": "string", "nullable": true },
+          "likesCount": { "type": "integer" },
+          "commentsCount": { "type": "integer" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "email": { "type": "string", "format": "email" },
+          "fullName": { "type": "string", "nullable": true },
+          "username": { "type": "string", "nullable": true },
+          "profileImageUrl": { "type": "string", "format": "uri", "nullable": true }
+        }
+      },
+      "Story": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "user": { "$ref": "#/components/schemas/User" },
+          "mediaUrl": { "type": "string", "format": "uri" },
+          "mediaType": { "type": "string" },
+          "caption": { "type": "string", "nullable": true },
+          "expiresAt": { "type": "string", "format": "date-time" },
+          "viewsCount": { "type": "integer" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "WishlistItemResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "trekId": { "type": "string", "format": "uuid" },
+          "notes": { "type": "string", "nullable": true },
+          "priority": { "type": "integer" },
+          "sortOrder": { "type": "integer" },
+          "addedAt": { "type": "string", "format": "date-time" },
+          "basePriceInr": { "type": "integer", "nullable": true }
+        }
+      },
+      "WishlistCollectionResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "description": { "type": "string", "nullable": true },
+          "sortOrder": { "type": "integer" },
+          "shareToken": { "type": "string", "nullable": true },
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/WishlistItemResponse" } },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
       }
     }
   }
