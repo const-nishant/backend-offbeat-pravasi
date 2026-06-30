@@ -12,8 +12,6 @@ import { AuthController } from './modules/auth/auth.controller';
 import { AuthService } from './modules/auth/auth.service';
 import { BookingsController } from './modules/bookings/bookings.controller';
 import { BookingsService } from './modules/bookings/bookings.service';
-import { BookmarksController } from './modules/bookmarks/bookmarks.controller';
-import { BookmarksService } from './modules/bookmarks/bookmarks.service';
 import { FriendshipsController } from './modules/friendships/friendships.controller';
 import { FriendshipsService } from './modules/friendships/friendships.service';
 import { HealthController } from './modules/health/health.controller';
@@ -44,7 +42,6 @@ const controllers = [
   AdminController,
   AuthController,
   BookingsController,
-  BookmarksController,
   FriendshipsController,
   HealthController,
   LeaderboardController,
@@ -64,7 +61,6 @@ const providers = [
   { provide: AdminService, useValue: {} },
   { provide: AuthService, useValue: {} },
   { provide: BookingsService, useValue: {} },
-  { provide: BookmarksService, useValue: {} },
   { provide: FriendshipsService, useValue: {} },
   { provide: HealthService, useValue: {} },
   { provide: LeaderboardService, useValue: {} },
