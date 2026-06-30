@@ -57,20 +57,20 @@
 | 4 | `trek_tags` | Treks | Tags per trek |
 | 5 | `trek_reviews` | Treks | Per completed booking |
 | 6 | `trek_interactions` | Treks | Per user view/like |
-| 7 | `bookmarks` | Bookmarks | **To be deprecated** → Wishlist |
-| 8 | `friend_requests` | Friendships | Social graph |
+| 7 | `bookmarks` | Bookmarks | **DEPRECATED** → Use Wishlist |
+| 8 | `friend_requests` | Friendships | **DEPRECATED** — no longer maintained |
 | 9 | `bookings` | Bookings | Per booking |
 | 10 | `payments` | Payments | Per payment attempt |
-| 11 | `posts` | Posts | User-generated |
-| 12 | `comments` | Posts | Per post |
-| 13 | `post_likes` | Posts | Per like |
-| 14 | `stories` | Stories | Short-lived (expired deleted) |
-| 15 | `story_views` | Stories | Per story view |
+| 11 | `posts` | Posts | **DEPRECATED** — no longer maintained |
+| 12 | `comments` | Posts | **DEPRECATED** — no longer maintained |
+| 13 | `post_likes` | Posts | **DEPRECATED** — no longer maintained |
+| 14 | `stories` | Stories | **DEPRECATED** — no longer maintained |
+| 15 | `story_views` | Stories | **DEPRECATED** — no longer maintained |
 | 16 | `organizer_applications` | Organizer | Per application |
 | 17 | `audit_logs` | Admin | **High growth** — per admin action |
 | 18 | `platform_settings` | Admin | Single row (key-value) |
 | 19 | `media` | Media | Per upload |
-| 20 | `leaderboard_entries` | Leaderboard | Per user |
+| 20 | `leaderboard_entries` | Leaderboard | **DEPRECATED** — no longer maintained |
 | 21 | `reports` | Reports | Per user report |
 | 22 | `device_tokens` | Notifications | Per user device |
 | 23 | `notifications` | Notifications | **High growth** — per notification sent |
@@ -331,32 +331,32 @@ const WORKER_CONCURRENCY = {
 
 ### 10.1 Current (24 modules)
 
-| Module | Controllers | Services | Entities | Workers |
-|---|---|---|---|---|
-| Auth | 1 | 1 | 1 | 0 |
-| Users | 1 | 1 | 1 | 0 |
-| Treks | 1 | 1 | 5 | 0 |
-| Posts | 1 | 1 | 3 | 0 |
-| Stories | 1 | 1 | 2 | 1 |
-| Bookmarks | 1 | 1 | 1 | 0 |
-| Friendships | 1 | 1 | 1 | 0 |
-| Organizer | 1 | 1 | 1 | 0 |
-| Admin | 1 | 3 | 2 | 0 |
-| Media | 1 | 1 | 1 | 0 |
-| Leaderboard | 1 | 1 | 1 | 0 |
-| Notifications | 1 | 1 | 2 | 1 |
-| Bookings | 1 | 2 | 2 | 2 |
-| Payments | 1 | 1 | 0 | 0 |
-| Reports | 1 | 1 | 1 | 0 |
-| Itineraries | 1 | 1 | 1 | 0 |
-| Policies | 1 | 1 | 4 | 0 |
-| Gear | 1 | 1 | 3 | 1 |
-| Weather | 1 | 1 | 0 | 1 |
-| Jobs | 0 | 0 | 0 | 0 (orchestrator) |
-| Mailer | 0 | 2 | 0 | 0 |
-| Health | 1 | 1 | 0 | 0 |
-| Config | 0 | 0 | 0 | 0 |
-| **Total** | **21** | **27** | **31** | **6** |
+| Module | Controllers | Services | Entities | Workers | Status |
+|---|---|---|---|---|---|
+| Auth | 1 | 1 | 1 | 0 | Active |
+| Users | 1 | 1 | 1 | 0 | Active |
+| Treks | 1 | 1 | 5 | 0 | Active |
+| Posts | 1 | 1 | 3 | 0 | **DEPRECATED** |
+| Stories | 1 | 1 | 2 | 1 | **DEPRECATED** |
+| Bookmarks | 1 | 1 | 1 | 0 | **DEPRECATED** |
+| Friendships | 1 | 1 | 1 | 0 | **DEPRECATED** |
+| Organizer | 1 | 1 | 1 | 0 | Active |
+| Admin | 1 | 3 | 2 | 0 | Active |
+| Media | 1 | 1 | 1 | 0 | Active |
+| Leaderboard | 1 | 1 | 1 | 0 | **DEPRECATED** |
+| Notifications | 1 | 1 | 2 | 1 | Active |
+| Bookings | 1 | 2 | 2 | 2 | Active |
+| Payments | 1 | 1 | 0 | 0 | Active |
+| Reports | 1 | 1 | 1 | 0 | Active |
+| Itineraries | 1 | 1 | 1 | 0 | Active |
+| Policies | 1 | 1 | 4 | 0 | Active |
+| Gear | 1 | 1 | 3 | 1 | Active |
+| Weather | 1 | 1 | 0 | 1 | Active |
+| Jobs | 0 | 0 | 0 | 0 (orchestrator) | Active |
+| Mailer | 0 | 2 | 0 | 0 | Active |
+| Health | 1 | 1 | 0 | 0 | Active |
+| Config | 0 | 0 | 0 | 0 | Active |
+| **Total** | **21** | **27** | **31** | **6** | 5 deprecated |
 
 ### 10.2 Planned (7 modules — not yet implemented)
 

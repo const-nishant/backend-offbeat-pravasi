@@ -5,7 +5,8 @@
 > **Track B (Community):** ✅ Referrals
 > **Track C (Retention):** ✅ Wishlist + Recommendations (combined)
 >
-> Builds on existing modules: bookings, payments, treks, users, bookmarks (retired), jobs.
+> Builds on existing modules: bookings, payments, treks, users, jobs.
+> **Deprecated modules (code remains on disk, unwired):** posts, stories, bookmarks, friendships, leaderboard.
 > All new modules follow NestJS + TypeORM conventions already established in the codebase.
 
 ---

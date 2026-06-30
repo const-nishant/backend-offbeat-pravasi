@@ -35,12 +35,13 @@ Agents
 	- Outputs: migration files, query optimizations, tests.
 	- Example PR title: `feat(treks): add full-text index on name and location`
 
-- Name: `posts-stories-agent`
+- Name: `posts-stories-agent` (**DEPRECATED** — Posts and Stories modules retired)
 	- Role: Posts, comments, likes, story expiry, media metadata and thumbnail jobs.
 	- When to use: `posts`/`stories` entities, media metadata handling, story expiry jobs.
 	- Inputs: posts/stories DTOs, media keys, worker processors.
 	- Outputs: API changes, worker processors, cron jobs, tests.
 	- Example PR title: `feat(stories): expire stories via bullmq job`
+	- Status: Retained for archival reference only. The Posts and Stories modules have been removed from the active module registry. Do not use for new work.
 
 - Name: `bookings-payments-agent`
 	- Role: Booking lifecycle, payment provider integration (Stripe/Razorpay), webhooks, ticket PDF generation.
