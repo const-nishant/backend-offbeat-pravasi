@@ -33,6 +33,7 @@ import { UserPackingListItem } from '../modules/gear/entities/user-packing-list-
 import { TrekSafetyInfo } from '../modules/safety/entities/trek-safety-info.entity';
 import { UserEmergencyContact } from '../modules/safety/entities/user-emergency-contact.entity';
 import { TrekCheckIn } from '../modules/safety/entities/trek-check-in.entity';
+import { FitnessAssessment } from '../modules/assessments/entities/fitness-assessment.entity';
 
 export const ormConfig: DataSourceOptions = {
   type: 'postgres',
@@ -79,6 +80,7 @@ export const ormConfig: DataSourceOptions = {
     TrekSafetyInfo,
     UserEmergencyContact,
     TrekCheckIn,
+    FitnessAssessment,
   ],
 
   migrations: ['dist/database/migrations/*.js', 'src/database/migrations/*.ts'],
