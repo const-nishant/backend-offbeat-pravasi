@@ -13,6 +13,8 @@ import { MailerService } from '../mailer/mailer.service';
 import { OrganizerApplication } from '../organizer/entities/organizer-application.entity';
 import { Trek } from '../treks/entities/trek.entity';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
+import { ReferralCode } from '../referrals/entities/referral-code.entity';
+import { Referral } from '../referrals/entities/referral.entity';
 import {
   getPagination,
   buildPaginationMeta,
@@ -35,6 +37,10 @@ export class AdminService {
     private readonly ticketPdfWorker: TicketPdfWorkerService,
     private readonly notificationsService: NotificationsService,
     private readonly mailerService: MailerService,
+    @InjectRepository(ReferralCode)
+    private readonly referralCodeRepo: Repository<ReferralCode>,
+    @InjectRepository(Referral)
+    private readonly referralRepo: Repository<Referral>,
   ) {}
 
   async recordAction(
@@ -292,5 +298,176 @@ export class AdminService {
       settings,
     );
     return res;
+  }
+
+  async listReferrals(
+    filters: any,
+    page = 1,
+    limit = 20,
+  ): Promise<{ data: Referral[]; total: number; page: number; limit: number }> {
+    const qb = this.referralRepo
+      .createQueryBuilder('r')
+      .leftJoinAndSelect(ReferralCode, 'rc', 'rc.id = r.referrerCodeId')
+      .leftJoinAndSelect(User, 'u', 'u.id = rc.userId');
+
+    if (filters.status) {
+      qb.andWhere('r.status = :status', { status: filters.status });
+    }
+    if (filters.referrerId) {
+      qb.andWhere('rc.userId = :referrerId', { referrerId: filters.referrerId });
+    }
+    if (filters.startDate) {
+      qb.andWhere('r.createdAt >= :start', { start: filters.startDate });
+    }
+    if (filters.endDate) {
+      qb.andWhere('r.createdAt <= :end', { end: filters.endDate });
+    }
+    if (filters.query) {
+      qb.andWhere('(r.refereeEmail ILIKE :q OR u.email ILIKE :q OR u.fullName ILIKE :q)', {
+        q: `%${filters.query}%`,
+      });
+    }
+
+    qb.select([
+      'r.id',
+      'r.referrerCodeId',
+      'r.refereeUserId',
+      'r.refereeEmail',
+      'r.status',
+      'r.rewardType',
+      'r.rewardValueInr',
+      'r.rewardDeliveredAt',
+      'r.createdAt',
+      'rc.userId',
+      'rc.code',
+      'rc.tier',
+      'u.email',
+      'u.fullName',
+    ]);
+    qb.orderBy('r.createdAt', 'DESC');
+    qb.offset((page - 1) * limit).limit(limit);
+    const [data, total] = await qb.getManyAndCount();
+    return { data, total, page, limit };
+  }
+
+  async listReferralCodes(
+    filters: any,
+    page = 1,
+    limit = 20,
+  ): Promise<{ data: ReferralCode[]; total: number; page: number; limit: number }> {
+    const qb = this.referralCodeRepo
+      .createQueryBuilder('rc')
+      .leftJoinAndSelect(User, 'u', 'u.id = rc.userId');
+
+    if (filters.tier) {
+      qb.andWhere('rc.tier = :tier', { tier: filters.tier });
+    }
+    if (filters.query) {
+      qb.andWhere('(rc.code ILIKE :q OR u.email ILIKE :q OR u.fullName ILIKE :q)', {
+        q: `%${filters.query}%`,
+      });
+    }
+
+    qb.select([
+      'rc.id',
+      'rc.userId',
+      'rc.code',
+      'rc.tier',
+      'rc.totalReferrals',
+      'rc.successfulReferrals',
+      'rc.totalEarnedInr',
+      'rc.createdAt',
+      'u.email',
+      'u.fullName',
+    ]);
+    qb.orderBy('rc.createdAt', 'DESC');
+    qb.offset((page - 1) * limit).limit(limit);
+    const [data, total] = await qb.getManyAndCount();
+    return { data, total, page, limit };
+  }
+
+  async getReferralSummary(): Promise<{
+    totalReferralCodes: number;
+    totalReferrals: number;
+    successfulReferrals: number;
+    totalEarnedInr: number;
+    totalRewardedInr: number;
+    byTier: { tier: string; count: number; totalEarnedInr: number }[];
+    byStatus: Record<string, number>;
+    topReferrers: { userId: string; name: string; email: string; successfulReferrals: number; totalEarnedInr: number }[];
+  }> {
+    const totalReferralCodes = await this.referralCodeRepo.count();
+    const totalReferrals = await this.referralRepo.count();
+    const successfulReferrals = await this.referralRepo.count({
+      where: { status: 'REWARDED' as any },
+    });
+
+    const allCodes = await this.referralCodeRepo.find();
+    const totalEarnedInr = allCodes.reduce((s, c) => s + c.totalEarnedInr, 0);
+
+    const rewarded = await this.referralRepo.find({
+      where: { status: 'REWARDED' as any },
+    });
+    const totalRewardedInr = rewarded.reduce(
+      (s, r) => s + (r.rewardValueInr ?? 0),
+      0,
+    );
+
+    const byTierRaw = await this.referralCodeRepo
+      .createQueryBuilder('rc')
+      .select('rc.tier', 'tier')
+      .addSelect('COUNT(rc.id)', 'count')
+      .addSelect('SUM(rc.totalEarnedInr)', 'totalEarnedInr')
+      .groupBy('rc.tier')
+      .getRawMany();
+
+    const byTier = byTierRaw.map((r: any) => ({
+      tier: r.tier,
+      count: Number(r.count),
+      totalEarnedInr: Number(r.totalEarnedInr ?? 0),
+    }));
+
+    const byStatusRaw = await this.referralRepo
+      .createQueryBuilder('r')
+      .select('r.status', 'status')
+      .addSelect('COUNT(r.id)', 'count')
+      .groupBy('r.status')
+      .getRawMany();
+
+    const byStatus: Record<string, number> = {};
+    for (const r of byStatusRaw) {
+      byStatus[r.status] = Number(r.count);
+    }
+
+    const topCodes = await this.referralCodeRepo.find({
+      order: { successfulReferrals: 'DESC' },
+      take: 10,
+    });
+
+    const userIds = topCodes.map((c) => c.userId);
+    const users = userIds.length > 0 ? await this.userRepo.findByIds(userIds) : [];
+    const userMap = new Map(users.map((u) => [u.id, u]));
+
+    const topReferrers = topCodes.map((c) => {
+      const u = userMap.get(c.userId);
+      return {
+        userId: c.userId,
+        name: u?.fullName ?? 'Unknown',
+        email: u?.email ?? '',
+        successfulReferrals: c.successfulReferrals,
+        totalEarnedInr: c.totalEarnedInr,
+      };
+    });
+
+    return {
+      totalReferralCodes,
+      totalReferrals,
+      successfulReferrals,
+      totalEarnedInr,
+      totalRewardedInr,
+      byTier,
+      byStatus,
+      topReferrers,
+    };
   }
 }

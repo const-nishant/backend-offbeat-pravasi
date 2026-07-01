@@ -103,4 +103,9 @@ export default () => ({
     privateKey: process.env.VAPID_PRIVATE_KEY,
     subject: process.env.VAPID_SUBJECT ?? 'mailto:hello@offbeatpravasi.com',
   },
+
+  referral: {
+    shareBaseUrl:
+      process.env.REFERRAL_SHARE_BASE_URL ?? 'https://offbeatpravasi.com/r',
+  },
 });

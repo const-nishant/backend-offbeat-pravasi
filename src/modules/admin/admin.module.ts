@@ -15,6 +15,8 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AuditInterceptor } from '../../common/interceptors/audit.interceptor';
 import { JobsModule } from '../../jobs/jobs.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { ReferralCode } from '../referrals/entities/referral-code.entity';
+import { Referral } from '../referrals/entities/referral.entity';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { NotificationsModule } from '../notifications/notifications.module';
       Trek,
       Booking,
       OrganizerApplication,
+      ReferralCode,
+      Referral,
     ]),
     OrganizerModule,
     JobsModule,

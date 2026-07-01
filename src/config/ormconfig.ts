@@ -36,6 +36,9 @@ import { TrekCheckIn } from '../modules/safety/entities/trek-check-in.entity';
 import { FitnessAssessment } from '../modules/assessments/entities/fitness-assessment.entity';
 import { TrekGroup } from '../modules/groups/entities/trek-group.entity';
 import { GroupMember } from '../modules/groups/entities/group-member.entity';
+import { ReferralCode } from '../modules/referrals/entities/referral-code.entity';
+import { Referral } from '../modules/referrals/entities/referral.entity';
+import { ReferralTierConfig } from '../modules/referrals/entities/referral-tier-config.entity';
 
 export const ormConfig: DataSourceOptions = {
   type: 'postgres',
@@ -85,6 +88,9 @@ export const ormConfig: DataSourceOptions = {
     FitnessAssessment,
     TrekGroup,
     GroupMember,
+    ReferralCode,
+    Referral,
+    ReferralTierConfig,
   ],
 
   migrations: ['dist/database/migrations/*.js', 'src/database/migrations/*.ts'],

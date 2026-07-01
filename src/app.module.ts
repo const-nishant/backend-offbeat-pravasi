@@ -38,6 +38,7 @@ import { WeatherModule } from './modules/weather/weather.module';
 import { SafetyModule } from './modules/safety/safety.module';
 import { AssessmentsModule } from './modules/assessments/assessments.module';
 import { GroupsModule } from './modules/groups/groups.module';
+import { ReferralsModule } from './modules/referrals/referrals.module';
 @Global()
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { GroupsModule } from './modules/groups/groups.module';
     SafetyModule,
     AssessmentsModule,
     GroupsModule,
+    ReferralsModule,
   ],
   providers: [
     {

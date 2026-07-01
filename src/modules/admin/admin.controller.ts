@@ -19,6 +19,7 @@ import { AuditLogQueryDto } from './dtos/audit-log-query.dto';
 import { AdminGuard } from 'src/common/guards/admin.guard';
 import { AuditLogService } from './audit-log.service';
 import { UpdatePlatformSettingsDto } from './dtos/update-platform-settings.dto';
+import { AdminReferralQueryDto, AdminReferralCodeQueryDto } from '../referrals/dtos/admin-referral-query.dto';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('Admin')
@@ -112,5 +113,23 @@ export class AdminController {
       page: q['page'],
       limit: q['limit'],
     });
+  }
+
+  @Get('referrals')
+  @ApiOperation({ summary: 'List all referrals with filters' })
+  async listReferrals(@Query() q: AdminReferralQueryDto) {
+    return this.adminService.listReferrals(q, q.page, q.limit);
+  }
+
+  @Get('referrals/codes')
+  @ApiOperation({ summary: 'List all referral codes with stats' })
+  async listReferralCodes(@Query() q: AdminReferralCodeQueryDto) {
+    return this.adminService.listReferralCodes(q, q.page, q.limit);
+  }
+
+  @Get('referrals/summary')
+  @ApiOperation({ summary: 'Aggregate referral stats' })
+  async getReferralSummary() {
+    return this.adminService.getReferralSummary();
   }
 }

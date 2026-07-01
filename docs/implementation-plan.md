@@ -2,7 +2,7 @@
 
 > Detailed engineering plan for 10 feature modules, ordered Track A → B → C.
 > **Track A (Foundation):** ✅ Itineraries, ✅ Policies, ✅ Gear, ✅ Weather, ✅ Safety, ✅ Assessments, ✅ Groups
-> **Track B (Community):** Referrals
+> **Track B (Community):** ✅ Referrals
 > **Track C (Retention):** Wishlist + Recommendations (combined)
 >
 > Builds on existing modules: bookings, payments, treks, users, bookmarks (retired), jobs.
@@ -938,7 +938,9 @@ One migration: `CREATE TABLE trek_groups` and `group_members`.
 
 ---
 
-## Section 8 — Referral Program (`referrals`)
+## ✅ Section 8 — Referral Program (`referrals`) — **IMPLEMENTED**
+
+> **Status:** Complete.
 
 ### 8.1 Module overview
 Creates `src/modules/referrals/`. Every user gets a unique referral code. Referrers earn rewards when referred users complete a booking. Rewards: coupons, loyalty points, or both. Tiered bonuses for volume referrers.
@@ -992,6 +994,9 @@ Creates `src/modules/referrals/`. Every user gets a unique referral code. Referr
 | GET | /referrals/my-referrals | Auth | List all referrals made (paginated) |
 | GET | /referrals/leaderboard | Public | Top referrers |
 | GET | /referrals/claim/:code | Public | Landing page — shows referral info, prompts sign-up |
+| GET | /admin/referrals | Admin | List all referrals with filters (status, date range, referrer) |
+| GET | /admin/referrals/codes | Admin | List all referral codes with referrer info and stats |
+| GET | /admin/referrals/summary | Admin | Aggregate referral stats (totals, earnings, tier distribution) |
 
 ### 8.4 DTOs
 
@@ -1010,6 +1015,25 @@ class ReferralCodeResponseDto {
   totalReferrals: number;
   successfulReferrals: number;
   totalEarnedInr: number;
+}
+
+// admin-referral-query.dto.ts
+class AdminReferralQueryDto {
+  status?: string;       // PENDING, BOOKED, COMPLETED, REWARDED
+  referrerId?: string;
+  startDate?: string;    // ISO8601
+  endDate?: string;      // ISO8601
+  query?: string;        // Search by referee email/name
+  page?: number;
+  limit?: number;
+}
+
+// admin-referral-code-query.dto.ts
+class AdminReferralCodeQueryDto {
+  query?: string;        // Search by code or referrer name/email
+  tier?: string;         // BASE, SILVER, GOLD
+  page?: number;
+  limit?: number;
 }
 ```
 
@@ -1038,7 +1062,45 @@ class ReferralService {
 5. After first booking is completed (status = CONFIRMED), a BullMQ job triggers `deliverReward`
 6. Reward is delivered as a coupon via the Coupons module (when built) or as loyalty points added to `User.userPoints`
 
-### 8.6 Queue/Worker needs
+### 8.6 Admin tracking
+
+The existing `AdminModule` (`src/modules/admin/`) is extended with three new methods on `AdminService` for referral oversight:
+
+```typescript
+// Added to AdminService
+async listReferrals(filters: AdminReferralQueryDto, page: number, limit: number): Promise<{
+  data: Referral[];
+  total: number;
+  page: number;
+  limit: number;
+}>;
+
+async listReferralCodes(filters: AdminReferralCodeQueryDto, page: number, limit: number): Promise<{
+  data: ReferralCode[];
+  total: number;
+  page: number;
+  limit: number;
+}>;
+
+async getReferralSummary(): Promise<{
+  totalReferralCodes: number;
+  totalReferrals: number;
+  successfulReferrals: number;
+  totalEarnedInr: number;
+  totalRewardedInr: number;
+  byTier: { tier: string; count: number; totalEarnedInr: number }[];
+  byStatus: Record<string, number>;
+  topReferrers: { userId: string; name: string; email: string; successfulReferrals: number; totalEarnedInr: number }[];
+}>;
+```
+
+**Admin module wiring:**
+- Import `ReferralCode` and `Referral` entities into `AdminModule`'s `TypeOrmModule.forFeature([...])`
+- Three new controller methods on `AdminController` at `/admin/referrals`, `/admin/referrals/codes`, `/admin/referrals/summary`
+- All admin referral endpoints use existing `@UseGuards(JwtAuthGuard, AdminGuard)` at class level
+- Each endpoint calls `this.adminService.recordAction(...)` for audit trail
+
+### 8.7 Queue/Worker needs
 
 **`referral-reward-delivery.processor.ts`** — triggered when a referred user's booking becomes CONFIRMED:
 1. Look up the `Referral` record via `refereeUserId`
@@ -1048,28 +1110,31 @@ class ReferralService {
 5. Check if referrer qualifies for tier upgrade → `recalculateTier`
 6. Send notification to referrer and referee
 
-### 8.7 Integration points
+### 8.8 Integration points
 - **Users module** — on sign-up flow, pass referral code from query param → `claimReferral`
 - **Bookings module** — on booking confirmation, emit event for referral reward delivery
 - **Coupons module (when built)** — reward delivery creates discount coupons
 - **Rewards module (when built)** — points-based reward delivery
 - **Notifications module** — milestone notifications: "You earned a referral reward!"
 
-### 8.8 Migration
+### 8.9 Migration
 One migration: `CREATE TABLE referral_codes`, `referrals`, `referral_tier_config` + seed tier config.
 
-### 8.9 Task checklist
-1. Generate `referrals` module
-2. Create `ReferralCode`, `Referral`, `ReferralTierConfig` entities
-3. Create DTOs
-4. Create `ReferralService`
-5. Create `ReferralController`
-6. Generate migration with tier config seed data
-7. Create `referral-reward-delivery` BullMQ processor
-8. Register module in `app.module.ts`
-9. Wire into sign-up flow (capture referral code from query params)
-10. Wire into booking confirmation flow (trigger reward delivery)
-11. Write tests
+### 8.10 Task checklist (all ✅)
+- [x] 1. Generate `referrals` module
+- [x] 2. Create `ReferralCode`, `Referral`, `ReferralTierConfig` entities
+- [x] 3. Create DTOs (including `AdminReferralQueryDto`, `AdminReferralCodeQueryDto`)
+- [x] 4. Create `ReferralService`
+- [x] 5. Create `ReferralController`
+- [x] 6. Generate migration with tier config seed data
+- [x] 7. Create `referral-reward-delivery` BullMQ processor
+- [x] 8. Register module in `app.module.ts`
+- [x] 9. Wire into sign-up flow (capture referral code from query params)
+- [x] 10. Wire into booking confirmation flow (trigger reward delivery)
+- [x] 11. Write tests — 66 tests across 3 suites (service: 18, controller: 5, senior QA: 47)
+- [x] 12. Add `listReferrals()`, `listReferralCodes()`, `getReferralSummary()` to `AdminService`
+- [x] 13. Import `ReferralCode` + `Referral` entities into `AdminModule.forFeature()`
+- [x] 14. Add admin referral endpoints to `AdminController` with audit logging
 
 ---
 

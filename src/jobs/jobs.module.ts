@@ -19,6 +19,8 @@ import { SafetyModule } from '../modules/safety/safety.module';
 import { GroupsModule } from '../modules/groups/groups.module';
 import { GroupExpiryScheduler } from './schedulers/group-expiry.scheduler';
 import { GroupExpiryWorkerService } from './processors/group-expiry.processor';
+import { ReferralsModule } from '../modules/referrals/referrals.module';
+import { ReferralRewardDeliveryWorkerService } from './processors/referral-reward-delivery.processor';
 
 const workerProviders =
   process.env.WORKERS_ENABLED !== 'false'
@@ -33,6 +35,7 @@ const workerProviders =
         CheckInFirstWarningWorkerService,
         CheckInEmergencyWorkerService,
         GroupExpiryWorkerService,
+        ReferralRewardDeliveryWorkerService,
       ]
     : [];
 
@@ -40,7 +43,7 @@ const workerProviders =
 const exportProviders = [TicketPdfWorkerService];
 
 @Module({
-  imports: [NotificationsModule, WeatherModule, SafetyModule, GroupsModule],
+  imports: [NotificationsModule, WeatherModule, SafetyModule, GroupsModule, ReferralsModule],
   providers: [
     BookingReleaseScheduler,
     GroupExpiryScheduler,
