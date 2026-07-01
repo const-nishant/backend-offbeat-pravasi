@@ -1,7 +1,7 @@
 # Implementation Plan — Feature Modules
 
 > Detailed engineering plan for 10 feature modules, ordered Track A → B → C.
-> **Track A (Foundation):** Itineraries, Policies, Gear, Weather, Safety, Assessments, Groups
+> **Track A (Foundation):** ✅ Itineraries, ✅ Policies, ✅ Gear, ✅ Weather, ✅ Safety, ✅ Assessments, Groups
 > **Track B (Community):** Referrals
 > **Track C (Retention):** Wishlist + Recommendations (combined)
 >
@@ -676,7 +676,9 @@ One migration: `CREATE TABLE trek_safety_info`, `user_emergency_contacts`, `trek
 
 ---
 
-## Section 6 — Fitness Assessment Quiz (`assessments`)
+## ✅ Section 6 — Fitness Assessment Quiz (`assessments`) — **IMPLEMENTED**
+
+> **Status:** Complete.
 
 ### 6.1 Module overview
 Creates `src/modules/assessments/`. An 8–12 question multiple-choice quiz that evaluates fitness level, trekking experience, altitude comfort, medical history, and preferences. Returns a difficulty bracket score. Users can retake anytime. Score feeds recommendations.
@@ -774,16 +776,16 @@ One migration: `CREATE TABLE fitness_assessments`.
 
 After assessment, the user's `userPoints` on the User entity should increment (rebuild the `bookmarks` module approach — add assessment points to `User.userPoints`).
 
-### 6.9 Task checklist
-1. Generate `assessments` module
-2. Define question bank in a constants/config file
-3. Create `FitnessAssessment` entity
-4. Create DTOs
-5. Implement scoring algorithm in `AssessmentService`
-6. Create `AssessmentController`
-7. Generate migration
-8. Register module in `app.module.ts`
-9. Write tests (edge cases: all minimum, all maximum, medical flags)
+### 6.9 Task checklist (all ✅)
+- [x] 1. Generate `assessments` module
+- [x] 2. Define question bank in a constants/config file (10 questions with weights)
+- [x] 3. Create `FitnessAssessment` entity with composite index `(userId, completedAt DESC)`
+- [x] 4. Create DTOs (`SubmitAssessmentDto`, `AssessmentResultDto`, `PublicBracketDto`)
+- [x] 5. Implement scoring algorithm in `AssessmentService` (weighted normalization 0–100)
+- [x] 6. Create `AssessmentController` with 4 endpoints (2 public, 2 auth)
+- [x] 7. Generate migration `0020-CreateFitnessAssessmentsTable.ts`
+- [x] 8. Register module in `app.module.ts` + entity in `ormconfig.ts`
+- [x] 9. Write tests — 70 tests across 5 suites (unit: service 8, controller 5; QA edge cases: 12; senior QA review: 37; integration: 8)
 
 ---
 
