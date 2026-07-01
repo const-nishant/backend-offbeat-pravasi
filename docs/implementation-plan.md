@@ -24,7 +24,9 @@ For each generated entity, `nest-cli.json` has the Swagger plugin enabled so dec
 
 ---
 
-## Section 1 — Itinerary Management (`itineraries`)
+## ✅ Section 1 — Itinerary Management (`itineraries`) — **IMPLEMENTED**
+
+> **Status:** Complete. PR: [#12](https://github.com/const-nishant/backend-offbeat-pravasi/pull/12)
 
 ### 1.1 Module overview
 Creates `src/modules/itineraries/` with controller, service, module, entities. Enables organizers to build a day-by-day trek schedule. Each day: title, description, distance (km), altitude gain/loss (m), max altitude, meals, accommodation, activity type. Days are ordered and reorderable.
@@ -50,7 +52,7 @@ Creates `src/modules/itineraries/` with controller, service, module, entities. E
 | updatedAt | timestamptz | Auto |
 
 **Indexes:** `(trekId, dayNumber)` unique constraint — no two days can have the same number for the same trek.
-**Relation:** ManyToOne → Trek. Add `@OneToMany(() => ItineraryDay, (d) => d.trek)` on Trek entity.
+**Relation:** ManyToOne → Trek. `@OneToMany(() => ItineraryDay, (d) => d.trek)` added on Trek entity.
 
 ### 1.3 API endpoints
 
@@ -90,7 +92,7 @@ class ReorderItineraryDto {
 ### 1.5 Service design
 
 ```typescript
-class ItineraryService {
+class ItinerariesService {
   async getByTrek(trekId: string): Promise<ItineraryDay[]>;
   async upsertDays(trekId: string, userId: string, days: CreateItineraryDayDto[]): Promise<ItineraryDay[]>;
   async addDay(trekId: string, userId: string, dto: CreateItineraryDayDto): Promise<ItineraryDay>;
@@ -104,25 +106,25 @@ class ItineraryService {
 None. Pure CRUD. Offline-mode downloads will reference this data later (already planned in Track C).
 
 ### 1.7 Integration points
-- **Trek entity** — add `@OneToMany(() => ItineraryDay, (d) => d.trek) itineraryDays: ItineraryDay[]`
+- **Trek entity** — `@OneToMany(() => ItineraryDay, (d) => d.trek) itineraryDays: ItineraryDay[]` added
 - **Offline Mode (future)** — itinerary is primary download content
 - **Weather module (future)** — each day's altitude enables day-specific forecasts
 - **Safety module (future)** — itinerary context positions safety info per day
 
 ### 1.8 Migration
-One migration: `CREATE TABLE itinerary_days (...)` with unique `(trek_id, day_number)`.
+✅ `src/database/migrations/0016-CreateItineraryDaysTable.ts` — creates `itinerary_days` table with unique `(trekId, dayNumber)` constraint and rollback.
 
-### 1.9 Task checklist
-1. Generate `itineraries` module
-2. Create `ItineraryDay` entity with all columns + indexes
-3. Create DTOs: `create-itinerary-day.dto.ts`, `update-itinerary-day.dto.ts`, `reorder-itinerary.dto.ts`
-4. Create `ItineraryService` with all methods
-5. Create `ItineraryController` with all routes
-6. Generate migration file and register in `ormconfig.ts`
-7. Update `Trek` entity with `itineraryDays` relation
-8. Register module in `app.module.ts`
-9. Write unit tests for service
-10. Write integration tests for endpoints
+### 1.9 Task checklist (all ✅)
+- [x] 1. Generate `itineraries` module
+- [x] 2. Create `ItineraryDay` entity with all columns + indexes
+- [x] 3. Create DTOs: `create-itinerary-day.dto.ts`, `update-itinerary-day.dto.ts`, `reorder-itinerary.dto.ts`
+- [x] 4. Create `ItinerariesService` with all methods
+- [x] 5. Create `ItinerariesController` with all routes
+- [x] 6. Generate migration file and register in `ormconfig.ts`
+- [x] 7. Update `Trek` entity with `itineraryDays` relation
+- [x] 8. Register module in `app.module.ts`
+- [x] 9. Write unit tests for service (12 tests)
+- [x] 10. Write integration tests for endpoints (14 tests)
 
 ---
 
@@ -1454,8 +1456,8 @@ TWILIO_PHONE_NUMBER=
 ### Suggested Track A → B → C build order
 
 | Phase | Module | Dependency gates | Rollback gate |
-|---|---|---|---|
-| Phase 1 | **Itineraries** | None — standalone CRUD | Verify itinerary_days table exists and readable |
+|---|---|---|---|---|
+| ✅ Phase 1 | **Itineraries** | None — standalone CRUD | ItineraryDay entity + migration deployed, 32 tests passing |
 | Phase 1 | **Policies** | None — standalone CRUD, only hooks into bookings at end | Verify policy seed data present |
 | Phase 2 | **Gear** | None — standalone, but seed gear library first | Verify gear_items seed count |
 | Phase 2 | **Weather** | None — standalone with Redis + API key | Verify weather API key responds 200 |

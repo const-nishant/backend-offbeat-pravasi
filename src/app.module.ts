@@ -32,6 +32,7 @@ import { MailerModule } from './modules/mailer/mailer.module';
 import { JobsModule } from './jobs/jobs.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { ItinerariesModule } from './modules/itineraries/itineraries.module';
+import { PoliciesModule } from './modules/policies/policies.module';
 @Global()
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { ItinerariesModule } from './modules/itineraries/itineraries.module';
     JobsModule,
     ReportsModule,
     ItinerariesModule,
+    PoliciesModule,
   ],
   providers: [
     {

@@ -7,6 +7,7 @@ import { Payment } from './entities/payment.entity';
 import { Trek } from '../treks/entities/trek.entity';
 import { AdminModule } from '../admin/admin.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { PoliciesModule } from '../policies/policies.module';
 import { TicketService } from './ticket.service';
 import { JwtModule } from '@nestjs/jwt';
 
@@ -15,6 +16,7 @@ import { JwtModule } from '@nestjs/jwt';
     TypeOrmModule.forFeature([Booking, Payment, Trek]),
     AdminModule,
     NotificationsModule,
+    PoliciesModule,
     JwtModule.register({
       global: false,
       secret: process.env.JWT_TICKET_SECRET ?? 'dev_ticket_secret',
