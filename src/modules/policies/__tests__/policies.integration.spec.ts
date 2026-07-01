@@ -27,9 +27,13 @@ import {
 class SqliteCancellationPolicy {
   @PrimaryGeneratedColumn('uuid') id!: string;
   @Column({ type: 'varchar', length: 80 }) name!: string;
-  @Column({ type: 'varchar', length: 512, nullable: true }) description?: string;
+  @Column({ type: 'varchar', length: 512, nullable: true })
+  description?: string;
   @Column({ type: 'boolean', default: false }) isDefault!: boolean;
-  @OneToMany(() => SqliteCancellationTier, (t) => t.policy, { cascade: true, eager: true })
+  @OneToMany(() => SqliteCancellationTier, (t) => t.policy, {
+    cascade: true,
+    eager: true,
+  })
   tiers!: SqliteCancellationTier[];
   @CreateDateColumn({ type: 'datetime' }) createdAt!: Date;
   @UpdateDateColumn({ type: 'datetime' }) updatedAt!: Date;
@@ -40,7 +44,9 @@ class SqliteCancellationPolicy {
 class SqliteCancellationTier {
   @PrimaryGeneratedColumn('uuid') id!: string;
   @Column('uuid') policyId!: string;
-  @ManyToOne(() => SqliteCancellationPolicy, (p) => p.tiers, { onDelete: 'CASCADE' })
+  @ManyToOne(() => SqliteCancellationPolicy, (p) => p.tiers, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'policyId' })
   policy!: SqliteCancellationPolicy;
   @Column('int') fromHoursBeforeStart!: number;
@@ -123,8 +129,18 @@ describe('PoliciesService integration (sqlite)', () => {
       isDefault: true,
       tiers: [
         { fromHoursBeforeStart: 168, refundPercentage: 100, sortOrder: 1 },
-        { fromHoursBeforeStart: 48, toHoursBeforeStart: 167, refundPercentage: 50, sortOrder: 2 },
-        { fromHoursBeforeStart: 0, toHoursBeforeStart: 47, refundPercentage: 0, sortOrder: 3 },
+        {
+          fromHoursBeforeStart: 48,
+          toHoursBeforeStart: 167,
+          refundPercentage: 50,
+          sortOrder: 2,
+        },
+        {
+          fromHoursBeforeStart: 0,
+          toHoursBeforeStart: 47,
+          refundPercentage: 0,
+          sortOrder: 3,
+        },
       ],
     });
 
@@ -169,7 +185,12 @@ describe('PoliciesService integration (sqlite)', () => {
       name: 'New Name',
       tiers: [
         { fromHoursBeforeStart: 24, refundPercentage: 100, sortOrder: 1 },
-        { fromHoursBeforeStart: 0, toHoursBeforeStart: 23, refundPercentage: 25, sortOrder: 2 },
+        {
+          fromHoursBeforeStart: 0,
+          toHoursBeforeStart: 23,
+          refundPercentage: 25,
+          sortOrder: 2,
+        },
       ],
     });
 
@@ -225,7 +246,12 @@ describe('PoliciesService integration (sqlite)', () => {
       name: 'TestPolicy',
       tiers: [
         { fromHoursBeforeStart: 168, refundPercentage: 100, sortOrder: 1 },
-        { fromHoursBeforeStart: 0, toHoursBeforeStart: 167, refundPercentage: 50, sortOrder: 2 },
+        {
+          fromHoursBeforeStart: 0,
+          toHoursBeforeStart: 167,
+          refundPercentage: 50,
+          sortOrder: 2,
+        },
       ],
     });
 
@@ -248,7 +274,12 @@ describe('PoliciesService integration (sqlite)', () => {
       name: 'Strict',
       tiers: [
         { fromHoursBeforeStart: 168, refundPercentage: 100, sortOrder: 1 },
-        { fromHoursBeforeStart: 0, toHoursBeforeStart: 167, refundPercentage: 0, sortOrder: 2 },
+        {
+          fromHoursBeforeStart: 0,
+          toHoursBeforeStart: 167,
+          refundPercentage: 0,
+          sortOrder: 2,
+        },
       ],
     });
 

@@ -149,7 +149,11 @@ export class BookingsService {
       throw new BadRequestException('Booking cannot be cancelled');
     }
 
-    let refundInfo = { refundPercentage: 0, refundAmount: 0, policyName: 'Standard' };
+    let refundInfo = {
+      refundPercentage: 0,
+      refundAmount: 0,
+      policyName: 'Standard',
+    };
     try {
       const trekStartDate = (booking.trekSnapshot as any)?.startDate;
       if (trekStartDate) {
@@ -203,7 +207,9 @@ export class BookingsService {
           name: 'Traveller',
           trekName: trekSnapshotName,
           bookingId: booking.id,
-          refundInfo: payment ? 'A refund will be processed shortly.' : undefined,
+          refundInfo: payment
+            ? 'A refund will be processed shortly.'
+            : undefined,
         };
         await this.mailerService.sendBookingCancellationEmail(
           userEmail,

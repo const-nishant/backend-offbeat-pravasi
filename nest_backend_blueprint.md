@@ -2,6 +2,212 @@
 
 This guide captures the production-ready design for migrating the Offbeat Pravasi backend from Firebase/Appwrite to a NestJS stack. It includes architecture decisions, module boundaries, data models, DTOs, enums, infrastructure plans, and migration playbooks. Use it as the single source of truth while implementing the new service.
 
+### System Architecture
+
+```mermaid
+graph TB
+    subgraph Clients
+        FL[Flutter Mobile App]
+        WEB[Web Admin Panel]
+    end
+
+    subgraph "API Gateway (NestJS)"
+        API[Express Adapter]
+        GK[Global API Key Guard]
+        RL[Rate Limiter]
+    end
+
+    subgraph "Auth Layer"
+        JWT[JWT Access/Refresh]
+        GO[Google OAuth]
+        OTP[Email OTP]
+    end
+
+    subgraph "Feature Modules"
+        AUTH[Auth]
+        USERS[Users]
+        TREKS[Treks]
+        BOOK[Bookings]
+        PAY[Payments]
+        ITIN[Itineraries]
+        POL[Policies]
+        GEAR[Gear]
+        WTHR[Weather]
+        ORG[Organizer]
+        ADM[Admin]
+        NOTIF[Notifications]
+        POST[Posts]
+        STOR[Stories]
+    end
+
+    subgraph "Background Jobs (BullMQ)"
+        STORY_EXP[Story Expiry]
+        BOOK_REM[Booking Reminder]
+        PACK_REM[Packing Reminder]
+        WTHR_PRE[Weather Prefetch]
+        REC_BUILD[Recommendation Builder]
+        TICKET_PDF[Ticket PDF]
+        BOOK_REL[Booking Release]
+    end
+
+    subgraph "Data Layer"
+        PG[(PostgreSQL)]
+        REDIS[(Redis)]
+        R2[(Cloudflare R2)]
+    end
+
+    FL --> API
+    WEB --> API
+    API --> GK --> RL
+    RL --> AUTH
+    AUTH --> JWT
+    AUTH --> GO
+    AUTH --> OTP
+    AUTH --> USERS
+    USERS --> TREKS
+    TREKS --> ITIN
+    TREKS --> GEAR
+    TREKS --> WTHR
+    TREKS --> POL
+    BOOK --> PAY
+    BOOK --> POL
+    BOOK --> GEAR
+    ORG --> TREKS
+    ORG --> BOOK
+    ADM --> ORG
+    ADM --> USERS
+    NOTIF --> POST
+    NOTIF --> STOR
+
+    AUTH --> PG
+    AUTH --> REDIS
+    TREKS --> PG
+    BOOK --> PG
+    PAY --> PG
+    ITIN --> PG
+    POL --> PG
+    GEAR --> PG
+
+    WTHR --> REDIS
+    WTHR -.->|External API| WAPI[WeatherAPI.com]
+
+    STORY_EXP --> PG
+    STORY_EXP --> R2
+    BOOK_REM --> PG
+    BOOK_REM --> NOTIF
+    PACK_REM --> PG
+    PACK_REM --> NOTIF
+    WTHR_PRE --> WTHR
+    WTHR_PRE --> NOTIF
+    REC_BUILD --> PG
+    REC_BUILD --> REDIS
+    TICKET_PDF --> BOOK
+
+    subgraph "External"
+        STRIPE[Stripe]
+        RAZOR[Razorpay]
+        WAPI
+        FCM[Firebase FCM]
+        SMTP[SMTP/SendGrid]
+    end
+
+    PAY --> STRIPE
+    PAY --> RAZOR
+    NOTIF --> FCM
+    AUTH --> SMTP
+    NOTIF --> SMTP
+```
+
+### Module Dependency Graph
+
+```mermaid
+graph LR
+    subgraph "Foundation"
+        AUTH[Auth]
+        USERS[Users]
+        MEDIA[Media]
+    end
+
+    subgraph "Core Domain"
+        TREKS[Treks]
+        BOOK[Bookings]
+        PAY[Payments]
+    end
+
+    subgraph "Track A - Implemented"
+        ITIN[Itineraries]
+        POL[Policies]
+        GEAR[Gear]
+        WTHR[Weather]
+    end
+
+    subgraph "Track A - Planned"
+        SAF[Safety]
+        ASMT[Assessments]
+        GRP[Groups]
+    end
+
+    subgraph "Track B - Planned"
+        REF[Referrals]
+    end
+
+    subgraph "Track C - Planned"
+        WISH[Wishlist]
+        REC[Recommendations]
+    end
+
+    subgraph "Supporting"
+        ORG[Organizer]
+        ADM[Admin]
+        NOTIF[Notifications]
+        JOBS[Jobs]
+    end
+
+    AUTH --> USERS
+    USERS --> TREKS
+    USERS --> BOOK
+    MEDIA --> TREKS
+    MEDIA --> USERS
+
+    TREKS --> ITIN
+    TREKS --> POL
+    TREKS --> GEAR
+    TREKS --> WTHR
+    TREKS --> SAF
+    TREKS --> GRP
+
+    BOOK --> POL
+    BOOK --> GEAR
+    BOOK --> GRP
+    PAY --> BOOK
+
+    ORG --> TREKS
+    ORG --> BOOK
+    ADM --> ORG
+    ADM --> USERS
+    ADM --> POL
+
+    NOTIF --> AUTH
+    NOTIF --> BOOK
+    NOTIF --> SAF
+    NOTIF --> WTHR
+    NOTIF --> GEAR
+    NOTIF --> REF
+
+    JOBS --> NOTIF
+    JOBS --> TREKS
+    JOBS --> WTHR
+    JOBS --> GEAR
+
+    ASMT --> REC
+    WISH --> REC
+    TREKS --> REC
+    USERS --> REC
+
+    REF --> USERS
+    REF --> BOOK
+```
+
 ---
 
 ### 1. High-Level Architecture
@@ -102,6 +308,16 @@ tsconfig*.json
 | `OrganizerModule`     | Organizer application intake, dashboard, trek/booking management, analytics, revenue tracking. |
 | `MediaModule`         | Presigned upload/download URLs for R2, metadata persistence.                                   |
 | `AdminModule`         | Admin dashboards, moderation tools, approvals, analytics.                                      |
+| `ItinerariesModule`   | Trek day-by-day itinerary management with embedded rich-text day plans.                        |
+| `PoliciesModule`      | Cancellation rules, trek-specific policies, booking policy snapshots, refund timeline engine.  |
+| `GearModule`          | Gear item catalog, trek-gear associations, user packing lists with per-trek check status.      |
+| `WeatherModule`       | Live + forecast weather via WeatherAPI.com, 3-tier Redis cache, severe weather alert triggers. |
+| `SafetyModule`        | Trek safety guidelines, emergency contacts, check-in/out system with delayed-job escalation.    |
+| `AssessmentsModule`   | 8–12 question fitness quiz, scoring algorithm, difficulty bracket classification.              |
+| `GroupsModule`        | Group bookings: lead booker, invites, share codes, single payment for all members.             |
+| `ReferralsModule`     | Unique referral codes, tiered rewards, referral leaderboard.                                   |
+| `WishlistModule`      | Personal trek collections with notes/priority, replaces Bookmarks module.                      |
+| `RecommendationsModule` | Personalized trek suggestions via weighted scoring engine with cold-start strategy.         |
 | `ConfigModule`        | Centralized configuration + validation of environment variables.                               |
 | `HealthModule`        | Readiness/liveness probes, version info.                                                       |
 
@@ -165,6 +381,19 @@ RAZORPAY_WEBHOOK_SECRET=
 OTP_EXPIRY_MINUTES=10
 OTP_LENGTH=6
 OTP_MAX_ATTEMPTS=5
+
+# Weather API
+WEATHER_API_KEY=
+WEATHER_API_BASE_URL=https://api.weatherapi.com/v1
+WEATHER_API_RATE_LIMIT_PER_DAY=1000
+WEATHER_CIRCUIT_BREAKER_THRESHOLD=3
+WEATHER_CIRCUIT_BREAKER_DURATION_MS=3600000
+
+# SMS (for safety module emergency escalation fallback)
+SMS_PROVIDER=twilio
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_PHONE_NUMBER=
 ```
 
 Use a configuration factory + Joi (or class-validator) schema to assert presence/types at boot.
@@ -377,6 +606,645 @@ Define per feature with relations to `User`. Use `@Index()` decorators on freque
 
 ---
 
+#### `itinerary_days.entity.ts`
+
+```ts
+@Entity({ name: 'itinerary_days' })
+export class ItineraryDay {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => Trek, (trek) => trek.itineraryDays, { onDelete: 'CASCADE' })
+  trek: Trek;
+
+  @Column({ type: 'int' })
+  dayNumber: number; // 1-based
+
+  @Column({ length: 200 })
+  title: string;
+
+  @Column({ type: 'text', nullable: true })
+  description?: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  activities?: string[];
+
+  @Column({ type: 'jsonb', nullable: true })
+  meals?: { breakfast?: string; lunch?: string; dinner?: string };
+
+  @Column({ type: 'jsonb', nullable: true })
+  accommodation?: string;
+
+  @Column({ type: 'float', nullable: true })
+  altitudeMeters?: number;
+
+  @Column({ type: 'float', nullable: true })
+  distanceKm?: number;
+
+  @Column({ length: 50, nullable: true })
+  difficulty?: string;
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
+  @Column({ type: 'timestamptz', nullable: true, onUpdate: 'CURRENT_TIMESTAMP' })
+  updatedAt?: Date;
+}
+```
+
+#### `cancellation_policies.entity.ts`
+
+```ts
+@Entity({ name: 'cancellation_policies' })
+export class CancellationPolicy {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ length: 120 })
+  name: string; // e.g. "Standard", "Flexible", "Strict"
+
+  @Column({ type: 'text', nullable: true })
+  description?: string;
+
+  @Column({ type: 'boolean', default: true })
+  isActive: boolean;
+
+  @OneToMany(() => CancellationTier, (tier) => tier.policy, { cascade: true })
+  tiers: CancellationTier[];
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+}
+
+@Entity({ name: 'cancellation_tiers' })
+export class CancellationTier {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => CancellationPolicy, (policy) => policy.tiers, { onDelete: 'CASCADE' })
+  policy: CancellationPolicy;
+
+  @Column({ type: 'int' })
+  daysBeforeStart: number; // >= this many days before trek start
+
+  @Column({ type: 'float' })
+  refundPercentage: number; // 0–100
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+}
+
+@Entity({ name: 'trek_policies' })
+export class TrekPolicy {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @OneToOne(() => Trek, { onDelete: 'CASCADE' })
+  @JoinColumn()
+  trek: Trek;
+
+  @ManyToOne(() => CancellationPolicy)
+  cancellationPolicy: CancellationPolicy;
+
+  @Column({ type: 'int', default: 0 })
+  maxParticipants: number;
+
+  @Column({ type: 'int', default: 0 })
+  minParticipants: number;
+
+  @Column({ type: 'jsonb', nullable: true })
+  requirements?: string[];
+
+  @Column({ type: 'jsonb', nullable: true })
+  included?: string[];
+
+  @Column({ type: 'jsonb', nullable: true })
+  excluded?: string[];
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+}
+
+@Entity({ name: 'booking_policy_snapshots' })
+export class BookingPolicySnapshot {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @OneToOne(() => Booking, { onDelete: 'CASCADE' })
+  @JoinColumn()
+  booking: Booking;
+
+  @Column({ type: 'jsonb' })
+  policySnapshot: {
+    policyName: string;
+    tiers: Array<{ daysBeforeStart: number; refundPercentage: number }>;
+  };
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+}
+```
+
+#### `gear_items.entity.ts`
+
+```ts
+@Entity({ name: 'gear_items' })
+export class GearItem {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ length: 200 })
+  name: string;
+
+  @Column({ type: 'text', nullable: true })
+  description?: string;
+
+  @Column({ length: 100, nullable: true })
+  category?: string; // e.g. "Clothing", "Footwear", "Equipment"
+
+  @Column({ type: 'boolean', default: false })
+  isEssential: boolean;
+
+  @Column({ type: 'jsonb', nullable: true })
+  imageUrls?: string[];
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+}
+
+@Entity({ name: 'trek_gear_items' })
+export class TrekGearItem {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => Trek, { onDelete: 'CASCADE' })
+  trek: Trek;
+
+  @ManyToOne(() => GearItem, { onDelete: 'CASCADE' })
+  gearItem: GearItem;
+
+  @Column({ type: 'boolean', default: false })
+  isRecommended: boolean;
+
+  @Column({ type: 'int', nullable: true })
+  quantity?: number;
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+}
+
+@Entity({ name: 'user_packing_list_items' })
+export class UserPackingListItem {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  user: User;
+
+  @ManyToOne(() => Trek, { onDelete: 'CASCADE' })
+  trek: Trek;
+
+  @ManyToOne(() => GearItem, { nullable: true, onDelete: 'SET NULL' })
+  gearItem?: GearItem;
+
+  @Column({ length: 200 })
+  itemName: string;
+
+  @Column({ type: 'boolean', default: false })
+  isPacked: boolean;
+
+  @Column({ type: 'int', default: 1 })
+  quantity: number;
+
+  @Column({ length: 100, nullable: true })
+  category?: string;
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
+  @Column({ type: 'timestamptz', nullable: true, onUpdate: 'CURRENT_TIMESTAMP' })
+  updatedAt?: Date;
+}
+```
+
+#### `trek_safety_info.entity.ts`
+
+```ts
+@Entity({ name: 'trek_safety_info' })
+export class TrekSafetyInfo {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @OneToOne(() => Trek, { onDelete: 'CASCADE' })
+  @JoinColumn()
+  trek: Trek;
+
+  @Column({ type: 'text', nullable: true })
+  terrainRisks?: string;
+
+  @Column({ type: 'text', nullable: true })
+  altitudeWarnings?: string;
+
+  @Column({ type: 'text', nullable: true })
+  wildlifeAdvisories?: string;
+
+  @Column({ type: 'text', nullable: true })
+  generalGuidelines?: string;
+
+  @Column({ length: 32, nullable: true })
+  baseCampContact?: string;
+
+  @Column({ length: 32, nullable: true })
+  localRescueContact?: string;
+
+  @Column({ length: 255, nullable: true })
+  nearestHospital?: string;
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
+  @Column({ type: 'timestamptz', nullable: true, onUpdate: 'CURRENT_TIMESTAMP' })
+  updatedAt?: Date;
+}
+
+@Entity({ name: 'user_emergency_contacts' })
+export class UserEmergencyContact {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  user: User;
+
+  @Column({ length: 120 })
+  name: string;
+
+  @Column({ length: 20 })
+  phone: string;
+
+  @Column({ length: 40 })
+  relationship: string;
+
+  @Column({ type: 'boolean', default: false })
+  isPrimary: boolean;
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+}
+
+@Entity({ name: 'trek_check_ins' })
+export class TrekCheckIn {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => Booking, { onDelete: 'CASCADE' })
+  booking: Booking;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  user: User;
+
+  @Column({ type: 'timestamptz' })
+  checkedInAt: Date;
+
+  @Column({ type: 'timestamptz' })
+  expectedCheckOutAt: Date;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  checkedOutAt?: Date;
+
+  @Column({ type: 'varchar', length: 16, default: 'ACTIVE' })
+  status: string; // ACTIVE | COMPLETED | ESCALATED | RESOLVED
+
+  @Column({ type: 'timestamptz', nullable: true })
+  escalatedAt?: Date;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  resolvedAt?: Date;
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
+  @Column({ type: 'timestamptz', nullable: true, onUpdate: 'CURRENT_TIMESTAMP' })
+  updatedAt?: Date;
+}
+```
+
+#### `fitness_assessments.entity.ts`
+
+```ts
+@Entity({ name: 'fitness_assessments' })
+export class FitnessAssessment {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  user: User;
+
+  @Column({ type: 'int' })
+  totalScore: number; // 0–100
+
+  @Column({ length: 16 })
+  difficultyBracket: string; // EASY | MODERATE | DIFFICULT | EXTREME
+
+  @Column({ type: 'jsonb' })
+  answers: Record<string, unknown>;
+
+  @Column({ type: 'timestamptz' })
+  completedAt: Date;
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+}
+```
+
+#### `trek_groups.entity.ts`
+
+```ts
+@Entity({ name: 'trek_groups' })
+export class TrekGroup {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => Trek)
+  trek: Trek;
+
+  @ManyToOne(() => User)
+  leadUser: User;
+
+  @Column({ length: 120 })
+  name: string;
+
+  @Column({ type: 'int' })
+  maxSize: number;
+
+  @Column({ type: 'timestamptz' })
+  expiresAt: Date;
+
+  @Column({ length: 16, default: 'OPEN' })
+  status: string; // OPEN | BOOKED | EXPIRED | CANCELLED
+
+  @Column({ length: 12, unique: true })
+  shareCode: string;
+
+  @OneToMany(() => GroupMember, (m) => m.group)
+  members: GroupMember[];
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
+  @Column({ type: 'timestamptz', nullable: true, onUpdate: 'CURRENT_TIMESTAMP' })
+  updatedAt?: Date;
+}
+
+@Entity({ name: 'group_members' })
+export class GroupMember {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => TrekGroup, (g) => g.members, { onDelete: 'CASCADE' })
+  group: TrekGroup;
+
+  @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
+  user?: User;
+
+  @Column({ length: 120, nullable: true })
+  email?: string;
+
+  @Column({ length: 16 })
+  status: string; // INVITED | JOINED | DECLINED
+
+  @Column({ length: 80, nullable: true })
+  fullName?: string;
+
+  @Column({ length: 20, nullable: true })
+  phone?: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  emergencyContact?: { name: string; phone: string; relationship: string };
+
+  @Column({ type: 'text', nullable: true })
+  medicalConditions?: string;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  joinedAt?: Date;
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+}
+```
+
+#### `referral_codes.entity.ts`
+
+```ts
+@Entity({ name: 'referral_codes' })
+export class ReferralCode {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @OneToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn()
+  user: User;
+
+  @Column({ length: 20, unique: true })
+  code: string;
+
+  @Column({ length: 16, default: 'BASE' })
+  tier: string; // BASE | SILVER | GOLD
+
+  @Column({ type: 'int', default: 0 })
+  totalReferrals: number;
+
+  @Column({ type: 'int', default: 0 })
+  successfulReferrals: number;
+
+  @Column({ type: 'int', default: 0 })
+  totalEarnedInr: number;
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+}
+
+@Entity({ name: 'referrals' })
+export class Referral {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => ReferralCode)
+  referrerCode: ReferralCode;
+
+  @ManyToOne(() => User, { nullable: true })
+  refereeUser?: User;
+
+  @Column({ length: 120 })
+  refereeEmail: string;
+
+  @Column({ length: 16 })
+  status: string; // PENDING | BOOKED | COMPLETED | REWARDED
+
+  @Column({ length: 16 })
+  rewardType: string; // COUPON | POINTS | BOTH
+
+  @Column({ type: 'int' })
+  rewardValueInr: number;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  rewardDeliveredAt?: Date;
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+}
+
+@Entity({ name: 'referral_tier_config' })
+export class ReferralTierConfig {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ length: 16, unique: true })
+  tier: string; // BASE | SILVER | GOLD
+
+  @Column({ type: 'int' })
+  minSuccessfulReferrals: number;
+
+  @Column({ type: 'int' })
+  rewardPerReferralInr: number;
+
+  @Column({ type: 'int' })
+  refereeDiscountInr: number;
+}
+```
+
+#### `wishlist_collections.entity.ts`
+
+```ts
+@Entity({ name: 'wishlist_collections' })
+export class WishlistCollection {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  user: User;
+
+  @Column({ length: 120 })
+  name: string;
+
+  @Column({ length: 512, nullable: true })
+  description?: string;
+
+  @Column({ type: 'int', default: 0 })
+  sortOrder: number;
+
+  @OneToMany(() => WishlistItem, (i) => i.collection)
+  items: WishlistItem[];
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
+  @Column({ type: 'timestamptz', nullable: true, onUpdate: 'CURRENT_TIMESTAMP' })
+  updatedAt?: Date;
+}
+
+@Entity({ name: 'wishlist_items' })
+export class WishlistItem {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => WishlistCollection, (c) => c.items, { onDelete: 'CASCADE' })
+  collection: WishlistCollection;
+
+  @ManyToOne(() => Trek, { onDelete: 'CASCADE' })
+  trek: Trek;
+
+  @Column({ length: 512, nullable: true })
+  notes?: string;
+
+  @Column({ type: 'int', default: 0 })
+  priority: number; // 0=normal, 1=high, 2=top
+
+  @Column({ type: 'int', default: 0 })
+  sortOrder: number;
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  addedAt: Date;
+}
+
+@Entity({ name: 'user_recommendation_preferences' })
+export class UserRecommendationPreference {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @OneToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn()
+  user: User;
+
+  @Column({ type: 'varchar', array: true, length: 16, nullable: true })
+  preferredDifficulty?: string[];
+
+  @Column({ type: 'varchar', array: true, length: 80, nullable: true })
+  preferredStates?: string[];
+
+  @Column({ type: 'int', nullable: true })
+  maxBudget?: number;
+
+  @Column({ type: 'jsonb', nullable: true })
+  interests?: string[];
+
+  @Column({ type: 'timestamptz', nullable: true, onUpdate: 'CURRENT_TIMESTAMP' })
+  updatedAt?: Date;
+}
+
+@Entity({ name: 'recommendation_results' })
+export class RecommendationResult {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  user: User;
+
+  @ManyToOne(() => Trek)
+  trek: Trek;
+
+  @Column({ type: 'float' })
+  score: number; // 0.0–1.0
+
+  @Column({ length: 32 })
+  reason: string;
+
+  @Column({ type: 'timestamptz' })
+  expiresAt: Date;
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+}
+
+@Entity({ name: 'recommendation_events' })
+export class RecommendationEvent {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  user: User;
+
+  @ManyToOne(() => RecommendationResult, { nullable: true })
+  recommendationResult?: RecommendationResult;
+
+  @ManyToOne(() => Trek)
+  trek: Trek;
+
+  @Column({ length: 32 })
+  eventType: string; // SERVED | CLICKED | BOOKED
+
+  @Column({ type: 'float', nullable: true })
+  score?: number;
+
+  @Column({ length: 32, nullable: true })
+  reason?: string;
+
+  @Column({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+}
+```
+
+---
+
 ### 6. DTOs & Validation (class-validator)
 
 #### Auth
@@ -483,18 +1351,241 @@ export class ReviewTrekDto {
 }
 ```
 
-#### Posts & Comments
+#### Itineraries
 
 ```ts
-export class CreatePostDto {
-  @IsString() caption: string;
-  @IsArray() @IsUrl(undefined, { each: true }) imageUrls: string[];
-  @IsOptional() @IsString() location?: string;
+export class CreateItineraryDayDto {
+  @IsUUID() trekId: string;
+  @IsInt() @Min(1) dayNumber: number;
+  @IsString() @MaxLength(200) title: string;
+  @IsOptional() @IsString() description?: string;
+  @IsOptional() @IsArray() @IsString({ each: true }) activities?: string[];
+  @IsOptional() @IsObject() meals?: Record<string, string>;
+  @IsOptional() @IsString() accommodation?: string;
+  @IsOptional() @IsNumber() altitudeMeters?: number;
+  @IsOptional() @IsNumber() distanceKm?: number;
+  @IsOptional() @IsString() difficulty?: string;
 }
 
-export class CommentPostDto {
-  @IsUUID() postId: string;
-  @IsString() @MaxLength(500) comment: string;
+export class UpdateItineraryDayDto extends PartialType(CreateItineraryDayDto) {}
+
+export class ReorderItineraryDayDto {
+  @IsUUID() dayId: string;
+  @IsInt() @Min(1) newDayNumber: number;
+}
+```
+
+#### Policies
+
+```ts
+export class CreateCancellationPolicyDto {
+  @IsString() @MaxLength(120) name: string;
+  @IsOptional() @IsString() description?: string;
+  @IsArray() @ValidateNested({ each: true }) @Type(() => CancellationTierDto)
+  tiers: CancellationTierDto[];
+}
+
+export class CancellationTierDto {
+  @IsInt() @Min(0) daysBeforeStart: number;
+  @IsNumber() @Min(0) @Max(100) refundPercentage: number;
+}
+
+export class SetTrekPolicyDto {
+  @IsUUID() trekId: string;
+  @IsUUID() cancellationPolicyId: string;
+  @IsOptional() @IsInt() @Min(0) maxParticipants?: number;
+  @IsOptional() @IsInt() @Min(0) minParticipants?: number;
+  @IsOptional() @IsArray() @IsString({ each: true }) requirements?: string[];
+  @IsOptional() @IsArray() @IsString({ each: true }) included?: string[];
+  @IsOptional() @IsArray() @IsString({ each: true }) excluded?: string[];
+}
+
+export class CalculateRefundDto {
+  @IsUUID() bookingId: string;
+  @IsDateString() cancellationDate: string;
+}
+```
+
+#### Gear
+
+```ts
+export class CreateGearItemDto {
+  @IsString() @MaxLength(200) name: string;
+  @IsOptional() @IsString() description?: string;
+  @IsOptional() @IsString() category?: string;
+  @IsOptional() @IsBoolean() isEssential?: boolean;
+  @IsOptional() @IsArray() @IsUrl(undefined, { each: true }) imageUrls?: string[];
+}
+
+export class LinkGearToTrekDto {
+  @IsUUID() trekId: string;
+  @IsUUID() gearItemId: string;
+  @IsOptional() @IsBoolean() isRecommended?: boolean;
+  @IsOptional() @IsInt() @Min(1) quantity?: number;
+}
+
+export class AddPackingListItemDto {
+  @IsUUID() trekId: string;
+  @IsOptional() @IsUUID() gearItemId?: string;
+  @IsString() @MaxLength(200) itemName: string;
+  @IsOptional() @IsInt() @Min(1) quantity?: number;
+  @IsOptional() @IsString() category?: string;
+}
+
+export class UpdatePackingListItemDto {
+  @IsOptional() @IsBoolean() isPacked?: boolean;
+  @IsOptional() @IsInt() @Min(1) quantity?: number;
+}
+```
+
+#### Weather
+
+```ts
+export class GetTrekWeatherDto {
+  @IsUUID() trekId: string;
+  @IsOptional() @IsInt() @Min(1) @Max(10) days?: number; // forecast days
+}
+
+export class GetLocationWeatherDto {
+  @IsNumber() @Min(-90) @Max(90) latitude: number;
+  @IsNumber() @Min(-180) @Max(180) longitude: number;
+  @IsOptional() @IsInt() @Min(1) @Max(10) days?: number;
+}
+```
+
+#### Safety
+
+```ts
+export class UpsertSafetyInfoDto {
+  @IsOptional() @IsString() terrainRisks?: string;
+  @IsOptional() @IsString() altitudeWarnings?: string;
+  @IsOptional() @IsString() wildlifeAdvisories?: string;
+  @IsOptional() @IsString() generalGuidelines?: string;
+  @IsOptional() @IsString() baseCampContact?: string;
+  @IsOptional() @IsString() localRescueContact?: string;
+  @IsOptional() @IsString() nearestHospital?: string;
+}
+
+export class CreateEmergencyContactDto {
+  @IsString() name: string;
+  @IsPhoneNumber('IN') phone: string;
+  @IsString() relationship: string;
+  @IsOptional() @IsBoolean() isPrimary?: boolean;
+}
+
+export class CheckInDto {
+  @IsNumber() @IsOptional() latitude?: number;
+  @IsNumber() @IsOptional() longitude?: number;
+}
+
+export class CheckOutDto {
+  @IsNumber() @IsOptional() latitude?: number;
+  @IsNumber() @IsOptional() longitude?: number;
+}
+
+export class AcknowledgeSafetyDto {
+  @IsUUID() checkInId: string;
+}
+```
+
+#### Assessments
+
+```ts
+export class SubmitAssessmentDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AssessmentAnswerDto)
+  answers: AssessmentAnswerDto[];
+}
+
+export class AssessmentAnswerDto {
+  @IsString() questionId: string;
+  @IsString() selectedOption: string;
+}
+
+export class AssessmentResultDto {
+  totalScore: number;
+  difficultyBracket: string;
+  recommendedDifficultyLabel: string;
+  completedAt: Date;
+}
+```
+
+#### Groups
+
+```ts
+export class CreateGroupDto {
+  @IsUUID() trekId: string;
+  @IsOptional() @IsString() @MaxLength(120) name?: string;
+  @IsInt() @Min(2) @Max(50) maxSize: number;
+  @IsDateString() expiresAt: string;
+}
+
+export class InviteMembersDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => InviteeDto)
+  invites: InviteeDto[];
+}
+
+export class InviteeDto {
+  @IsOptional() @IsUUID() userId?: string;
+  @IsOptional() @IsEmail() email?: string;
+}
+
+export class UpdateMemberStatusDto {
+  @IsEnum(['JOINED', 'DECLINED']) status: string;
+  @IsOptional() @IsString() fullName?: string;
+  @IsOptional() @IsPhoneNumber('IN') phone?: string;
+  @IsOptional() @IsObject() emergencyContact?: Record<string, string>;
+  @IsOptional() @IsString() medicalConditions?: string;
+}
+
+export class JoinGroupDto {
+  @IsString() shareCode: string;
+}
+```
+
+#### Referrals
+
+```ts
+export class ClaimReferralDto {
+  @IsString() code: string;
+}
+
+export class ReferralCodeResponseDto {
+  code: string;
+  shareLink: string;
+  tier: string;
+  totalReferrals: number;
+  successfulReferrals: number;
+  totalEarnedInr: number;
+}
+```
+
+#### Wishlist
+
+```ts
+export class CreateCollectionDto {
+  @IsString() @MaxLength(120) name: string;
+  @IsOptional() @IsString() @MaxLength(512) description?: string;
+}
+
+export class AddToCollectionDto {
+  @IsUUID() trekId: string;
+  @IsOptional() @IsString() notes?: string;
+  @IsOptional() @IsInt() @Min(0) @Max(2) priority?: number;
+}
+```
+
+#### Recommendations
+
+```ts
+export class RecommendationPreferenceDto {
+  @IsOptional() @IsArray() @IsString({ each: true }) preferredDifficulty?: string[];
+  @IsOptional() @IsArray() @IsString({ each: true }) preferredStates?: string[];
+  @IsOptional() @IsInt() @Min(0) maxBudget?: number;
+  @IsOptional() @IsArray() @IsString({ each: true }) interests?: string[];
 }
 ```
 
@@ -716,6 +1807,77 @@ All HTTP requests must include the API key header defined in `API_KEY_HEADER` (d
 | GET    | `/treks/:id`                    | Trek detail                            | Optional             |
 | POST   | `/treks/:id/reviews`            | Add review                             | Access token         |
 | POST   | `/treks/:id/bookmark`           | Toggle bookmark                        | Access token         |
+| GET    | `/treks/:id/itinerary`          | List itinerary days for trek           | Optional             |
+| POST   | `/treks/:id/itinerary`          | Add itinerary day                      | Organizer            |
+| PATCH  | `/treks/:id/itinerary/:dayId`   | Update itinerary day                   | Organizer            |
+| DELETE | `/treks/:id/itinerary/:dayId`   | Remove itinerary day                   | Organizer            |
+| GET    | `/treks/:id/weather`            | Live + forecast weather for trek       | Optional             |
+| GET    | `/treks/:id/gear`               | List gear items for trek               | Optional             |
+| POST   | `/treks/:id/gear`               | Link gear item to trek                 | Organizer            |
+| DELETE | `/treks/:id/gear/:linkId`       | Unlink gear item from trek             | Organizer            |
+| GET    | `/itineraries/:id`              | Get single itinerary day detail        | Optional             |
+| GET    | `/policies`                     | List cancellation policy templates     | Optional             |
+| GET    | `/policies/:id`                 | Get cancellation policy with tiers     | Optional             |
+| POST   | `/policies`                     | Create cancellation policy template    | Admin                |
+| PATCH  | `/policies/:id`                 | Update cancellation policy             | Admin                |
+| DELETE | `/policies/:id`                 | Delete cancellation policy             | Admin                |
+| GET    | `/treks/:id/policy`             | Get trek-specific policy               | Optional             |
+| PUT    | `/treks/:id/policy`             | Set/update trek-specific policy        | Organizer            |
+| GET    | `/bookings/:id/refund-estimate` | Calculate refund based on cancellation | Access token         |
+| GET    | `/gear`                         | List all gear items                    | Optional             |
+| GET    | `/gear/:id`                     | Get gear item detail                   | Optional             |
+| POST   | `/gear`                         | Create gear item                       | Admin                |
+| PATCH  | `/gear/:id`                     | Update gear item                       | Admin                |
+| DELETE | `/gear/:id`                     | Delete gear item                       | Admin                |
+| GET    | `/users/me/packing-list`        | Get my packing list for a trek (query: trekId) | Access token  |
+| POST   | `/users/me/packing-list`        | Add item to packing list               | Access token         |
+| PATCH  | `/users/me/packing-list/:id`    | Update packing list item (pack status) | Access token         |
+| DELETE | `/users/me/packing-list/:id`    | Remove packing list item               | Access token         |
+| GET    | `/weather/current`              | Current weather for lat/lng            | Optional             |
+| GET    | `/weather/forecast`             | Forecast for lat/lng (query: days)     | Optional             |
+| GET    | `/weather/conditions`           | Map condition codes to categories      | Optional             |
+| GET    | `/treks/:trekId/safety`         | Get safety info for trek              | Optional             |
+| PUT    | `/treks/:trekId/safety`         | Upsert safety info                    | Organizer (own trek) |
+| GET    | `/profile/emergency-contacts`   | List user's emergency contacts        | Access token         |
+| POST   | `/profile/emergency-contacts`   | Add emergency contact                 | Access token         |
+| PATCH  | `/profile/emergency-contacts/:id` | Update emergency contact            | Access token         |
+| DELETE | `/profile/emergency-contacts/:id` | Delete emergency contact            | Access token         |
+| POST   | `/bookings/:bookingId/check-in` | Check in to trek                      | Auth (booking owner) |
+| POST   | `/bookings/:bookingId/check-out`| Check out from trek                   | Auth (booking owner) |
+| GET    | `/bookings/:bookingId/check-in-status` | Get check-in status            | Auth (booking owner) |
+| POST   | `/check-in/:checkInId/acknowledge` | Acknowledge safe after escalation  | Auth (booking owner) |
+| GET    | `/assessments/questions`        | Get quiz questions + options          | Public               |
+| POST   | `/assessments/submit`           | Submit quiz answers → score + bracket | Access token         |
+| GET    | `/assessments/my-result`        | Get latest assessment result          | Access token         |
+| GET    | `/users/:userId/assessment-result` | Get user's public fitness bracket  | Public               |
+| POST   | `/groups`                       | Create new trek group                 | Access token         |
+| GET    | `/groups/:id`                   | Get group details + members           | Auth (lead/member)   |
+| PATCH  | `/groups/:id`                   | Update group name, size, expiry       | Auth (lead)          |
+| POST   | `/groups/:id/invite`            | Invite members (email or userId)      | Auth (lead)          |
+| POST   | `/groups/join/:shareCode`       | Join group via share code             | Access token         |
+| PATCH  | `/groups/:id/members/:memberId/status` | Accept/decline invitation      | Auth (member)        |
+| DELETE | `/groups/:id/members/:memberId` | Remove member from group              | Auth (lead)          |
+| POST   | `/groups/:id/book`              | Book for all joined members           | Auth (lead)          |
+| DELETE | `/groups/:id`                   | Cancel group                          | Auth (lead)          |
+| GET    | `/referrals/my-code`            | Get own referral code + stats         | Access token         |
+| POST   | `/referrals/generate`           | Generate/fetch referral code          | Access token         |
+| GET    | `/referrals/my-referrals`       | List referrals made (paginated)       | Access token         |
+| GET    | `/referrals/leaderboard`        | Top referrers                         | Public               |
+| GET    | `/referrals/claim/:code`        | Show referral info, prompt sign-up    | Public               |
+| GET    | `/wishlist/collections`         | List user's wishlist collections      | Access token         |
+| POST   | `/wishlist/collections`         | Create a collection                   | Access token         |
+| PATCH  | `/wishlist/collections/:id`     | Rename/reorder collection             | Access token         |
+| DELETE | `/wishlist/collections/:id`     | Delete collection + its items         | Access token         |
+| GET    | `/wishlist/collections/:id/items` | List items in a collection          | Access token         |
+| POST   | `/wishlist/collections/:id/items` | Add trek to collection             | Access token         |
+| PATCH  | `/wishlist/items/:id`           | Update notes/priority                 | Access token         |
+| DELETE | `/wishlist/items/:id`           | Remove from wishlist                  | Access token         |
+| POST   | `/wishlist/quick-add/:trekId`   | One-tap add to default collection     | Access token         |
+| GET    | `/wishlist/shared/:shareToken`  | View a shared wishlist                | Public               |
+| GET    | `/recommendations`              | Get personalized recommendations (top 10) | Access token      |
+| GET    | `/recommendations/refresh`      | Force refresh recommendations         | Access token         |
+| GET    | `/treks/:trekId/recommendations`| Similar treks for a specific trek     | Public               |
+| PUT    | `/recommendations/preferences`  | Set recommendation preferences        | Access token         |
 | GET    | `/posts/feed`                   | Feed                                   | Access token         |
 | POST   | `/posts`                        | Create post                            | Access token         |
 | POST   | `/posts/:id/like`               | Like/unlike                            | Access token         |
@@ -1594,6 +2756,14 @@ export class UpdateOrganizerRequestDto extends PartialType(
 - **Story expiry**: run every 5 minutes to delete `stories` where `expiresAt < now()` and remove R2 asset.
 - **Notification fan-out**: queue job per notification type (friend request accepted, trek reminder, comment).
 - **Booking reminders**: schedule reminder notifications X days/hours before trek start.
+- **Packing reminders**: schedule reminder notifications 1–3 days before trek start, pushing user's packing list with itemised check status.
+- **Weather prefetch**: recurring job every 3 hours that fetches forecast data for upcoming active treks (next 7 days), caches it in Redis (3-tier TTL: 30min/2h/6h), and triggers push alerts when severe weather conditions are detected.
+- **Check-in first warning**: delayed BullMQ job scheduled at `expectedCheckOutAt + 2h` per check-in; sends push notification asking user to confirm safety.
+- **Check-in emergency escalation**: delayed BullMQ job scheduled at `expectedCheckOutAt + 2h30m` per check-in; if no acknowledgement received, sends SMS/email to emergency contact with last known location + organizer contact.
+- **Group expiry**: recurring hourly job that marks `OPEN` groups with `expiresAt < NOW()` as `EXPIRED` and notifies all members.
+- **Group reminder**: recurring daily job that pushes reminders to group leads with pending member invites and <48h to expiry.
+- **Referral reward delivery**: event-driven job triggered when a referred user's booking becomes `CONFIRMED`; creates coupon or adds loyalty points, recalculates referrer tier, sends notifications.
+- **Recommendation builder**: recurring job every 6 hours that recomputes personalised recommendations for active users (last 60 days); processes in batches of 100; reads configurable weights from `PlatformSettings`; detects cold-start users (<2 completed treks + <3 wishlist items) and applies cold-start weight set.
 - **Trek stats refresh**: optional scheduled job to recompute points or trending treks.
 - Use Bull Board or Arena for queue monitoring.
 
@@ -2076,6 +3246,21 @@ app.enableCors({
 - [ ] Full-text search and geolocation search implemented for treks.
 - [ ] Image optimization pipeline (thumbnails, compression) integrated.
 - [ ] Caching strategy implemented with Redis (treks, users, leaderboard).
+- [x] Itineraries module implemented (entity, DTOs, endpoints — PR #12).
+- [x] Policies module implemented (cancellation policies, trek policies, booking snapshots — PR #13).
+- [x] Gear module implemented (gear catalog, trek links, user packing lists — PR #14).
+- [x] Weather module implemented (provider adapter, 3-tier Redis cache, prefetch scheduler + worker — PR #15).
+- [x] Weather severe alert triggers wired via Notifications module.
+- [x] Packing-reminder background job spec added.
+- [x] Weather-prefetch background job (scheduler + worker + severe alerts).
+- [ ] Safety module: trek safety info, emergency contacts, check-in/out with delayed-job escalation (Section 5).
+- [ ] Assessments module: 8–12 question fitness quiz, scoring algorithm, difficulty bracket (Section 6).
+- [ ] Groups module: group booking with lead booker, invites, share codes, `SELECT FOR UPDATE` capacity lock (Section 7).
+- [ ] Referrals module: unique codes, tiered rewards, leaderboard, `onBookingCompleted` trigger (Section 8).
+- [ ] Wishlist module: collections with notes/priority, replaces Bookmarks via phased migration (Section 9a).
+- [ ] Recommendations module: weighted scoring engine, cold-start strategy, conversion event tracking (Section 9b).
+- [ ] Bookmarks → Wishlist data migration (Phases 5a–5c per deprecation plan).
+- [ ] Recommendation builder processor: replace existing Redis-based processor with DB-backed batched version.
 - [ ] Content moderation system (profanity filtering, reporting) in place.
 - [ ] Rate limiting configured per endpoint type (auth, uploads, general).
 - [ ] Error response standardization and global exception filter.
@@ -2083,7 +3268,7 @@ app.enableCors({
 - [ ] Email templates and mailer service configured.
 - [ ] Database backup strategy and restore testing procedures.
 - [ ] Monitoring dashboards and alerting rules configured.
-- [ ] BullMQ queues wired for notifications + cleanup jobs.
+- [ ] BullMQ queues wired for all jobs: notification-fanout, story-expiry, booking-reminder, packing-reminder, weather-prefetch, checkin-first-warning, checkin-emergency, group-expiry, group-reminder, referral-reward-delivery, recommendation-builder.
 - [ ] Observability stack (logging, metrics, health checks) operational.
 - [ ] Data migration scripts created and tested.
 - [ ] Flutter client updated to use new API & storage flow.

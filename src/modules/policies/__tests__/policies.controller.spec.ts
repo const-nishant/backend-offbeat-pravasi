@@ -4,10 +4,7 @@ import type { Repository } from 'typeorm';
 import { PoliciesController } from '../policies.controller';
 import { PoliciesService } from '../policies.service';
 import { Booking } from '../../bookings/entities/booking.entity';
-import {
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 describe('PoliciesController', () => {
@@ -99,7 +96,9 @@ describe('PoliciesController', () => {
   describe('assignToTrek', () => {
     it('should assign policy to trek', async () => {
       service.assignToTrek.mockResolvedValue(undefined);
-      const result = await controller.assignToTrek('trek-1', { policyId: 'policy-1' });
+      const result = await controller.assignToTrek('trek-1', {
+        policyId: 'policy-1',
+      });
       expect(result).toEqual({ assigned: true });
       expect(service.assignToTrek).toHaveBeenCalledWith('trek-1', 'policy-1');
     });
@@ -110,23 +109,45 @@ describe('PoliciesController', () => {
       id: 'booking-1',
       userId: 'user-1',
       totalAmountInr: 2000,
-      trekSnapshot: { startDate: new Date(Date.now() + 86400000 * 30).toISOString() },
+      trekSnapshot: {
+        startDate: new Date(Date.now() + 86400000 * 30).toISOString(),
+      },
     } as any;
 
     it('should return refund estimate for booking owner', async () => {
       bookingRepo.findOne.mockResolvedValue(mockBooking);
-      service.calculateRefund.mockResolvedValue({ refundPercentage: 50, refundAmount: 1000, policyName: 'Standard' });
+      service.calculateRefund.mockResolvedValue({
+        refundPercentage: 50,
+        refundAmount: 1000,
+        policyName: 'Standard',
+      });
 
-      const result = await controller.refundEstimate('booking-1', { id: 'user-1', email: '', isAdmin: false } as any);
+      const result = await controller.refundEstimate('booking-1', {
+        id: 'user-1',
+        email: '',
+        isAdmin: false,
+      } as any);
 
-      expect(result).toEqual({ refundPercentage: 50, refundAmount: 1000, policyName: 'Standard' });
+      expect(result).toEqual({
+        refundPercentage: 50,
+        refundAmount: 1000,
+        policyName: 'Standard',
+      });
     });
 
     it('should allow admin to get refund estimate', async () => {
       bookingRepo.findOne.mockResolvedValue(mockBooking);
-      service.calculateRefund.mockResolvedValue({ refundPercentage: 100, refundAmount: 2000, policyName: 'Standard' });
+      service.calculateRefund.mockResolvedValue({
+        refundPercentage: 100,
+        refundAmount: 2000,
+        policyName: 'Standard',
+      });
 
-      const result = await controller.refundEstimate('booking-1', { id: 'admin-1', email: '', isAdmin: true } as any);
+      const result = await controller.refundEstimate('booking-1', {
+        id: 'admin-1',
+        email: '',
+        isAdmin: true,
+      } as any);
 
       expect(result.refundPercentage).toBe(100);
     });
@@ -135,7 +156,11 @@ describe('PoliciesController', () => {
       bookingRepo.findOne.mockResolvedValue(mockBooking);
 
       await expect(
-        controller.refundEstimate('booking-1', { id: 'stranger', email: '', isAdmin: false } as any),
+        controller.refundEstimate('booking-1', {
+          id: 'stranger',
+          email: '',
+          isAdmin: false,
+        } as any),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -143,7 +168,11 @@ describe('PoliciesController', () => {
       bookingRepo.findOne.mockResolvedValue(null);
 
       await expect(
-        controller.refundEstimate('bad-id', { id: 'user-1', email: '', isAdmin: false } as any),
+        controller.refundEstimate('bad-id', {
+          id: 'user-1',
+          email: '',
+          isAdmin: false,
+        } as any),
       ).rejects.toThrow(NotFoundException);
     });
   });

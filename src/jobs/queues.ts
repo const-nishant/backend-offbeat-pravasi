@@ -36,6 +36,10 @@ export const ticketPdfQueue = new Queue('ticket-pdf-queue', {
   connection,
 });
 
+export const weatherPrefetchQueue = new Queue('weather-prefetch-queue', {
+  connection,
+});
+
 await (async () => {
   try {
     await recommendationQueue.add(

@@ -25,9 +25,7 @@ import {
 @ApiTags('Itineraries')
 @Controller('treks/:trekId/itinerary')
 export class ItinerariesController {
-  constructor(
-    private readonly itinerariesService: ItinerariesService,
-  ) {}
+  constructor(private readonly itinerariesService: ItinerariesService) {}
 
   @Public()
   @Get()

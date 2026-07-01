@@ -10,6 +10,9 @@ import { NotificationWorkerService } from './processors/notifications.processor'
 import { PackingReminderWorkerService } from './processors/packing-reminder.processor';
 import { PackingReminderScheduler } from './schedulers/packing-reminder.scheduler';
 import { NotificationsModule } from '../modules/notifications/notifications.module';
+import { WeatherModule } from '../modules/weather/weather.module';
+import { WeatherPrefetchScheduler } from './schedulers/weather-prefetch.scheduler';
+import { WeatherPrefetchWorkerService } from './processors/weather-prefetch.processor';
 
 const workerProviders =
   process.env.WORKERS_ENABLED !== 'false'
@@ -20,6 +23,7 @@ const workerProviders =
         BookingReminderWorkerService,
         NotificationWorkerService,
         PackingReminderWorkerService,
+        WeatherPrefetchWorkerService,
       ]
     : [];
 
@@ -27,12 +31,13 @@ const workerProviders =
 const exportProviders = [TicketPdfWorkerService];
 
 @Module({
-  imports: [NotificationsModule],
+  imports: [NotificationsModule, WeatherModule],
   providers: [
     BookingReleaseScheduler,
     StoryExpiryScheduler,
     BookingReminderScheduler,
     PackingReminderScheduler,
+    WeatherPrefetchScheduler,
     ...workerProviders,
     TicketPdfWorkerService,
     BookingReminderWorkerService,

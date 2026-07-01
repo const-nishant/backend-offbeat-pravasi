@@ -161,7 +161,11 @@ describe('GearService Integration (SQLite)', () => {
       id: 'org-1',
       fullName: 'Organizer',
     });
-    const trek = await trekRepo.save({ id: 'trek-1', name: 'Test Trek', organizer: orgUser });
+    const trek = await trekRepo.save({
+      id: 'trek-1',
+      name: 'Test Trek',
+      organizer: orgUser,
+    });
     const item = await service.createGearItem({
       name: 'Sleeping Bag',
       category: 'CAMPING' as any,
@@ -188,7 +192,11 @@ describe('GearService Integration (SQLite)', () => {
       id: 'org-1',
       fullName: 'Organizer',
     });
-    await trekRepo.save({ id: 'trek-1', name: 'Test Trek', organizer: orgUser });
+    await trekRepo.save({
+      id: 'trek-1',
+      name: 'Test Trek',
+      organizer: orgUser,
+    });
     await bookingRepo.save({
       id: 'booking-1',
       trekId: 'trek-1',
@@ -221,7 +229,11 @@ describe('GearService Integration (SQLite)', () => {
       id: 'org-1',
       fullName: 'Organizer',
     });
-    await trekRepo.save({ id: 'trek-1', name: 'Test Trek', organizer: orgUser });
+    await trekRepo.save({
+      id: 'trek-1',
+      name: 'Test Trek',
+      organizer: orgUser,
+    });
     await bookingRepo.save({
       id: 'booking-1',
       trekId: 'trek-1',
@@ -248,9 +260,14 @@ describe('GearService Integration (SQLite)', () => {
     const packingList = await service.getPackingList('booking-1', 'user-1');
     const pli = packingList[0];
 
-    const updated = await service.updatePackingItem('booking-1', pli.id, 'user-1', {
-      needsRental: true,
-    });
+    const updated = await service.updatePackingItem(
+      'booking-1',
+      pli.id,
+      'user-1',
+      {
+        needsRental: true,
+      },
+    );
     expect(updated.needsRental).toBe(true);
 
     const result = await service.confirmRentals('booking-1', 'user-1');

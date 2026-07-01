@@ -230,11 +230,20 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
       await service.setTrekGear('trek-1', 'org-1', {
         items: [
           { gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED },
-          { gearItemId: 'gear-1', requirementType: RequirementType.RECOMMENDED },
+          {
+            gearItemId: 'gear-1',
+            requirementType: RequirementType.RECOMMENDED,
+          },
         ],
       });
-      expect(createMock).toHaveBeenNthCalledWith(1, expect.objectContaining({ sortOrder: 0 }));
-      expect(createMock).toHaveBeenNthCalledWith(2, expect.objectContaining({ sortOrder: 1 }));
+      expect(createMock).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ sortOrder: 0 }),
+      );
+      expect(createMock).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({ sortOrder: 1 }),
+      );
     });
   });
 
@@ -246,10 +255,14 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
       gearItemRepo.find.mockResolvedValue([mockGearItem]);
       trekGearRepo.delete.mockResolvedValue({ affected: 0, raw: [] });
       trekGearRepo.create.mockReturnValue({} as any);
-      trekGearRepo.save.mockResolvedValue([{ requirementType: RequirementType.REQUIRED } as any]);
+      trekGearRepo.save.mockResolvedValue([
+        { requirementType: RequirementType.REQUIRED } as any,
+      ]);
 
       const result = await service.setTrekGear('trek-1', 'org-1', {
-        items: [{ gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED }],
+        items: [
+          { gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED },
+        ],
       });
       expect(result[0].requirementType).toBe(RequirementType.REQUIRED);
     });
@@ -259,10 +272,17 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
       gearItemRepo.find.mockResolvedValue([mockGearItem]);
       trekGearRepo.delete.mockResolvedValue({ affected: 0, raw: [] });
       trekGearRepo.create.mockReturnValue({} as any);
-      trekGearRepo.save.mockResolvedValue([{ requirementType: RequirementType.RECOMMENDED } as any]);
+      trekGearRepo.save.mockResolvedValue([
+        { requirementType: RequirementType.RECOMMENDED } as any,
+      ]);
 
       const result = await service.setTrekGear('trek-1', 'org-1', {
-        items: [{ gearItemId: 'gear-1', requirementType: RequirementType.RECOMMENDED }],
+        items: [
+          {
+            gearItemId: 'gear-1',
+            requirementType: RequirementType.RECOMMENDED,
+          },
+        ],
       });
       expect(result[0].requirementType).toBe(RequirementType.RECOMMENDED);
     });
@@ -272,10 +292,14 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
       gearItemRepo.find.mockResolvedValue([mockGearItem]);
       trekGearRepo.delete.mockResolvedValue({ affected: 0, raw: [] });
       trekGearRepo.create.mockReturnValue({} as any);
-      trekGearRepo.save.mockResolvedValue([{ requirementType: RequirementType.PROVIDED } as any]);
+      trekGearRepo.save.mockResolvedValue([
+        { requirementType: RequirementType.PROVIDED } as any,
+      ]);
 
       const result = await service.setTrekGear('trek-1', 'org-1', {
-        items: [{ gearItemId: 'gear-1', requirementType: RequirementType.PROVIDED }],
+        items: [
+          { gearItemId: 'gear-1', requirementType: RequirementType.PROVIDED },
+        ],
       });
       expect(result[0].requirementType).toBe(RequirementType.PROVIDED);
     });
@@ -326,8 +350,14 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
       const categories = Object.values(GearCategory);
       for (const cat of categories) {
         gearItemRepo.create.mockReturnValue({} as any);
-        gearItemRepo.save.mockResolvedValue({ id: 'g-' + cat, category: cat } as any);
-        const result = await service.createGearItem({ name: cat, category: cat as any });
+        gearItemRepo.save.mockResolvedValue({
+          id: 'g-' + cat,
+          category: cat,
+        } as any);
+        const result = await service.createGearItem({
+          name: cat,
+          category: cat as any,
+        });
         expect(result.category).toBe(cat);
       }
     });
@@ -353,7 +383,9 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
       trekRepo.findOne.mockResolvedValue(null);
       await expect(
         service.setTrekGear('bad-trek', 'org-1', {
-          items: [{ gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED }],
+          items: [
+            { gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED },
+          ],
         }),
       ).rejects.toThrow(NotFoundException);
     });
@@ -365,7 +397,10 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
         service.setTrekGear('trek-1', 'org-1', {
           items: [
             { gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED },
-            { gearItemId: 'gear-missing', requirementType: RequirementType.RECOMMENDED },
+            {
+              gearItemId: 'gear-missing',
+              requirementType: RequirementType.RECOMMENDED,
+            },
           ],
         }),
       ).rejects.toThrow(NotFoundException);
@@ -424,11 +459,19 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
         needsRental: false,
         trekGearItem: { requirementType: RequirementType.REQUIRED },
       } as any);
-      packingListRepo.save.mockResolvedValue({ id: 'pli-1', needsRental: false } as any);
-
-      const result = await service.updatePackingItem('booking-1', 'pli-1', 'user-1', {
+      packingListRepo.save.mockResolvedValue({
+        id: 'pli-1',
         needsRental: false,
-      });
+      } as any);
+
+      const result = await service.updatePackingItem(
+        'booking-1',
+        'pli-1',
+        'user-1',
+        {
+          needsRental: false,
+        },
+      );
       expect(result.needsRental).toBe(false);
     });
 
@@ -478,7 +521,9 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
       trekGearRepo.save.mockResolvedValue([{ id: 'new-tg-1' } as any]);
 
       await service.setTrekGear('trek-1', 'org-1', {
-        items: [{ gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED }],
+        items: [
+          { gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED },
+        ],
       });
 
       expect(trekGearRepo.delete).toHaveBeenCalledWith({ trekId: 'trek-1' });
@@ -566,7 +611,14 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
       trekGearRepo.find.mockResolvedValue([mockRentalTrekGearItem]);
       packingListRepo.create.mockReturnValue({} as any);
       packingListRepo.save.mockResolvedValue([
-        { id: 'new-pli', userId: 'user-1', trekGearItemId: 'tg-rental', hasItem: false, needsRental: false, checked: false } as any,
+        {
+          id: 'new-pli',
+          userId: 'user-1',
+          trekGearItemId: 'tg-rental',
+          hasItem: false,
+          needsRental: false,
+          checked: false,
+        } as any,
       ]);
 
       const initList = await service.getPackingList('booking-1', 'user-1');
@@ -582,17 +634,30 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
         trekGearItem: mockRentalTrekGearItem,
       } as any);
       packingListRepo.save.mockResolvedValue({
-        id: 'new-pli', userId: 'user-1', hasItem: false, needsRental: true, checked: false,
+        id: 'new-pli',
+        userId: 'user-1',
+        hasItem: false,
+        needsRental: true,
+        checked: false,
       } as any);
 
-      const toggled = await service.updatePackingItem('booking-1', 'new-pli', 'user-1', {
-        needsRental: true,
-      });
+      const toggled = await service.updatePackingItem(
+        'booking-1',
+        'new-pli',
+        'user-1',
+        {
+          needsRental: true,
+        },
+      );
       expect(toggled.needsRental).toBe(true);
 
       bookingRepo.findOne.mockResolvedValue(mockPendingBooking);
       packingListRepo.find.mockResolvedValue([
-        { id: 'new-pli', needsRental: true, trekGearItem: mockRentalTrekGearItem } as any,
+        {
+          id: 'new-pli',
+          needsRental: true,
+          trekGearItem: mockRentalTrekGearItem,
+        } as any,
       ]);
 
       const rental = await service.confirmRentals('booking-1', 'user-1');
@@ -607,7 +672,9 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
       trekRepo.findOne.mockResolvedValue(mockTrekWithOwner);
       await expect(
         service.setTrekGear('trek-1', 'not-the-organizer', {
-          items: [{ gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED }],
+          items: [
+            { gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED },
+          ],
         }),
       ).rejects.toThrow(ForbiddenException);
     });
@@ -616,7 +683,9 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
       trekRepo.findOne.mockResolvedValue(mockTrekNoOwner);
       await expect(
         service.setTrekGear('trek-2', 'any-user', {
-          items: [{ gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED }],
+          items: [
+            { gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED },
+          ],
         }),
       ).rejects.toThrow(ForbiddenException);
     });
@@ -625,7 +694,9 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
       trekRepo.findOne.mockResolvedValue(mockTrekWithOwner);
       await expect(
         service.setTrekGear('trek-1', 'not-the-organizer', {
-          items: [{ gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED }],
+          items: [
+            { gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED },
+          ],
         }),
       ).rejects.toThrow(ForbiddenException);
     });
@@ -638,7 +709,9 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
       trekGearRepo.save.mockResolvedValue([{ id: 'tg-set' } as any]);
 
       const result = await service.setTrekGear('trek-1', 'org-1', {
-        items: [{ gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED }],
+        items: [
+          { gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED },
+        ],
       });
       expect(result).toHaveLength(1);
     });
@@ -683,7 +756,9 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
       packingListRepo.find.mockImplementation(async (opts) => {
         const where = (opts as any).where as any;
         expect(where.needsRental).toBe(true);
-        return [{ needsRental: true, trekGearItem: { rentalPriceInr: 800 } } as any];
+        return [
+          { needsRental: true, trekGearItem: { rentalPriceInr: 800 } } as any,
+        ];
       });
 
       const result = await service.confirmRentals('booking-1', 'user-1');
@@ -729,7 +804,11 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
 
   describe('PARTIAL UPDATES: updateGearItem and updatePackingItem', () => {
     it('should only update name when only name is provided', async () => {
-      const existing = { id: 'g-1', name: 'Old', category: 'CLOTHING' } as GearItem;
+      const existing = {
+        id: 'g-1',
+        name: 'Old',
+        category: 'CLOTHING',
+      } as GearItem;
       gearItemRepo.findOne.mockResolvedValue(existing);
       gearItemRepo.save.mockResolvedValue({ ...existing, name: 'New' });
 
@@ -739,17 +818,30 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
     });
 
     it('should only update category when only category is provided', async () => {
-      const existing = { id: 'g-1', name: 'Tshirt', category: 'CLOTHING' } as GearItem;
+      const existing = {
+        id: 'g-1',
+        name: 'Tshirt',
+        category: 'CLOTHING',
+      } as GearItem;
       gearItemRepo.findOne.mockResolvedValue(existing);
-      gearItemRepo.save.mockResolvedValue({ ...existing, category: 'OPTIONAL' });
+      gearItemRepo.save.mockResolvedValue({
+        ...existing,
+        category: 'OPTIONAL',
+      });
 
-      const result = await service.updateGearItem('g-1', { category: 'OPTIONAL' as any });
+      const result = await service.updateGearItem('g-1', {
+        category: 'OPTIONAL' as any,
+      });
       expect(result.category).toBe('OPTIONAL');
       expect(result.name).toBe('Tshirt');
     });
 
     it('should accept empty DTO for updateGearItem (no-op)', async () => {
-      const existing = { id: 'g-1', name: 'Same', category: 'CLOTHING' } as GearItem;
+      const existing = {
+        id: 'g-1',
+        name: 'Same',
+        category: 'CLOTHING',
+      } as GearItem;
       gearItemRepo.findOne.mockResolvedValue(existing);
       gearItemRepo.save.mockResolvedValue(existing);
 
@@ -762,18 +854,31 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
       packingListRepo.findOne.mockResolvedValue(mockPackingItem);
       packingListRepo.save.mockResolvedValue(mockPackingItem);
 
-      const result = await service.updatePackingItem('booking-1', 'pli-1', 'user-1', {});
+      const result = await service.updatePackingItem(
+        'booking-1',
+        'pli-1',
+        'user-1',
+        {},
+      );
       expect(result).toBeDefined();
     });
 
     it('should toggle hasItem independently without affecting needsRental', async () => {
       bookingRepo.findOne.mockResolvedValue(mockPendingBooking);
       packingListRepo.findOne.mockResolvedValue(mockPackingItem);
-      packingListRepo.save.mockResolvedValue({ ...mockPackingItem, hasItem: true } as any);
-
-      const result = await service.updatePackingItem('booking-1', 'pli-1', 'user-1', {
+      packingListRepo.save.mockResolvedValue({
+        ...mockPackingItem,
         hasItem: true,
-      });
+      } as any);
+
+      const result = await service.updatePackingItem(
+        'booking-1',
+        'pli-1',
+        'user-1',
+        {
+          hasItem: true,
+        },
+      );
       expect(result.hasItem).toBe(true);
       expect(result.needsRental).toBe(false);
     });
@@ -825,13 +930,20 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
       trekGearRepo.save.mockResolvedValue([{ id: 'tg-seq-1' } as any]);
 
       await service.setTrekGear('trek-1', 'org-1', {
-        items: [{ gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED }],
+        items: [
+          { gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED },
+        ],
       });
 
       trekGearRepo.save.mockResolvedValue([{ id: 'tg-seq-2' } as any]);
 
       await service.setTrekGear('trek-1', 'org-1', {
-        items: [{ gearItemId: 'gear-1', requirementType: RequirementType.RECOMMENDED }],
+        items: [
+          {
+            gearItemId: 'gear-1',
+            requirementType: RequirementType.RECOMMENDED,
+          },
+        ],
       });
 
       expect(trekGearRepo.delete).toHaveBeenCalledTimes(2);
@@ -841,12 +953,26 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
     it('should handle concurrent createGearItem calls with different names', async () => {
       gearItemRepo.create.mockReturnValue({} as any);
       gearItemRepo.save
-        .mockResolvedValueOnce({ id: 'g-c1', name: 'Concurrent1', category: 'CAMPING' } as any)
-        .mockResolvedValueOnce({ id: 'g-c2', name: 'Concurrent2', category: 'CLOTHING' } as any);
+        .mockResolvedValueOnce({
+          id: 'g-c1',
+          name: 'Concurrent1',
+          category: 'CAMPING',
+        } as any)
+        .mockResolvedValueOnce({
+          id: 'g-c2',
+          name: 'Concurrent2',
+          category: 'CLOTHING',
+        } as any);
 
       const [r1, r2] = await Promise.all([
-        service.createGearItem({ name: 'Concurrent1', category: 'CAMPING' as any }),
-        service.createGearItem({ name: 'Concurrent2', category: 'CLOTHING' as any }),
+        service.createGearItem({
+          name: 'Concurrent1',
+          category: 'CAMPING' as any,
+        }),
+        service.createGearItem({
+          name: 'Concurrent2',
+          category: 'CLOTHING' as any,
+        }),
       ]);
 
       expect(r1.id).toBe('g-c1');
@@ -863,7 +989,9 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
 
       const [setResult, getResult] = await Promise.all([
         service.setTrekGear('trek-1', 'org-1', {
-          items: [{ gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED }],
+          items: [
+            { gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED },
+          ],
         }),
         service.getTrekGear('trek-1'),
       ]);
@@ -879,7 +1007,11 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
     it('should return gearItem relation in getTrekGear results', async () => {
       const item = {
         ...mockTrekGearItem,
-        gearItem: { id: 'gear-1', name: 'Trekking Shoes', category: 'FOOTWEAR' },
+        gearItem: {
+          id: 'gear-1',
+          name: 'Trekking Shoes',
+          category: 'FOOTWEAR',
+        },
       };
       trekGearRepo.find.mockResolvedValue([item]);
 
@@ -902,9 +1034,14 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
       packingListRepo.findOne.mockResolvedValue(mockPackingItem);
       packingListRepo.save.mockResolvedValue(mockPackingItem);
 
-      const result = await service.updatePackingItem('booking-1', 'pli-1', 'user-1', {
-        checked: true,
-      });
+      const result = await service.updatePackingItem(
+        'booking-1',
+        'pli-1',
+        'user-1',
+        {
+          checked: true,
+        },
+      );
       expect(result.trekGearItem).toBe(mockPackingItem.trekGearItem);
     });
   });
@@ -914,13 +1051,31 @@ describe('GearService — QA Edge Cases (12y exp)', () => {
   describe('LIFECYCLE: gear item full lifecycle', () => {
     it('should go through: create → update → getAll → (no delete method, but verify update)', async () => {
       gearItemRepo.create.mockReturnValue({} as any);
-      gearItemRepo.save.mockResolvedValue({ id: 'g-lc', name: 'New Item', category: 'NAVIGATION' } as any);
-      const created = await service.createGearItem({ name: 'New Item', category: 'NAVIGATION' as any });
+      gearItemRepo.save.mockResolvedValue({
+        id: 'g-lc',
+        name: 'New Item',
+        category: 'NAVIGATION',
+      } as any);
+      const created = await service.createGearItem({
+        name: 'New Item',
+        category: 'NAVIGATION' as any,
+      });
       expect(created.name).toBe('New Item');
 
-      gearItemRepo.findOne.mockResolvedValue({ id: 'g-lc', name: 'New Item', category: 'NAVIGATION' } as any);
-      gearItemRepo.save.mockResolvedValue({ id: 'g-lc', name: 'Updated Item', category: 'OPTIONAL' } as any);
-      const updated = await service.updateGearItem('g-lc', { name: 'Updated Item', category: 'OPTIONAL' as any });
+      gearItemRepo.findOne.mockResolvedValue({
+        id: 'g-lc',
+        name: 'New Item',
+        category: 'NAVIGATION',
+      } as any);
+      gearItemRepo.save.mockResolvedValue({
+        id: 'g-lc',
+        name: 'Updated Item',
+        category: 'OPTIONAL',
+      } as any);
+      const updated = await service.updateGearItem('g-lc', {
+        name: 'Updated Item',
+        category: 'OPTIONAL' as any,
+      });
       expect(updated.name).toBe('Updated Item');
 
       gearItemRepo.find.mockResolvedValue([updated]);

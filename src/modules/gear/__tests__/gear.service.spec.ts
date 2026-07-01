@@ -83,7 +83,10 @@ describe('GearService', () => {
         GearService,
         { provide: getRepositoryToken(GearItem), useValue: gearItemRepo },
         { provide: getRepositoryToken(TrekGearItem), useValue: trekGearRepo },
-        { provide: getRepositoryToken(UserPackingListItem), useValue: packingListRepo },
+        {
+          provide: getRepositoryToken(UserPackingListItem),
+          useValue: packingListRepo,
+        },
         { provide: getRepositoryToken(Trek), useValue: trekRepo },
         { provide: getRepositoryToken(Booking), useValue: bookingRepo },
       ],
@@ -121,7 +124,9 @@ describe('GearService', () => {
       const updated = { ...mockGearItem, name: 'Updated Shoes' };
       gearItemRepo.save.mockResolvedValue(updated);
 
-      const result = await service.updateGearItem('gear-1', { name: 'Updated Shoes' });
+      const result = await service.updateGearItem('gear-1', {
+        name: 'Updated Shoes',
+      });
       expect(result.name).toBe('Updated Shoes');
     });
 
@@ -135,7 +140,9 @@ describe('GearService', () => {
 
   describe('getTrekGear', () => {
     it('should return trek gear items with gearItem relation', async () => {
-      const trekGearItems = [{ id: 'tg-1', trekId: 'trek-1', gearItem: mockGearItem }] as any;
+      const trekGearItems = [
+        { id: 'tg-1', trekId: 'trek-1', gearItem: mockGearItem },
+      ] as any;
       trekGearRepo.find.mockResolvedValue(trekGearItems);
 
       const result = await service.getTrekGear('trek-1');
@@ -152,13 +159,20 @@ describe('GearService', () => {
     const dto = {
       items: [
         { gearItemId: 'gear-1', requirementType: RequirementType.REQUIRED },
-        { gearItemId: 'gear-2', requirementType: RequirementType.RENTAL, rentalPriceInr: 500 },
+        {
+          gearItemId: 'gear-2',
+          requirementType: RequirementType.RENTAL,
+          rentalPriceInr: 500,
+        },
       ],
     };
 
     it('should set gear for a trek owned by the user', async () => {
       trekRepo.findOne.mockResolvedValue(mockTrek);
-      gearItemRepo.find.mockResolvedValue([mockGearItem, { id: 'gear-2' } as any]);
+      gearItemRepo.find.mockResolvedValue([
+        mockGearItem,
+        { id: 'gear-2' } as any,
+      ]);
       trekGearRepo.delete.mockResolvedValue({ affected: 0, raw: [] });
       trekGearRepo.create.mockReturnValue({} as any);
       trekGearRepo.save.mockResolvedValue([]);
@@ -169,9 +183,9 @@ describe('GearService', () => {
 
     it('should throw NotFoundException when trek not found', async () => {
       trekRepo.findOne.mockResolvedValue(null);
-      await expect(
-        service.setTrekGear('bad-id', 'org-1', dto),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.setTrekGear('bad-id', 'org-1', dto)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw ForbiddenException when user is not organizer', async () => {
@@ -204,7 +218,9 @@ describe('GearService', () => {
       packingListRepo.find.mockResolvedValue([]);
       trekGearRepo.find.mockResolvedValue([{ id: 'tg-1' } as any]);
       packingListRepo.create.mockReturnValue({} as any);
-      packingListRepo.save.mockResolvedValue([{ id: 'pli-1', trekGearItemId: 'tg-1' } as any]);
+      packingListRepo.save.mockResolvedValue([
+        { id: 'pli-1', trekGearItemId: 'tg-1' } as any,
+      ]);
 
       const result = await service.getPackingList('booking-1', 'user-1');
       expect(result).toHaveLength(1);
@@ -212,9 +228,9 @@ describe('GearService', () => {
 
     it('should throw NotFoundException when booking not found', async () => {
       bookingRepo.findOne.mockResolvedValue(null);
-      await expect(
-        service.getPackingList('bad-id', 'user-1'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.getPackingList('bad-id', 'user-1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw ForbiddenException for non-owner', async () => {
@@ -243,9 +259,17 @@ describe('GearService', () => {
         hasItem: false,
         trekGearItem: { requirementType: RequirementType.REQUIRED },
       } as any);
-      packingListRepo.save.mockResolvedValue({ id: 'pli-1', hasItem: true } as any);
+      packingListRepo.save.mockResolvedValue({
+        id: 'pli-1',
+        hasItem: true,
+      } as any);
 
-      const result = await service.updatePackingItem('booking-1', 'pli-1', 'user-1', { hasItem: true });
+      const result = await service.updatePackingItem(
+        'booking-1',
+        'pli-1',
+        'user-1',
+        { hasItem: true },
+      );
       expect(result).toBeDefined();
     });
 
@@ -259,7 +283,9 @@ describe('GearService', () => {
       } as any);
 
       await expect(
-        service.updatePackingItem('booking-1', 'pli-1', 'user-1', { needsRental: true }),
+        service.updatePackingItem('booking-1', 'pli-1', 'user-1', {
+          needsRental: true,
+        }),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -271,9 +297,17 @@ describe('GearService', () => {
         needsRental: false,
         trekGearItem: { requirementType: RequirementType.RENTAL },
       } as any);
-      packingListRepo.save.mockResolvedValue({ id: 'pli-1', needsRental: true } as any);
+      packingListRepo.save.mockResolvedValue({
+        id: 'pli-1',
+        needsRental: true,
+      } as any);
 
-      const result = await service.updatePackingItem('booking-1', 'pli-1', 'user-1', { needsRental: true });
+      const result = await service.updatePackingItem(
+        'booking-1',
+        'pli-1',
+        'user-1',
+        { needsRental: true },
+      );
       expect(result).toBeDefined();
     });
   });
@@ -300,7 +334,10 @@ describe('GearService', () => {
     });
 
     it('should throw BadRequestException when booking is not PENDING', async () => {
-      bookingRepo.findOne.mockResolvedValue({ ...mockBooking, status: BookingStatus.CONFIRMED });
+      bookingRepo.findOne.mockResolvedValue({
+        ...mockBooking,
+        status: BookingStatus.CONFIRMED,
+      });
       await expect(
         service.confirmRentals('booking-1', 'user-1'),
       ).rejects.toThrow(BadRequestException);

@@ -119,15 +119,9 @@ export class CreateGearTables0018 implements MigrationInterface {
     await queryRunner.query(
       `DROP TABLE IF EXISTS user_packing_list_items CASCADE;`,
     );
-    await queryRunner.query(
-      `DROP INDEX IF EXISTS idx_trek_gear_items_trek;`,
-    );
-    await queryRunner.query(
-      `DROP TABLE IF EXISTS trek_gear_items CASCADE;`,
-    );
-    await queryRunner.query(
-      `DROP INDEX IF EXISTS idx_gear_items_category;`,
-    );
+    await queryRunner.query(`DROP INDEX IF EXISTS idx_trek_gear_items_trek;`);
+    await queryRunner.query(`DROP TABLE IF EXISTS trek_gear_items CASCADE;`);
+    await queryRunner.query(`DROP INDEX IF EXISTS idx_gear_items_category;`);
     await queryRunner.query(`DROP TABLE IF EXISTS gear_items CASCADE;`);
   }
 }

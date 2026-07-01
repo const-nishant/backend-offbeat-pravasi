@@ -30,26 +30,73 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
   let snapshotRepo: jest.Mocked<Repository<BookingPolicySnapshot>>;
 
   const mockTiers = [
-    { id: 't1', policyId: 'p1', fromHoursBeforeStart: 168, toHoursBeforeStart: null, refundPercentage: 100, sortOrder: 1 } as any,
-    { id: 't2', policyId: 'p1', fromHoursBeforeStart: 72, toHoursBeforeStart: 167, refundPercentage: 50, sortOrder: 2 } as any,
-    { id: 't3', policyId: 'p1', fromHoursBeforeStart: 0, toHoursBeforeStart: 71, refundPercentage: 0, sortOrder: 3 } as any,
+    {
+      id: 't1',
+      policyId: 'p1',
+      fromHoursBeforeStart: 168,
+      toHoursBeforeStart: null,
+      refundPercentage: 100,
+      sortOrder: 1,
+    } as any,
+    {
+      id: 't2',
+      policyId: 'p1',
+      fromHoursBeforeStart: 72,
+      toHoursBeforeStart: 167,
+      refundPercentage: 50,
+      sortOrder: 2,
+    } as any,
+    {
+      id: 't3',
+      policyId: 'p1',
+      fromHoursBeforeStart: 0,
+      toHoursBeforeStart: 71,
+      refundPercentage: 0,
+      sortOrder: 3,
+    } as any,
   ];
 
-  const mockPolicy = { id: 'p1', name: 'Standard', isDefault: true, tiers: mockTiers } as any;
+  const mockPolicy = {
+    id: 'p1',
+    name: 'Standard',
+    isDefault: true,
+    tiers: mockTiers,
+  } as any;
 
   beforeEach(async () => {
-    policyRepo = { find: jest.fn(), findOne: jest.fn(), create: jest.fn(), save: jest.fn(), remove: jest.fn(), update: jest.fn() } as any;
+    policyRepo = {
+      find: jest.fn(),
+      findOne: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+      remove: jest.fn(),
+      update: jest.fn(),
+    } as any;
     tierRepo = { create: jest.fn(), save: jest.fn(), delete: jest.fn() } as any;
-    trekPolicyRepo = { findOne: jest.fn(), save: jest.fn(), create: jest.fn() } as any;
-    snapshotRepo = { findOne: jest.fn(), create: jest.fn(), save: jest.fn() } as any;
+    trekPolicyRepo = {
+      findOne: jest.fn(),
+      save: jest.fn(),
+      create: jest.fn(),
+    } as any;
+    snapshotRepo = {
+      findOne: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+    } as any;
 
     const mod: TestingModule = await Test.createTestingModule({
       providers: [
         PoliciesService,
-        { provide: getRepositoryToken(CancellationPolicy), useValue: policyRepo },
+        {
+          provide: getRepositoryToken(CancellationPolicy),
+          useValue: policyRepo,
+        },
         { provide: getRepositoryToken(CancellationTier), useValue: tierRepo },
         { provide: getRepositoryToken(TrekPolicy), useValue: trekPolicyRepo },
-        { provide: getRepositoryToken(BookingPolicySnapshot), useValue: snapshotRepo },
+        {
+          provide: getRepositoryToken(BookingPolicySnapshot),
+          useValue: snapshotRepo,
+        },
       ],
     }).compile();
 
@@ -130,7 +177,12 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
       const snapshot = {
         policyName: 'Flexible',
         tiers: [
-          { fromHours: 48, toHours: undefined, refundPercentage: 100, sortOrder: 1 },
+          {
+            fromHours: 48,
+            toHours: undefined,
+            refundPercentage: 100,
+            sortOrder: 1,
+          },
           { fromHours: 0, toHours: 47, refundPercentage: 25, sortOrder: 2 },
         ],
       };
@@ -143,7 +195,14 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
     it('should handle single-tier policy (all-or-nothing)', async () => {
       const snapshot = {
         policyName: 'NoRefund',
-        tiers: [{ fromHours: 0, toHours: undefined, refundPercentage: 0, sortOrder: 1 }],
+        tiers: [
+          {
+            fromHours: 0,
+            toHours: undefined,
+            refundPercentage: 0,
+            sortOrder: 1,
+          },
+        ],
       };
       snapshotRepo.findOne.mockResolvedValue(snapshot as any);
       const far = new Date(Date.now() + 86400000 * 100);
@@ -155,7 +214,14 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
     it('should handle 100% refund single-tier policy', async () => {
       const snapshot = {
         policyName: 'FullRefund',
-        tiers: [{ fromHours: 0, toHours: undefined, refundPercentage: 100, sortOrder: 1 }],
+        tiers: [
+          {
+            fromHours: 0,
+            toHours: undefined,
+            refundPercentage: 100,
+            sortOrder: 1,
+          },
+        ],
       };
       snapshotRepo.findOne.mockResolvedValue(snapshot as any);
       const date = new Date(Date.now() + 3600000);
@@ -204,7 +270,11 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
         tiers: [{ fromHours: 0, refundPercentage: 33, sortOrder: 1 }],
       };
       snapshotRepo.findOne.mockResolvedValue(snapshot as any);
-      const r = await service.calculateRefund('b-round', 1000, new Date(Date.now() + 86400000));
+      const r = await service.calculateRefund(
+        'b-round',
+        1000,
+        new Date(Date.now() + 86400000),
+      );
       expect(r.refundAmount).toBe(330);
     });
 
@@ -214,7 +284,11 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
         tiers: [{ fromHours: 0, refundPercentage: 33, sortOrder: 1 }],
       };
       snapshotRepo.findOne.mockResolvedValue(snapshot as any);
-      const r = await service.calculateRefund('b-round2', 9993, new Date(Date.now() + 86400000));
+      const r = await service.calculateRefund(
+        'b-round2',
+        9993,
+        new Date(Date.now() + 86400000),
+      );
       expect(r.refundAmount).toBe(3298);
     });
 
@@ -224,7 +298,11 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
         tiers: [{ fromHours: 0, refundPercentage: 50, sortOrder: 1 }],
       };
       snapshotRepo.findOne.mockResolvedValue(snapshot as any);
-      const r = await service.calculateRefund('b-free', 0, new Date(Date.now() + 86400000));
+      const r = await service.calculateRefund(
+        'b-free',
+        0,
+        new Date(Date.now() + 86400000),
+      );
       expect(r.refundAmount).toBe(0);
     });
 
@@ -234,7 +312,11 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
         tiers: [{ fromHours: 0, refundPercentage: 50, sortOrder: 1 }],
       };
       snapshotRepo.findOne.mockResolvedValue(snapshot as any);
-      const r = await service.calculateRefund('b-neg', -1000, new Date(Date.now() + 86400000));
+      const r = await service.calculateRefund(
+        'b-neg',
+        -1000,
+        new Date(Date.now() + 86400000),
+      );
       expect(r.refundAmount).toBe(-500);
     });
   });
@@ -248,7 +330,11 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
         tiers: [{ fromHours: 0, refundPercentage: 100, sortOrder: 1 }],
       };
       snapshotRepo.findOne.mockResolvedValue(snapshot as any);
-      const r = await service.calculateRefund('b-immutable', 2000, new Date(Date.now() + 86400000));
+      const r = await service.calculateRefund(
+        'b-immutable',
+        2000,
+        new Date(Date.now() + 86400000),
+      );
       expect(r.refundPercentage).toBe(100);
       expect(r.policyName).toBe('OldPolicy');
     });
@@ -259,7 +345,11 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
         tiers: [{ fromHours: 0, refundPercentage: 25, sortOrder: 1 }],
       };
       snapshotRepo.findOne.mockResolvedValue(snapshot as any);
-      const r = await service.calculateRefund('b-deleted-pol', 4000, new Date(Date.now() + 86400000));
+      const r = await service.calculateRefund(
+        'b-deleted-pol',
+        4000,
+        new Date(Date.now() + 86400000),
+      );
       expect(r.refundPercentage).toBe(25);
       expect(r.refundAmount).toBe(1000);
     });
@@ -270,7 +360,9 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
   describe('NEGATIVE: invalid inputs and edge cases', () => {
     it('should throw NotFoundException for non-existent policyId in findOne', async () => {
       policyRepo.findOne.mockResolvedValue(null);
-      await expect(service.findOne('non-existent')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('non-existent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException when no default policy exists', async () => {
@@ -284,14 +376,20 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
     });
 
     it('should propagate error when assignToTrek is called with non-existent policyId', async () => {
-      policyRepo.findOne.mockRejectedValue(new NotFoundException('Policy not found'));
-      await expect(service.assignToTrek('trek-1', 'bad-id')).rejects.toThrow(NotFoundException);
+      policyRepo.findOne.mockRejectedValue(
+        new NotFoundException('Policy not found'),
+      );
+      await expect(service.assignToTrek('trek-1', 'bad-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should fail createSnapshot when trek has no default policy and no assignment', async () => {
       trekPolicyRepo.findOne.mockResolvedValue(null);
       policyRepo.findOne.mockResolvedValue(null);
-      await expect(service.createSnapshot('b-err', 'non-existent-trek')).rejects.toThrow(NotFoundException);
+      await expect(
+        service.createSnapshot('b-err', 'non-existent-trek'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should fail calculateRefund when no snapshot exists for booking', async () => {
@@ -306,17 +404,31 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
 
   describe('DATA INTEGRITY: multiple defaults, delete behavior', () => {
     it('should clear isDefault on existing policy when new default is created', async () => {
-      policyRepo.update.mockResolvedValue({ affected: 1, raw: {}, generatedMaps: [] } as any);
+      policyRepo.update.mockResolvedValue({
+        affected: 1,
+        raw: {},
+        generatedMaps: [],
+      } as any);
       policyRepo.create.mockReturnValue({ id: 'p-new' } as any);
-      policyRepo.save.mockResolvedValue({ id: 'p-new', name: 'NewDefault', isDefault: true } as any);
+      policyRepo.save.mockResolvedValue({
+        id: 'p-new',
+        name: 'NewDefault',
+        isDefault: true,
+      } as any);
       tierRepo.save.mockResolvedValue([]);
-      policyRepo.findOne
-        .mockResolvedValueOnce({ id: 'p-new', name: 'NewDefault', isDefault: true, tiers: [] } as any);
+      policyRepo.findOne.mockResolvedValueOnce({
+        id: 'p-new',
+        name: 'NewDefault',
+        isDefault: true,
+        tiers: [],
+      } as any);
 
       await service.create({
         name: 'NewDefault',
         isDefault: true,
-        tiers: [{ fromHoursBeforeStart: 0, refundPercentage: 100, sortOrder: 1 }],
+        tiers: [
+          { fromHoursBeforeStart: 0, refundPercentage: 100, sortOrder: 1 },
+        ],
       });
 
       expect(policyRepo.update).toHaveBeenCalledWith(
@@ -326,7 +438,11 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
     });
 
     it('should delete tiers when policy is removed', async () => {
-      const policyToRemove = { id: 'p-del', name: 'GonnaDelete', tiers: [] } as any;
+      const policyToRemove = {
+        id: 'p-del',
+        name: 'GonnaDelete',
+        tiers: [],
+      } as any;
       policyRepo.findOne.mockResolvedValue(policyToRemove);
       policyRepo.remove.mockResolvedValue(policyToRemove);
 
@@ -339,7 +455,10 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
 
   describe('CONCURRENCY: simulated race conditions', () => {
     it('should handle sequential createSnapshot calls for different bookings same trek', async () => {
-      trekPolicyRepo.findOne.mockResolvedValue({ policyId: 'p1', policy: mockPolicy } as any);
+      trekPolicyRepo.findOne.mockResolvedValue({
+        policyId: 'p1',
+        policy: mockPolicy,
+      } as any);
       policyRepo.findOne.mockResolvedValue(mockPolicy);
       snapshotRepo.create.mockReturnValue({} as any);
       snapshotRepo.save.mockResolvedValue({} as any);
@@ -363,21 +482,38 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
     });
 
     it('should handle concurrent create with isDefault flag', async () => {
-      policyRepo.update.mockResolvedValue({ affected: 1, raw: {}, generatedMaps: [] } as any);
+      policyRepo.update.mockResolvedValue({
+        affected: 1,
+        raw: {},
+        generatedMaps: [],
+      } as any);
       policyRepo.create.mockReturnValue({} as any);
       policyRepo.save.mockResolvedValue({} as any);
       tierRepo.save.mockResolvedValue([]);
-      policyRepo.findOne.mockResolvedValue({ id: 'c1', name: 'C1', tiers: [] } as any);
+      policyRepo.findOne.mockResolvedValue({
+        id: 'c1',
+        name: 'C1',
+        tiers: [],
+      } as any);
 
       const [r1] = await Promise.all([
-        service.create({ name: 'C1', isDefault: true, tiers: [{ fromHoursBeforeStart: 0, refundPercentage: 50, sortOrder: 1 }] }),
+        service.create({
+          name: 'C1',
+          isDefault: true,
+          tiers: [
+            { fromHoursBeforeStart: 0, refundPercentage: 50, sortOrder: 1 },
+          ],
+        }),
       ]);
 
       expect(r1).toBeDefined();
     });
 
     it('should not throw when createSnapshot is called again for same booking (upsert not expected)', async () => {
-      trekPolicyRepo.findOne.mockResolvedValue({ policyId: 'p1', policy: mockPolicy } as any);
+      trekPolicyRepo.findOne.mockResolvedValue({
+        policyId: 'p1',
+        policy: mockPolicy,
+      } as any);
       policyRepo.findOne.mockResolvedValue(mockPolicy);
       snapshotRepo.create.mockReturnValue({} as any);
       snapshotRepo.save.mockResolvedValueOnce({} as any);
@@ -395,12 +531,25 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
   describe('STATE TRANSITIONS: policy lifecycle', () => {
     it('should go through full lifecycle: create → find → update → delete', async () => {
       policyRepo.create.mockReturnValue({ id: 'lifecycle-p1' } as any);
-      policyRepo.save.mockResolvedValue({ id: 'lifecycle-p1', name: 'Lifecycle' } as any);
+      policyRepo.save.mockResolvedValue({
+        id: 'lifecycle-p1',
+        name: 'Lifecycle',
+      } as any);
       tierRepo.save.mockResolvedValue([]);
-      const lifecyclePolicy = { id: 'lifecycle-p1', name: 'Lifecycle', tiers: [], isDefault: false } as any;
+      const lifecyclePolicy = {
+        id: 'lifecycle-p1',
+        name: 'Lifecycle',
+        tiers: [],
+        isDefault: false,
+      } as any;
 
       policyRepo.findOne.mockResolvedValue(lifecyclePolicy);
-      const created = await service.create({ name: 'Lifecycle', tiers: [{ fromHoursBeforeStart: 0, refundPercentage: 100, sortOrder: 1 }] });
+      const created = await service.create({
+        name: 'Lifecycle',
+        tiers: [
+          { fromHoursBeforeStart: 0, refundPercentage: 100, sortOrder: 1 },
+        ],
+      });
       expect(created.name).toBe('Lifecycle');
 
       policyRepo.findOne.mockResolvedValue(lifecyclePolicy);
@@ -408,7 +557,11 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
       expect(found).toBeDefined();
 
       tierRepo.delete.mockResolvedValue({ affected: 0, raw: {} } as any);
-      const updatedPolicy = { id: 'lifecycle-p1', name: 'Updated', tiers: [] } as any;
+      const updatedPolicy = {
+        id: 'lifecycle-p1',
+        name: 'Updated',
+        tiers: [],
+      } as any;
       policyRepo.findOne.mockResolvedValue(updatedPolicy);
       const updated = await service.update('lifecycle-p1', { name: 'Updated' });
       expect(updated.name).toBe('Updated');
@@ -426,7 +579,13 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
 
   describe('UPDATE: partial updates and null fields', () => {
     it('should only update fields that are provided', async () => {
-      const existing = { id: 'p-upd', name: 'Old', description: 'Old desc', isDefault: false, tiers: [] } as any;
+      const existing = {
+        id: 'p-upd',
+        name: 'Old',
+        description: 'Old desc',
+        isDefault: false,
+        tiers: [],
+      } as any;
       policyRepo.findOne.mockResolvedValue(existing);
       policyRepo.save.mockResolvedValue(existing);
 
@@ -438,7 +597,12 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
     });
 
     it('should not clear default flag when updating same policy that is already default', async () => {
-      const existing = { id: 'p-def', name: 'Default', isDefault: true, tiers: [] } as any;
+      const existing = {
+        id: 'p-def',
+        name: 'Default',
+        isDefault: true,
+        tiers: [],
+      } as any;
       policyRepo.findOne.mockResolvedValue(existing);
       policyRepo.save.mockResolvedValue(existing);
 
@@ -448,14 +612,26 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
     });
 
     it('should clear default when updating non-default to become default', async () => {
-      const existing = { id: 'p-new-def', name: 'BecomeDefault', isDefault: false, tiers: [] } as any;
+      const existing = {
+        id: 'p-new-def',
+        name: 'BecomeDefault',
+        isDefault: false,
+        tiers: [],
+      } as any;
       policyRepo.findOne.mockResolvedValue(existing);
-      policyRepo.update.mockResolvedValue({ affected: 1, raw: {}, generatedMaps: [] } as any);
+      policyRepo.update.mockResolvedValue({
+        affected: 1,
+        raw: {},
+        generatedMaps: [],
+      } as any);
       policyRepo.save.mockResolvedValue(existing);
 
       await service.update('p-new-def', { isDefault: true });
 
-      expect(policyRepo.update).toHaveBeenCalledWith({ isDefault: true }, { isDefault: false });
+      expect(policyRepo.update).toHaveBeenCalledWith(
+        { isDefault: true },
+        { isDefault: false },
+      );
       expect(existing.isDefault).toBe(true);
     });
 
@@ -465,9 +641,16 @@ describe('PoliciesService — QA Edge Cases (12y exp)', () => {
       policyRepo.save.mockResolvedValue(existing);
       tierRepo.delete.mockResolvedValue({ affected: 0, raw: {} } as any);
       tierRepo.save.mockResolvedValue([]);
-      policyRepo.findOne.mockResolvedValueOnce({ ...existing, tiers: [{ id: 'new-tier' }] } as any);
+      policyRepo.findOne.mockResolvedValueOnce({
+        ...existing,
+        tiers: [{ id: 'new-tier' }],
+      } as any);
 
-      await service.update('p-replace', { tiers: [{ fromHoursBeforeStart: 0, refundPercentage: 75, sortOrder: 1 }] });
+      await service.update('p-replace', {
+        tiers: [
+          { fromHoursBeforeStart: 0, refundPercentage: 75, sortOrder: 1 },
+        ],
+      });
 
       expect(tierRepo.delete).toHaveBeenCalledWith({ policyId: 'p-replace' });
       expect(tierRepo.save).toHaveBeenCalled();

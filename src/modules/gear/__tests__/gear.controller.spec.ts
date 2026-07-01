@@ -1,9 +1,9 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { GearController } from '../gear.controller';
 import { GearService } from '../gear.service';
-import { CreateGearItemDto } from '../dtos/create-gear-item.dto';
-import { SetTrekGearDto } from '../dtos/set-trek-gear.dto';
-import { UpdatePackingItemDto } from '../dtos/update-packing-item.dto';
+import type { CreateGearItemDto } from '../dtos/create-gear-item.dto';
+import type { SetTrekGearDto } from '../dtos/set-trek-gear.dto';
+import type { UpdatePackingItemDto } from '../dtos/update-packing-item.dto';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import type { AuthenticatedUser } from '../../../common/decorators/current-user.decorator';
 
@@ -44,7 +44,10 @@ describe('GearController', () => {
   });
 
   it('createGearItem should call service with dto', async () => {
-    const dto: CreateGearItemDto = { name: 'Test', category: 'CLOTHING' as any };
+    const dto: CreateGearItemDto = {
+      name: 'Test',
+      category: 'CLOTHING' as any,
+    };
     service.createGearItem.mockResolvedValue({ id: 'g-1', ...dto } as any);
     const result = await controller.createGearItem(dto);
     expect(service.createGearItem).toHaveBeenCalledWith(dto);
@@ -53,7 +56,10 @@ describe('GearController', () => {
 
   it('updateGearItem should call service with id and dto', async () => {
     const dto: Partial<CreateGearItemDto> = { name: 'Updated' };
-    service.updateGearItem.mockResolvedValue({ id: 'g-1', name: 'Updated' } as any);
+    service.updateGearItem.mockResolvedValue({
+      id: 'g-1',
+      name: 'Updated',
+    } as any);
     await controller.updateGearItem('g-1', dto);
     expect(service.updateGearItem).toHaveBeenCalledWith('g-1', dto);
   });
@@ -65,7 +71,9 @@ describe('GearController', () => {
   });
 
   it('setTrekGear should call service with trekId, userId, dto', async () => {
-    const dto: SetTrekGearDto = { items: [{ gearItemId: 'g-1', requirementType: 'REQUIRED' as any }] };
+    const dto: SetTrekGearDto = {
+      items: [{ gearItemId: 'g-1', requirementType: 'REQUIRED' as any }],
+    };
     service.setTrekGear.mockResolvedValue([]);
     await controller.setTrekGear('trek-1', dto, mockUser);
     expect(service.setTrekGear).toHaveBeenCalledWith('trek-1', 'user-1', dto);
@@ -81,7 +89,12 @@ describe('GearController', () => {
     const dto: UpdatePackingItemDto = { checked: true };
     service.updatePackingItem.mockResolvedValue({} as any);
     await controller.updatePackingItem('booking-1', 'pli-1', dto, mockUser);
-    expect(service.updatePackingItem).toHaveBeenCalledWith('booking-1', 'pli-1', 'user-1', dto);
+    expect(service.updatePackingItem).toHaveBeenCalledWith(
+      'booking-1',
+      'pli-1',
+      'user-1',
+      dto,
+    );
   });
 
   it('confirmRentals should call service with bookingId and userId', async () => {
