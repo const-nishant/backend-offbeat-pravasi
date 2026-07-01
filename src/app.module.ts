@@ -19,7 +19,7 @@ import { UsersModule } from './modules/users/users.module';
 import { TreksModule } from './modules/treks/treks.module';
 import { PostsModule } from './modules/posts/posts.module';
 import { StoriesModule } from './modules/stories/stories.module';
-import { BookmarksModule } from './modules/bookmarks/bookmarks.module';
+
 import { FriendshipsModule } from './modules/friendships/friendships.module';
 import { OrganizerModule } from './modules/organizer/organizer.module';
 import { AdminModule } from './modules/admin/admin.module';
@@ -39,6 +39,8 @@ import { SafetyModule } from './modules/safety/safety.module';
 import { AssessmentsModule } from './modules/assessments/assessments.module';
 import { GroupsModule } from './modules/groups/groups.module';
 import { ReferralsModule } from './modules/referrals/referrals.module';
+import { WishlistModule } from './modules/wishlist/wishlist.module';
+import { RecommendationsModule } from './modules/recommendations/recommendations.module';
 @Global()
 @Module({
   imports: [
@@ -61,7 +63,6 @@ import { ReferralsModule } from './modules/referrals/referrals.module';
     TreksModule,
     PostsModule,
     StoriesModule,
-    BookmarksModule,
     FriendshipsModule,
     OrganizerModule,
     AdminModule,
@@ -80,6 +81,8 @@ import { ReferralsModule } from './modules/referrals/referrals.module';
     AssessmentsModule,
     GroupsModule,
     ReferralsModule,
+    WishlistModule,
+    RecommendationsModule,
   ],
   providers: [
     {

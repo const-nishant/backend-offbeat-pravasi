@@ -5,7 +5,6 @@ import { TrekImage } from '../modules/treks/entities/trek-image.entity';
 import { TrekTag } from '../modules/treks/entities/trek-tag.entity';
 import { TrekReview } from '../modules/treks/entities/trek-review.entity';
 import { TrekInteraction } from '../modules/treks/entities/trek-interaction.entity';
-import { Bookmark } from '../modules/bookmarks/entities/bookmark.entity';
 import { FriendRequest } from '../modules/friendships/entities/friend-request.entity';
 import { Booking } from '../modules/bookings/entities/booking.entity';
 import { Payment } from '../modules/bookings/entities/payment.entity';
@@ -39,6 +38,11 @@ import { GroupMember } from '../modules/groups/entities/group-member.entity';
 import { ReferralCode } from '../modules/referrals/entities/referral-code.entity';
 import { Referral } from '../modules/referrals/entities/referral.entity';
 import { ReferralTierConfig } from '../modules/referrals/entities/referral-tier-config.entity';
+import { WishlistCollection } from '../modules/wishlist/entities/wishlist-collection.entity';
+import { WishlistItem } from '../modules/wishlist/entities/wishlist-item.entity';
+import { UserRecommendationPreference } from '../modules/recommendations/entities/user-recommendation-preference.entity';
+import { RecommendationResult } from '../modules/recommendations/entities/recommendation-result.entity';
+import { RecommendationEvent } from '../modules/recommendations/entities/recommendation-event.entity';
 
 export const ormConfig: DataSourceOptions = {
   type: 'postgres',
@@ -57,7 +61,6 @@ export const ormConfig: DataSourceOptions = {
     TrekTag,
     TrekReview,
     TrekInteraction,
-    Bookmark,
     FriendRequest,
     Booking,
     Payment,
@@ -91,6 +94,11 @@ export const ormConfig: DataSourceOptions = {
     ReferralCode,
     Referral,
     ReferralTierConfig,
+    WishlistCollection,
+    WishlistItem,
+    UserRecommendationPreference,
+    RecommendationResult,
+    RecommendationEvent,
   ],
 
   migrations: ['dist/database/migrations/*.js', 'src/database/migrations/*.ts'],

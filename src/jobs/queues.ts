@@ -58,22 +58,6 @@ export const referralRewardDeliveryQueue = new Queue(
   { connection },
 );
 
-await (async () => {
-  try {
-    await recommendationQueue.add(
-      'build-candidates',
-      {},
-      {
-        jobId: 'recommendation-build',
-        repeat: {
-          pattern: '0 * * * *',
-        },
-      },
-    );
-  } catch (err) {
-    console.warn(
-      'Failed to schedule recommendation build:',
-      err instanceof Error ? err.message : String(err),
-    );
-  }
-})();
+export const priceDropQueue = new Queue('price-drop-queue', { connection });
+
+

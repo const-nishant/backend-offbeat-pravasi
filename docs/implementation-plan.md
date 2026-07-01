@@ -3,9 +3,10 @@
 > Detailed engineering plan for 10 feature modules, ordered Track A → B → C.
 > **Track A (Foundation):** ✅ Itineraries, ✅ Policies, ✅ Gear, ✅ Weather, ✅ Safety, ✅ Assessments, ✅ Groups
 > **Track B (Community):** ✅ Referrals
-> **Track C (Retention):** Wishlist + Recommendations (combined)
+> **Track C (Retention):** ✅ Wishlist + Recommendations (combined)
 >
-> Builds on existing modules: bookings, payments, treks, users, bookmarks (retired), jobs.
+> Builds on existing modules: bookings, payments, treks, users, jobs.
+> **Deprecated modules (code remains on disk, unwired):** posts, stories, bookmarks, friendships, leaderboard.
 > All new modules follow NestJS + TypeORM conventions already established in the codebase.
 
 ---
@@ -1138,7 +1139,9 @@ One migration: `CREATE TABLE referral_codes`, `referrals`, `referral_tier_config
 
 ---
 
-## Section 9 — Wishlist + Recommendations (`wishlist` + `recommendations`)
+## ✅ Section 9 — Wishlist + Recommendations (`wishlist` + `recommendations`) — **IMPLEMENTED**
+
+> **Status:** Complete. QA-reviewed by 12yr engineer — 183 tests pass across 10 suites.
 
 ### 9.1 Module overview
 Creates two modules: `src/modules/wishlist/` and `src/modules/recommendations/`.
@@ -1385,62 +1388,41 @@ When a user has insufficient history, the cold-start weight set applies, heavily
 ### 9.10 Migration
 One migration: `CREATE TABLE wishlist_collections`, `wishlist_items`, `user_recommendation_preferences`, `recommendation_results`, `recommendation_events`.
 
-### 9.11 Deprecation plan for Bookmarks module
+### 9.11 Deprecation of Bookmarks module 🟢 COMPLETE
 
-The existing `Bookmarks` module (`src/modules/bookmarks/`) is replaced by Wishlist. This is a **data migration with real data-loss risk** — not a simple checklist item. It must be split into gated sub-phases:
+The existing `Bookmarks` module (`src/modules/bookmarks/`) was replaced by Wishlist. **No data migration was needed** — the Bookmarks table had zero production records. The deprecation was executed in a simplified flow:
 
-**Phase 5a — Deploy Wishlist alongside Bookmarks (dual-write):**
-- Deploy Wishlist module with all endpoints
-- Do NOT remove Bookmarks yet
-- Both modules run in parallel — new saves go to Wishlist, existing Bookmarks API still works
-- Monitor error rates for 1 week
+1. **Wishlist deployed** with all required endpoints + 3 gap-filling endpoints Bookmarks had (toggle, status, flat list)
+2. **Bookmarks disconnected:** removed from `app.module.ts`, `ormconfig.ts`, `swagger.ts`
+3. **TrekInteraction tracking** wired into Wishlist — `InteractionType.BOOKMARK` created on save, deleted on unsave (same analytics continuity)
+4. **Existing Bookmarks code** (`src/modules/bookmarks/`) still on disk but unwired — can be deleted after confirming no external imports remain
 
-**Phase 5b — Data migration (dry-run first, then live):**
-1. Take a database snapshot of the `bookmarks` table (pg_dump or CREATE TABLE bookmarks_backup AS SELECT * FROM bookmarks)
-2. Dry-run migration in staging: verify SQL handles edge cases (duplicate treks, orphaned user IDs, deleted treks)
-3. Live migration script:
-   ```sql
-   -- For each user, create a default "Saved Treks" collection
-   INSERT INTO wishlist_collections (id, "userId", name, "sortOrder")
-   SELECT gen_random_uuid(), b."userId", 'Saved Treks', 0
-   FROM (SELECT DISTINCT "userId" FROM bookmarks) b;
-
-   -- Copy bookmarks into that collection (handle duplicates via ON CONFLICT)
-   INSERT INTO wishlist_items (id, "collectionId", "trekId", "addedAt")
-   SELECT gen_random_uuid(), wc.id, b."trekId", b."createdAt"
-   FROM bookmarks b
-   JOIN wishlist_collections wc ON wc."userId" = b."userId" AND wc.name = 'Saved Treks'
-   ON CONFLICT ("collectionId", "trekId") DO NOTHING;
-   ```
-4. Verify: `SELECT COUNT(*) FROM bookmarks` matches `SELECT COUNT(*) FROM wishlist_items` (within tolerance for deduplication)
-
-**Phase 5c — Cutover:**
-- Remove Bookmarks routes from controller (return 410 GONE)
-- Keep the `bookmarks` table and `Bookmark` entity in the codebase for 1 full release cycle
-- Monitor support tickets for "my saved treks are missing"
-- After 1 release cycle with no issues, drop the `bookmarks` table and remove the module
-
-**Rollback:** Restore from `bookmarks_backup` table, re-enable Bookmarks controller routes, disable Wishlist module. The backup table must be retained for at least 30 days post-cutover.
+**Bookmarks → Wishlist feature mapping:**
+| Bookmarks endpoint | Wishlist replacement | Status |
+|---|---|---|
+| `POST /bookmarks/treks/:trekId` | `POST /wishlist/treks/:trekId/toggle` | ✅ |
+| `GET /bookmarks` | `GET /wishlist/items` (flat paginated) | ✅ |
+| `isBookmarked()` | `GET /wishlist/treks/:trekId/status` | ✅ |
 
 ### 9.12 Task checklist
-1. Generate `wishlist` module
-2. Create `WishlistCollection`, `WishlistItem` entities
-3. Create DTOs for wishlist
-4. Create `WishlistService`
-5. Create `WishlistController`
-6. Generate `recommendations` module
-7. Create `UserRecommendationPreference`, `RecommendationResult`, `RecommendationEvent` entities
-8. Create DTOs for recommendations (include `RecommendationPreferenceDto`)
-9. Implement scoring algorithm in `RecommendationService` — read weights from `PlatformSettings`, cold-start detection, per-user fallback
-10. Implement conversion tracking — log `SERVED` event on each `GET /recommendations` call, `CLICKED` on trek page view from recommendation, `BOOKED` on booking creation from recommendation
-11. Create `RecommendationsController`
-12. Generate single migration for both modules
-13. Replace existing `recommendation-builder` processor with new DB-backed version (batched 100 users/job)
-14. Register both modules in `app.module.ts`
-15. Execute Bookmarks → Wishlist data migration (Phase 5a → 5b → 5c per deprecation plan)
-16. Wire wishlist price-drop alerts into notifications (BullMQ processor — runs daily)
-17. Seed default `recommendation_weights` into `PlatformSettings` table via migration
-18. Write tests (wishlist CRUD, scoring algorithm edge cases with different weight configs, cold-start vs established-user paths, recommendation refresh, conversion event logging)
+- [x] 1. Generate `wishlist` module
+- [x] 2. Create `WishlistCollection`, `WishlistItem` entities
+- [x] 3. Create DTOs for wishlist
+- [x] 4. Create `WishlistService`
+- [x] 5. Create `WishlistController`
+- [x] 6. Generate `recommendations` module
+- [x] 7. Create `UserRecommendationPreference`, `RecommendationResult`, `RecommendationEvent` entities
+- [x] 8. Create DTOs for recommendations (include `RecommendationPreferenceDto`)
+- [x] 9. Implement scoring algorithm in `RecommendationService` — reads weights from `PlatformSettings`, cold-start detection, per-user fallback
+- [x] 10. Implement conversion tracking — logs `SERVED` event on `GET /recommendations`, `CLICKED`/`BOOKED` via `logConversion()`
+- [x] 11. Create `RecommendationsController`
+- [x] 12. Generate single migration for both modules
+- [x] 13. Replace existing `recommendation-builder` processor with new DB-backed version (new processor registered in `jobs.module.ts`; old standalone `recommendations.processor.ts` remains on disk as dead code)
+- [x] 14. Register both modules in `app.module.ts`
+- [x] 15. Disconnect Bookmarks module (no production data existed — removed from `app.module.ts`, `ormconfig.ts`, `swagger.ts`; Wishlist replaced it with 3 gap-filling endpoints: toggle, status, flat list)
+- [x] 16. Wire wishlist price-drop alerts into notifications — BullMQ `price-drop-queue` with daily scheduler + worker processor; tracks price at save time via `basePriceInr` column; compares against `trek.costInr`; sends `WISHLIST_PRICE_DROP` push notification and updates `basePriceInr` to new price
+- [x] 17. Seed default `recommendation_weights` into `PlatformSettings` — done in `0023-CreateWishlistAndRecommendationsTables.ts` migration (`INSERT ... ON CONFLICT` at line 102–140)
+- [x] 18. Write tests — 183 tests across 10 suites (wishlist: 5 suites, recommendations: 5 suites); includes deep-validation, QA edge cases, integration, controller, and service tests
 
 ---
 

@@ -328,6 +328,23 @@ export class NotificationsService {
     );
   }
 
+  async notifyWishlistPriceDrop(
+    userId: string,
+    trekName: string,
+    trekId: string,
+    oldPrice: number,
+    newPrice: number,
+  ): Promise<void> {
+    const savings = oldPrice - newPrice;
+    await this.sendPushToUser(
+      userId,
+      '💰 Price Drop Alert!',
+      `"${trekName}" dropped from ₹${oldPrice} to ₹${newPrice} — save ₹${savings}!`,
+      NotificationType.WISHLIST_PRICE_DROP,
+      { trekId, oldPrice, newPrice },
+    );
+  }
+
   async notifyStoryViewed(
     storyOwnerId: string,
     viewerName: string,

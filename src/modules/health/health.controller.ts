@@ -14,8 +14,8 @@ export class HealthController {
 
   @Public()
   @Get()
-  @ApiOperation({ summary: 'Base health check' })
-  base() {
+  @ApiOperation({ summary: 'Base health check (includes Redis + DB liveness)' })
+  async base() {
     return this.healthService.baseHealth();
   }
 
