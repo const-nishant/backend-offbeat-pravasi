@@ -7,6 +7,8 @@ import { StoryExpiryScheduler } from './schedulers/story-expiry.scheduler';
 import { BookingReminderWorkerService } from './processors/booking-reminder.processor';
 import { BookingReminderScheduler } from './schedulers/booking-reminder.scheduler';
 import { NotificationWorkerService } from './processors/notifications.processor';
+import { PackingReminderWorkerService } from './processors/packing-reminder.processor';
+import { PackingReminderScheduler } from './schedulers/packing-reminder.scheduler';
 import { NotificationsModule } from '../modules/notifications/notifications.module';
 
 const workerProviders =
@@ -17,6 +19,7 @@ const workerProviders =
         StoryExpiryWorkerService,
         BookingReminderWorkerService,
         NotificationWorkerService,
+        PackingReminderWorkerService,
       ]
     : [];
 
@@ -29,9 +32,11 @@ const exportProviders = [TicketPdfWorkerService];
     BookingReleaseScheduler,
     StoryExpiryScheduler,
     BookingReminderScheduler,
+    PackingReminderScheduler,
     ...workerProviders,
     TicketPdfWorkerService,
     BookingReminderWorkerService,
+    PackingReminderWorkerService,
   ],
   exports: [...exportProviders],
 })

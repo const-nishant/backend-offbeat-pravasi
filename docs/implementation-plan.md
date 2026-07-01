@@ -128,7 +128,9 @@ None. Pure CRUD. Offline-mode downloads will reference this data later (already 
 
 ---
 
-## Section 2 — Cancellation & Refund Policies (`policies`)
+## ✅ Section 2 — Cancellation & Refund Policies (`policies`) — **IMPLEMENTED**
+
+> **Status:** Complete. PR: [#13](https://github.com/const-nishant/backend-offbeat-pravasi/pull/13)
 
 ### 2.1 Module overview
 Creates `src/modules/policies/`. Defines reusable cancellation policies (global + per-trek override). Each policy has tiers: cancellation windows (hours before start) mapped to refund percentages. Applies to booking cancellations. Refund processing hooks into existing payments module.
@@ -241,22 +243,24 @@ None. Refund processing uses the existing payment module's refund capabilities (
 **Rollback:** `DROP TABLE IF EXISTS booking_policy_snapshots, trek_policies, cancellation_tiers, cancellation_policies CASCADE`.
 One migration with seed data: `CREATE TABLE cancellation_policies`, `cancellation_tiers`, `trek_policies`, `booking_policy_snapshots` + seed a default "Standard" policy.
 
-### 2.9 Task checklist
-1. Generate `policies` module
-2. Create `CancellationPolicy`, `CancellationTier`, `TrekPolicy`, `BookingPolicySnapshot` entities
-3. Create DTOs
-4. Create `PolicyService` (focus on `calculateRefund` as core logic — always check snapshot first)
-5. Create `PolicyController` (admin CRUD + public trek-policy lookups)
-6. Generate migration; seed default policy
-7. Register module in `app.module.ts`
-8. Modify `BookingsService.createBooking()` to call `policyService.createSnapshot()` after successful booking
-9. Modify `BookingsService.cancelBooking()` to use `policyService.calculateRefund()` with snapshot
-10. Wire refund amount into payments refund call
-11. Write unit + integration tests (critical: test policy-change-after-booking scenario)
+### 2.9 Task checklist (all ✅)
+- [x] 1. Generate `policies` module
+- [x] 2. Create `CancellationPolicy`, `CancellationTier`, `TrekPolicy`, `BookingPolicySnapshot` entities
+- [x] 3. Create DTOs
+- [x] 4. Create `PolicyService` (focus on `calculateRefund` as core logic — always check snapshot first)
+- [x] 5. Create `PolicyController` (admin CRUD + public trek-policy lookups)
+- [x] 6. Generate migration; seed default policy
+- [x] 7. Register module in `app.module.ts`
+- [x] 8. Modify `BookingsService.createBooking()` to call `policyService.createSnapshot()` after successful booking
+- [x] 9. Modify `BookingsService.cancelBooking()` to use `policyService.calculateRefund()` with snapshot
+- [x] 10. Wire refund amount into payments refund call
+- [x] 11. Write unit + integration tests (critical: test policy-change-after-booking scenario)
 
 ---
 
-## Section 3 — Equipment & Gear Checklists (`gear`)
+## ✅ Section 3 — Equipment & Gear Checklists (`gear`) — **IMPLEMENTED**
+
+> **Status:** Complete. PR: [#14](https://github.com/const-nishant/backend-offbeat-pravasi/pull/14)
 
 ### 3.1 Module overview
 Creates `src/modules/gear/`. Per-trek gear lists with items organized by category. Items can be: required, recommended, provided-by-organizer, or available-for-rent (with price). Users can create personal packing checklists. Gear library is centrally managed.
@@ -369,17 +373,17 @@ A scheduled job `packing-reminder.processor.ts` — sends push notification 3 da
 ### 3.8 Migration
 Two migrations: (1) `CREATE TABLE gear_items` with seed data for ~40 common items, (2) `CREATE TABLE trek_gear_items` and `user_packing_list_items`.
 
-### 3.9 Task checklist
-1. Generate `gear` module
-2. Create `GearItem`, `TrekGearItem`, `UserPackingListItem` entities
-3. Create DTOs
-4. Create `GearService`
-5. Create `GearController`
-6. Seed gear library (~40 items across 7 categories)
-7. Generate migrations
-8. Register module in `app.module.ts`
-9. Add `packing-reminder` BullMQ processor
-10. Write tests
+### 3.9 Task checklist (all ✅)
+- [x] 1. Generate `gear` module
+- [x] 2. Create `GearItem`, `TrekGearItem`, `UserPackingListItem` entities
+- [x] 3. Create DTOs
+- [x] 4. Create `GearService`
+- [x] 5. Create `GearController`
+- [x] 6. Seed gear library (~40 items across 7 categories)
+- [x] 7. Generate migrations
+- [x] 8. Register module in `app.module.ts`
+- [x] 9. Add `packing-reminder` BullMQ processor
+- [x] 10. Write tests
 
 ---
 

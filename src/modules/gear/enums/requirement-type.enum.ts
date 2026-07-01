@@ -1,0 +1,6 @@
+export enum RequirementType {
+  REQUIRED = 'REQUIRED',
+  RECOMMENDED = 'RECOMMENDED',
+  PROVIDED = 'PROVIDED',
+  RENTAL = 'RENTAL',
+}

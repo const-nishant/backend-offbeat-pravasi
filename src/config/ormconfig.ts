@@ -27,6 +27,9 @@ import { CancellationPolicy } from '../modules/policies/entities/cancellation-po
 import { CancellationTier } from '../modules/policies/entities/cancellation-tier.entity';
 import { TrekPolicy } from '../modules/policies/entities/trek-policy.entity';
 import { BookingPolicySnapshot } from '../modules/policies/entities/booking-policy-snapshot.entity';
+import { GearItem } from '../modules/gear/entities/gear-item.entity';
+import { TrekGearItem } from '../modules/gear/entities/trek-gear-item.entity';
+import { UserPackingListItem } from '../modules/gear/entities/user-packing-list-item.entity';
 
 export const ormConfig: DataSourceOptions = {
   type: 'postgres',
@@ -68,6 +71,9 @@ export const ormConfig: DataSourceOptions = {
     CancellationTier,
     TrekPolicy,
     BookingPolicySnapshot,
+    GearItem,
+    TrekGearItem,
+    UserPackingListItem,
   ],
 
   migrations: ['dist/database/migrations/*.js', 'src/database/migrations/*.ts'],
