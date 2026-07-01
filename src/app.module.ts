@@ -35,6 +35,7 @@ import { ItinerariesModule } from './modules/itineraries/itineraries.module';
 import { PoliciesModule } from './modules/policies/policies.module';
 import { GearModule } from './modules/gear/gear.module';
 import { WeatherModule } from './modules/weather/weather.module';
+import { SafetyModule } from './modules/safety/safety.module';
 @Global()
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { WeatherModule } from './modules/weather/weather.module';
     PoliciesModule,
     GearModule,
     WeatherModule,
+    SafetyModule,
   ],
   providers: [
     {
