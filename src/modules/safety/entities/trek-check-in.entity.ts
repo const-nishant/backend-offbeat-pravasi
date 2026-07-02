@@ -15,7 +15,6 @@ import { CheckInStatus } from '../enums/check-in-status.enum';
 
 @Entity({ name: 'trek_check_ins' })
 @Index(['status', 'expectedCheckOutAt'])
-@Index(['userId'])
 export class TrekCheckIn {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
