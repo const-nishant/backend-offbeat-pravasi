@@ -10,6 +10,7 @@ import { bullConnection } from '../config';
 import { WeatherService } from '../../modules/weather/weather.service';
 import { NotificationsService } from '../../modules/notifications/notifications.service';
 import { NotificationType } from '../../modules/notifications/enums/notification-type.enum';
+import { WeatherPrefetchScheduler } from '../schedulers/weather-prefetch.scheduler';
 
 @Injectable()
 export class WeatherPrefetchWorkerService
@@ -31,6 +32,7 @@ export class WeatherPrefetchWorkerService
     private readonly dataSource: DataSource,
     private readonly weatherService: WeatherService,
     private readonly notificationsService: NotificationsService,
+    private readonly scheduler: WeatherPrefetchScheduler,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -43,6 +45,12 @@ export class WeatherPrefetchWorkerService
           lng: number;
           trekName: string;
         };
+
+        if (!lat || !lng) {
+          this.logger.log('Repeater tick — enqueuing individual prefetch jobs');
+          await this.scheduler.processPrefetch();
+          return { prefetched: true, type: 'repeater' };
+        }
 
         try {
           const weather = await this.weatherService.getForCoordinates(lat, lng);
@@ -91,7 +99,7 @@ export class WeatherPrefetchWorkerService
           return { prefetched: true, trekId, severeDays: severeDays.length };
         } catch (err) {
           this.logger.error(
-            `Failed to prefetch weather for trek ${trekId}`,
+            `Failed to prefetch weather for trek ${trekId ?? 'unknown'}`,
             err as any,
           );
           throw err;
