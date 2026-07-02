@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RecommendationsController } from './recommendations.controller';
 import { RecommendationsService } from './recommendations.service';
@@ -26,7 +26,7 @@ import { AdminModule } from '../admin/admin.module';
       WishlistCollection,
       WishlistItem,
     ]),
-    AdminModule,
+    forwardRef(() => AdminModule),
   ],
   controllers: [RecommendationsController],
   providers: [RecommendationsService],
