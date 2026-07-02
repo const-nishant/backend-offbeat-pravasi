@@ -11,7 +11,6 @@ import {
 import { User } from '../../users/entities/user.entity';
 
 @Entity({ name: 'user_emergency_contacts' })
-@Index(['userId'])
 export class UserEmergencyContact {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
