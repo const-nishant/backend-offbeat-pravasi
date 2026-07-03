@@ -202,9 +202,9 @@ sequenceDiagram
 
 ---
 
-## 6. Analytics Dashboard Endpoints
+## 6. Analytics Dashboard Endpoints ✅
 
-**Problem:** Existing `GET /admin/bookings/report` is booking-only. Growth team needs DAU, trek popularity, conversion funnel, and revenue trends in one place.
+> **Status: COMPLETED** — Implementation in `AdminAnalyticsController`/`AdminAnalyticsService` + `AnalyticsModule`. 19 tests (service + controller). Full spec covered.
 
 **Endpoints:**
 | Endpoint | Returns | Note |

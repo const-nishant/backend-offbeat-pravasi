@@ -30,4 +30,19 @@ export const CacheKeys = {
   // Weather cache
   weatherTrek: (lat: number, lng: number, datesKey: string): string =>
     `weather:coord:${lat}:${lng}:${datesKey}`,
+
+  // Analytics cache keys
+  analyticsDau: (days: number): string => `analytics:dau:${days}`,
+  analyticsTrekPopularity: (days: number, limit: number): string =>
+    `analytics:trek-popularity:${days}:${limit}`,
+  analyticsFunnel: (
+    startDate?: string,
+    endDate?: string,
+    trekId?: string,
+  ): string =>
+    `analytics:funnel:${startDate ?? ''}:${endDate ?? ''}:${trekId ?? ''}`,
+  analyticsRevenue: (period: string, days: number): string =>
+    `analytics:revenue:${period}:${days}`,
+  analyticsRetention: (months: number): string =>
+    `analytics:retention:${months}`,
 } as const;

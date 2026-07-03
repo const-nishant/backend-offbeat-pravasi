@@ -8,6 +8,8 @@ import { AdminBookingOverrideController } from './admin-booking-override.control
 import { AdminBookingOverrideService } from './admin-booking-override.service';
 import { AdminBroadcastController } from './admin-broadcast.controller';
 import { AdminBroadcastService } from './admin-broadcast.service';
+import { AdminAnalyticsController } from './admin-analytics.controller';
+import { AdminAnalyticsService } from './admin-analytics.service';
 import { AuditLog } from './entities/audit-log.entity';
 import { PlatformSettings } from './entities/platform-settings.entity';
 import { PlatformSettingsService } from './platform-settings.service';
@@ -26,6 +28,7 @@ import { NotificationCampaign } from '../notifications/entities/notification-cam
 import { ReferralCode } from '../referrals/entities/referral-code.entity';
 import { Referral } from '../referrals/entities/referral.entity';
 import { PaymentsModule } from '../payments/payments.module';
+import { AnalyticsModule } from '../analytics/analytics.module';
 
 @Module({
   imports: [
@@ -45,18 +48,21 @@ import { PaymentsModule } from '../payments/payments.module';
     JobsModule,
     NotificationsModule,
     PaymentsModule,
+    AnalyticsModule,
   ],
   controllers: [
     AdminController,
     AdminPaymentController,
     AdminBookingOverrideController,
     AdminBroadcastController,
+    AdminAnalyticsController,
   ],
   providers: [
     AdminService,
     AdminPaymentService,
     AdminBookingOverrideService,
     AdminBroadcastService,
+    AdminAnalyticsService,
     AuditLogService,
     PlatformSettingsService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
