@@ -30,8 +30,7 @@ export class StripeAdapter implements PaymentGateway {
   ): Promise<{ providerPaymentId: string; rawResponse: any }> {
     const stripe = this.client;
     if (!stripe) throw new Error('Stripe not configured');
-    const amount = amountInr * 100;
-    const intent = await stripe.paymentIntents.create(
+    const amount = Math.round(amountInr * 100);
       {
         amount,
         currency: 'inr',
