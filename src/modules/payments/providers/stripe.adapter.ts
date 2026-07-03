@@ -53,7 +53,7 @@ export class StripeAdapter implements PaymentGateway {
     if (!stripe) throw new Error('Stripe not configured');
     const params: any = { payment_intent: providerPaymentId };
     if (amount !== undefined) {
-      params.amount = amount * 100;
+      params.amount = Math.round(amount * 100);
     }
     const refund = await stripe.refunds.create(params);
     return {
