@@ -51,6 +51,13 @@ export class BroadcastNotificationWorkerService
           throw new Error(`Campaign ${campaignId} not found`);
         }
 
+        if (campaign.status !== CampaignStatus.PENDING) {
+          this.logger.warn(
+            `Campaign ${campaignId} is already ${campaign.status}; skipping`,
+          );
+          return { campaignId, usersResolved: 0, batchesSent: 0, skipped: true };
+        }
+
         await this.campaignRepo.update(campaignId, {
           status: CampaignStatus.SENDING,
         });
