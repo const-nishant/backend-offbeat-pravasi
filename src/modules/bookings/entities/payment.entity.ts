@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  VersionColumn,
 } from 'typeorm';
 
 export enum PaymentProvider {
@@ -23,26 +24,26 @@ export enum PaymentStatus {
 @Entity({ name: 'payments' })
 export class Payment {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column('uuid')
-  bookingId: string;
+  bookingId!: string;
 
   @Column({ type: 'varchar', length: 32 })
-  provider: PaymentProvider;
+  provider!: PaymentProvider;
 
   @Column('varchar', { nullable: true })
   providerPaymentId?: string;
 
   @Column({ type: 'varchar', length: 32, default: PaymentStatus.CREATED })
   @Index()
-  status: PaymentStatus;
+  status!: PaymentStatus;
 
   @Column('int')
-  amountInr: number;
+  amountInr!: number;
 
   @Column('varchar', { default: 'INR' })
-  currency: string;
+  currency!: string;
 
   @Column({ type: 'jsonb', nullable: true })
   providerResponse?: any;
@@ -53,9 +54,24 @@ export class Payment {
   @Column({ type: 'jsonb', nullable: true })
   metadata?: any;
 
+  @Column({ type: 'jsonb', nullable: true })
+  refundAudit?: RefundAuditEntry[];
+
+  @VersionColumn({ default: 1 })
+  version!: number;
+
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
+}
+
+export interface RefundAuditEntry {
+  refundId: string;
+  amount: number;
+  reason: string;
+  refundedBy: string;
+  refundedAt: string;
+  providerRefundId?: string;
 }
