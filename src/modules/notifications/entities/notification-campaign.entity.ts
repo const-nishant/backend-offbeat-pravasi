@@ -31,7 +31,7 @@ export class NotificationCampaign {
   segmentConfig!: Record<string, unknown>;
 
   @Column({
-    type: 'enum',
+    type: 'simple-enum',
     enum: CampaignStatus,
     default: CampaignStatus.PENDING,
   })
