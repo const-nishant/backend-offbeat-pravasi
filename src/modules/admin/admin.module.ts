@@ -6,6 +6,8 @@ import { AdminPaymentController } from './admin-payment.controller';
 import { AdminPaymentService } from './admin-payment.service';
 import { AdminBookingOverrideController } from './admin-booking-override.controller';
 import { AdminBookingOverrideService } from './admin-booking-override.service';
+import { AdminBroadcastController } from './admin-broadcast.controller';
+import { AdminBroadcastService } from './admin-broadcast.service';
 import { AuditLog } from './entities/audit-log.entity';
 import { PlatformSettings } from './entities/platform-settings.entity';
 import { PlatformSettingsService } from './platform-settings.service';
@@ -20,6 +22,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AuditInterceptor } from '../../common/interceptors/audit.interceptor';
 import { JobsModule } from '../../jobs/jobs.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { NotificationCampaign } from '../notifications/entities/notification-campaign.entity';
 import { ReferralCode } from '../referrals/entities/referral-code.entity';
 import { Referral } from '../referrals/entities/referral.entity';
 import { PaymentsModule } from '../payments/payments.module';
@@ -36,17 +39,24 @@ import { PaymentsModule } from '../payments/payments.module';
       OrganizerApplication,
       ReferralCode,
       Referral,
+      NotificationCampaign,
     ]),
     OrganizerModule,
     JobsModule,
     NotificationsModule,
     PaymentsModule,
   ],
-  controllers: [AdminController, AdminPaymentController, AdminBookingOverrideController],
+  controllers: [
+    AdminController,
+    AdminPaymentController,
+    AdminBookingOverrideController,
+    AdminBroadcastController,
+  ],
   providers: [
     AdminService,
     AdminPaymentService,
     AdminBookingOverrideService,
+    AdminBroadcastService,
     AuditLogService,
     PlatformSettingsService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
