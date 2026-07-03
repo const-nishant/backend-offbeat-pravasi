@@ -23,6 +23,6 @@ export class GatewayRegistry {
   }
 
   getAllGateways(): PaymentGateway[] {
-    return this.gateways;
+    return [...this.gateways];
   }
 }
