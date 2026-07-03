@@ -42,6 +42,13 @@ export class AdminPaymentService {
     const qb = this.paymentRepo.createQueryBuilder('p');
     const { skip, take, page, limit } = getPagination(filters, 20, 200);
 
+    if (filters.userId) {
+      qb.innerJoin(Booking, 'b', 'b.id = p.bookingId').andWhere(
+        'b.userId = :userId',
+        { userId: filters.userId },
+      );
+    }
+
     if (filters.bookingId) {
       qb.andWhere('p.bookingId = :bookingId', { bookingId: filters.bookingId });
     }
