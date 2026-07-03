@@ -78,8 +78,11 @@ export class BroadcastNotificationWorkerService
           return { campaignId, usersResolved: 0, batchesSent: 0 };
         }
 
+        const parsedBatchSize = Number(process.env.BROADCAST_BATCH_SIZE);
         const batchSize =
-          Number(process.env.BROADCAST_BATCH_SIZE) || DEFAULT_BATCH_SIZE;
+          Number.isFinite(parsedBatchSize) && parsedBatchSize > 0
+            ? parsedBatchSize
+            : DEFAULT_BATCH_SIZE;
         const batches: string[][] = [];
         for (let i = 0; i < userIds.length; i += batchSize) {
           batches.push(userIds.slice(i, i + batchSize));
