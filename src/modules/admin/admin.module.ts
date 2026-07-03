@@ -4,6 +4,8 @@ import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { AdminPaymentController } from './admin-payment.controller';
 import { AdminPaymentService } from './admin-payment.service';
+import { AdminBookingOverrideController } from './admin-booking-override.controller';
+import { AdminBookingOverrideService } from './admin-booking-override.service';
 import { AuditLog } from './entities/audit-log.entity';
 import { PlatformSettings } from './entities/platform-settings.entity';
 import { PlatformSettingsService } from './platform-settings.service';
@@ -40,10 +42,11 @@ import { PaymentsModule } from '../payments/payments.module';
     NotificationsModule,
     PaymentsModule,
   ],
-  controllers: [AdminController, AdminPaymentController],
+  controllers: [AdminController, AdminPaymentController, AdminBookingOverrideController],
   providers: [
     AdminService,
     AdminPaymentService,
+    AdminBookingOverrideService,
     AuditLogService,
     PlatformSettingsService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
