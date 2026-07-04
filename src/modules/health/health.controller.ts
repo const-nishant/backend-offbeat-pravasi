@@ -8,8 +8,10 @@ import { HealthService } from './health.service';
 import { Public } from '../../common/decorators/public.decorator';
 import type { RedisClient } from '../../common/utils/redis.client';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { AllowAnonymous } from '@thallesp/nestjs-better-auth';
 
 @ApiTags('Health')
+@AllowAnonymous()
 @Controller('health')
 export class HealthController {
   constructor(
