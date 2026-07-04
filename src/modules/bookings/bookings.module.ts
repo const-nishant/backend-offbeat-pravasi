@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BookingsController } from './bookings.controller';
 import { BookingsService } from './bookings.service';
@@ -14,7 +14,7 @@ import { JwtModule } from '@nestjs/jwt';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Booking, Payment, Trek]),
-    AdminModule,
+    forwardRef(() => AdminModule),
     NotificationsModule,
     PoliciesModule,
     JwtModule.register({
