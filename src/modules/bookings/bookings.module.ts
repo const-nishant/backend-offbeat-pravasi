@@ -8,6 +8,7 @@ import { Trek } from '../treks/entities/trek.entity';
 import { AdminModule } from '../admin/admin.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { PoliciesModule } from '../policies/policies.module';
+import { PlatformSettingsModule } from '../admin/platform-settings.module';
 import { TicketService } from './ticket.service';
 import { JwtModule } from '@nestjs/jwt';
 
@@ -15,6 +16,7 @@ import { JwtModule } from '@nestjs/jwt';
   imports: [
     TypeOrmModule.forFeature([Booking, Payment, Trek]),
     forwardRef(() => AdminModule),
+    PlatformSettingsModule,
     NotificationsModule,
     PoliciesModule,
     JwtModule.register({
