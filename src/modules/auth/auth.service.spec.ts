@@ -10,6 +10,7 @@ import { AuthService, type TokenPair } from './auth.service';
 import type { RedisService } from '../../common/utils/redis.service';
 import type { MailerService } from '../mailer/mailer.service';
 import type { User } from '../users/entities/user.entity';
+import type { AnalyticsService } from '../analytics/analytics.service';
 import { CacheKeys } from '../../common/constants/cache.keys';
 import { hashPassword, verifyPassword } from '../../common/utils/hash.util';
 import { generateOtp } from '../../common/utils/otp.util';
@@ -47,6 +48,7 @@ describe('AuthService', () => {
   let jwtService: jest.Mocked<JwtService>;
   let redisService: jest.Mocked<RedisService>;
   let mailerService: jest.Mocked<MailerService>;
+  let analyticsService: jest.Mocked<AnalyticsService>;
   let mockBetterAuth: any;
 
   const mockUser = {
@@ -102,6 +104,8 @@ describe('AuthService', () => {
       sendEmail: jest.fn(),
     } as any;
 
+    analyticsService = { track: jest.fn().mockResolvedValue(undefined) } as any;
+
     mockBetterAuth = {
       api: { signInSocial: jest.fn(), getSession: jest.fn() },
     };
@@ -112,6 +116,7 @@ describe('AuthService', () => {
       redisService as any,
       mailerService as any,
       mockBetterAuth as any,
+      analyticsService as any,
     );
 
     jest.clearAllMocks();
@@ -438,6 +443,7 @@ describe('AuthService', () => {
         redisService as any,
         mailerService as any,
         null as any,
+        analyticsService as any,
       );
       await expect(service.exchangeSocialSession({})).rejects.toThrow(
         'Auth provider not configured',
@@ -453,6 +459,7 @@ describe('AuthService', () => {
         redisService as any,
         mailerService as any,
         null as any,
+        analyticsService as any,
       );
       const result = await service.getSocialAuthorizeUrl('google', {});
       expect(result).toBeNull();

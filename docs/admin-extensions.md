@@ -121,7 +121,9 @@ graph TB
 
 ---
 
-## 3. Payment Operations
+## 3. Payment Operations ✅
+
+> **Status: COMPLETED** — Implementation in `AdminPaymentController`/`AdminPaymentService`. 65 tests (service + controller). Committed `7835fcb`.
 
 **Problem:** Admins have no way to refund, retry, or reconcile payments. Every edge case (failed payment, partial refund, dispute) requires direct DB access or Stripe dashboard login.
 
@@ -140,7 +142,9 @@ graph TB
 
 ---
 
-## 4. Booking Override
+## 4. Booking Override ✅
+
+> **Status: COMPLETED** — Implementation in `AdminBookingOverrideController`/`AdminBookingOverrideService`. 27 tests. Committed `4c00f6b`.
 
 **Problem:** Support has to manually edit DB for booking modifications (date change, price override, add-ons). Error-prone and un-audited.
 
@@ -179,7 +183,9 @@ sequenceDiagram
 
 ---
 
-## 5. Broadcast Push Notifications
+## 5. Broadcast Push Notifications ✅
+
+> **Status: COMPLETED** — Implementation in `AdminBroadcastController`/`AdminBroadcastService` + `BroadcastNotificationWorkerService`. 80 tests (unit + QA deep validation). 20 unit tests + 62 QA senior-tester edge-case tests. Migration `0026-CreateNotificationCampaignsTable`.
 
 **Problem:** Marketing wants to send "Monsoon Sale — 20% off" to segments. Current approach: manual FCM console or engineering-run DB queries.
 
@@ -196,9 +202,9 @@ sequenceDiagram
 
 ---
 
-## 6. Analytics Dashboard Endpoints
+## 6. Analytics Dashboard Endpoints ✅
 
-**Problem:** Existing `GET /admin/bookings/report` is booking-only. Growth team needs DAU, trek popularity, conversion funnel, and revenue trends in one place.
+> **Status: COMPLETED** — Implementation in `AdminAnalyticsController`/`AdminAnalyticsService` + `AnalyticsModule`. 19 tests (service + controller). Full spec covered.
 
 **Endpoints:**
 | Endpoint | Returns | Note |

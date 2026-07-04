@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { BookingReleaseScheduler } from './schedulers/booking-release.scheduler';
 import { BookingReleaseWorkerService } from './processors/booking-release.processor';
 import { TicketPdfWorkerService } from './processors/ticket-pdf.processor';
@@ -23,10 +24,11 @@ import { ReferralsModule } from '../modules/referrals/referrals.module';
 import { ReferralRewardDeliveryWorkerService } from './processors/referral-reward-delivery.processor';
 import { RecommendationBuilderWorkerService } from './processors/recommendation-builder.processor';
 import { RecommendationBuilderScheduler } from './schedulers/recommendation-builder.scheduler';
-import { forwardRef } from '@nestjs/common';
 import { RecommendationsModule } from '../modules/recommendations/recommendations.module';
 import { PriceDropWorkerService } from './processors/price-drop.processor';
 import { PriceDropScheduler } from './schedulers/price-drop.scheduler';
+import { BroadcastNotificationWorkerService } from './processors/broadcast-notification.processor';
+import { NotificationCampaign } from '../modules/notifications/entities/notification-campaign.entity';
 
 const workerProviders =
   process.env.WORKERS_ENABLED !== 'false'
@@ -44,6 +46,7 @@ const workerProviders =
         ReferralRewardDeliveryWorkerService,
         RecommendationBuilderWorkerService,
         PriceDropWorkerService,
+        BroadcastNotificationWorkerService,
       ]
     : [];
 
@@ -51,7 +54,15 @@ const workerProviders =
 const exportProviders = [TicketPdfWorkerService];
 
 @Module({
-  imports: [NotificationsModule, WeatherModule, SafetyModule, GroupsModule, ReferralsModule, forwardRef(() => RecommendationsModule)],
+  imports: [
+    NotificationsModule,
+    WeatherModule,
+    SafetyModule,
+    GroupsModule,
+    ReferralsModule,
+    RecommendationsModule,
+    TypeOrmModule.forFeature([NotificationCampaign]),
+  ],
   providers: [
     BookingReleaseScheduler,
     GroupExpiryScheduler,

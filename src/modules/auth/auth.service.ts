@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   ConflictException,
   NotFoundException,
   UnauthorizedException,
@@ -18,6 +19,7 @@ import { generateOtp } from '../../common/utils/otp.util';
 import { hashPassword, verifyPassword } from '../../common/utils/hash.util';
 import { CacheKeys } from '../../common/constants/cache.keys';
 import { MailerService } from '../mailer/mailer.service';
+import { AnalyticsService } from '../analytics/analytics.service';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
 import { RefreshDto } from './dtos/refresh.dto';
@@ -50,6 +52,8 @@ interface JwtRefreshPayload {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   // TTL config (in seconds)
   private readonly accessTokenTtl: string =
     process.env.JWT_ACCESS_TTL ?? '900s'; // string accepted by JwtService
@@ -64,6 +68,7 @@ export class AuthService {
     private readonly mailerService: MailerService,
     // Better Auth API service (injected from @thallesp/nestjs-better-auth)
     private readonly betterAuthService: BetterAuthNestService,
+    private readonly analyticsService: AnalyticsService,
   ) {}
 
   // -----------------
@@ -95,6 +100,10 @@ export class AuthService {
       // do not block registration if OTP send fails; log server-side
       // Re-throw if you want to force OTP send success
     }
+
+    this.analyticsService
+      .track(saved.id, 'REGISTER')
+      .catch((e) => this.logger.error('Analytics track failed', e));
 
     return { userId: saved.id };
   }
@@ -206,6 +215,10 @@ export class AuthService {
       isAdmin: user.isAdmin ?? false,
       organizerStatus: user.organizerStatus ?? undefined,
     });
+
+    this.analyticsService
+      .track(user.id, 'LOGIN', { provider: 'google' })
+      .catch((e) => this.logger.error('Analytics track failed', e));
 
     return tokens;
   }
@@ -483,6 +496,10 @@ export class AuthService {
       isAdmin: isEnvAdmin || (user.isAdmin ?? false),
       organizerStatus: user.organizerStatus ?? undefined,
     });
+
+    this.analyticsService
+      .track(user.id, 'LOGIN')
+      .catch((e) => this.logger.error('Analytics track failed', e));
 
     return tokens;
   }

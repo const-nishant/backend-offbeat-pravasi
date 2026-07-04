@@ -3,6 +3,7 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
+  Logger,
 } from '@nestjs/common';
 import { Observable, tap } from 'rxjs';
 import { Response } from 'express';
@@ -10,6 +11,8 @@ import { AuthenticatedUser } from '../decorators/current-user.decorator';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
+  private readonly logger = new Logger('HTTP');
+
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const startTime = Date.now();
 
@@ -43,7 +46,7 @@ export class LoggingInterceptor implements NestInterceptor {
             timestamp: new Date().toISOString(),
           };
 
-          console.log(JSON.stringify(log));
+          this.logger.log(JSON.stringify(log));
         },
 
         error: (error: unknown) => {
@@ -64,7 +67,7 @@ export class LoggingInterceptor implements NestInterceptor {
             timestamp: new Date().toISOString(),
           };
 
-          console.error(JSON.stringify(log));
+          this.logger.error(JSON.stringify(log));
         },
       }),
     );

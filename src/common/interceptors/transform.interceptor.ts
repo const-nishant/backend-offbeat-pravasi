@@ -22,6 +22,14 @@ export class TransformInterceptor<T>
   ): Observable<SuccessResponse<T>> {
     return next.handle().pipe(
       map((data: T): SuccessResponse<T> => {
+        if (
+          data &&
+          typeof data === 'object' &&
+          'success' in (data as Record<string, unknown>)
+        ) {
+          return data as unknown as SuccessResponse<T>;
+        }
+
         const defaultMessage = 'Request successful';
 
         return {

@@ -1,7 +1,8 @@
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { TrekSafetyInfo } from '../entities/trek-safety-info.entity';
 import { UserEmergencyContact } from '../entities/user-emergency-contact.entity';
 import { TrekCheckIn } from '../entities/trek-check-in.entity';
@@ -50,7 +51,9 @@ describe('SafetyService', () => {
     trekSnapshot: { name: 'Test Trek' },
   } as unknown as Booking;
 
-  function createMockCheckIn(overrides: Partial<TrekCheckIn> = {}): TrekCheckIn {
+  function createMockCheckIn(
+    overrides: Partial<TrekCheckIn> = {},
+  ): TrekCheckIn {
     return {
       id: 'checkin-1',
       bookingId: 'booking-1',
@@ -438,7 +441,10 @@ describe('SafetyService', () => {
     it('should complete a check-out and remove pending jobs', async () => {
       setupActiveCheckIn();
       checkInRepo.save.mockResolvedValue(
-        createMockCheckIn({ status: CheckInStatus.COMPLETED, checkedOutAt: new Date() }),
+        createMockCheckIn({
+          status: CheckInStatus.COMPLETED,
+          checkedOutAt: new Date(),
+        }),
       );
 
       const result = await service.checkOut('booking-1', 'user-1');
@@ -448,23 +454,23 @@ describe('SafetyService', () => {
 
     it('should throw NotFoundException when no check-in exists', async () => {
       checkInRepo.findOne.mockResolvedValue(null);
-      await expect(
-        service.checkOut('booking-999', 'user-1'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.checkOut('booking-999', 'user-1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw ForbiddenException when check-in is already completed', async () => {
       setupCompletedCheckIn();
-      await expect(
-        service.checkOut('booking-1', 'user-1'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.checkOut('booking-1', 'user-1')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should throw ForbiddenException when check-in is already escalated', async () => {
       setupEscalatedCheckIn();
-      await expect(
-        service.checkOut('booking-1', 'user-1'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.checkOut('booking-1', 'user-1')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should send notification on successful check-out', async () => {
@@ -498,7 +504,10 @@ describe('SafetyService', () => {
     it('should resolve an active check-in', async () => {
       setupActiveCheckIn();
       checkInRepo.save.mockResolvedValue(
-        createMockCheckIn({ status: CheckInStatus.RESOLVED, resolvedAt: new Date() }),
+        createMockCheckIn({
+          status: CheckInStatus.RESOLVED,
+          resolvedAt: new Date(),
+        }),
       );
 
       const result = await service.acknowledge('checkin-1', 'user-1');
@@ -509,7 +518,10 @@ describe('SafetyService', () => {
     it('should resolve an escalated check-in', async () => {
       setupEscalatedCheckIn();
       checkInRepo.save.mockResolvedValue(
-        createMockCheckIn({ status: CheckInStatus.RESOLVED, resolvedAt: new Date() }),
+        createMockCheckIn({
+          status: CheckInStatus.RESOLVED,
+          resolvedAt: new Date(),
+        }),
       );
 
       const result = await service.acknowledge('checkin-1', 'user-1');
@@ -525,9 +537,9 @@ describe('SafetyService', () => {
 
     it('should throw ForbiddenException when already completed', async () => {
       setupCompletedCheckIn();
-      await expect(
-        service.acknowledge('checkin-1', 'user-1'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.acknowledge('checkin-1', 'user-1')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should send notification on acknowledge', async () => {
@@ -551,7 +563,10 @@ describe('SafetyService', () => {
     it('should escalate an active check-in', async () => {
       setupActiveCheckIn();
       checkInRepo.save.mockResolvedValue(
-        createMockCheckIn({ status: CheckInStatus.ESCALATED, escalatedAt: new Date() }),
+        createMockCheckIn({
+          status: CheckInStatus.ESCALATED,
+          escalatedAt: new Date(),
+        }),
       );
 
       await service.escalateMissedCheckout('checkin-1');
@@ -621,9 +636,7 @@ describe('SafetyService', () => {
       emergencyContactRepo.findOne.mockResolvedValue(null);
 
       await service.escalateEmergency('checkin-1');
-      expect(
-        notificationsService.sendPushToUser,
-      ).not.toHaveBeenCalled();
+      expect(notificationsService.sendPushToUser).not.toHaveBeenCalled();
     });
   });
 
@@ -642,9 +655,9 @@ describe('SafetyService', () => {
 
     it('should throw NotFoundException for missing check-in', async () => {
       checkInRepo.findOne.mockResolvedValue(null);
-      await expect(
-        service.resolveEscalation('checkin-999'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.resolveEscalation('checkin-999')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

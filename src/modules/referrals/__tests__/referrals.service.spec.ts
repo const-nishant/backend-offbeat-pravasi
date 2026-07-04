@@ -1,10 +1,7 @@
-import {
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
 import { ReferralService } from '../referrals.service';
 import { ReferralCode } from '../entities/referral-code.entity';
 import { Referral } from '../entities/referral.entity';
@@ -207,7 +204,11 @@ describe('ReferralService', () => {
         status: 'PENDING',
       } as unknown as Referral);
 
-      const mockReferee = { ...mockUser, id: 'user-2', email: 'new@test.com' } as unknown as User;
+      const mockReferee = {
+        ...mockUser,
+        id: 'user-2',
+        email: 'new@test.com',
+      } as unknown as User;
       userRepo.findOne.mockResolvedValue(mockReferee);
 
       const result = await service.claimReferral('ABC123', 'user-2');
@@ -220,9 +221,9 @@ describe('ReferralService', () => {
       const selfUser = { ...mockUser, id: 'user-1' } as unknown as User;
       userRepo.findOne.mockResolvedValue(selfUser);
 
-      await expect(
-        service.claimReferral('ABC123', 'user-1'),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.claimReferral('ABC123', 'user-1')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw for invalid code', async () => {

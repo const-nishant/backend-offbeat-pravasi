@@ -59,5 +59,3 @@ export const referralRewardDeliveryQueue = new Queue(
 );
 
 export const priceDropQueue = new Queue('price-drop-queue', { connection });
-
-

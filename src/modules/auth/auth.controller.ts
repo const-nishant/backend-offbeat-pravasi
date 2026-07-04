@@ -1,5 +1,6 @@
 import { Controller, Post, Body, UseGuards, Get, Req } from '@nestjs/common';
-import { AuthService, TokenPair } from './auth.service';
+import { Throttle } from '@nestjs/throttler';
+import { AuthService } from './auth.service';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
 import { SendOtpDto } from './dtos/send-otp.dto';
@@ -30,6 +31,7 @@ export class AuthController {
   // REGISTER
   // -------------------------------
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
   register(@Body() dto: RegisterDto) {
@@ -40,13 +42,10 @@ export class AuthController {
   // LOGIN
   // -------------------------------
   @Public()
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('login')
   @ApiOperation({ summary: 'Login with email and password' })
-  async login(@Body() dto: LoginDto): Promise<{
-    success: true;
-    message: string;
-    data: TokenPair;
-  }> {
+  async login(@Body() dto: LoginDto) {
     const tokens = await this.authService.login(dto);
     return {
       success: true,
@@ -59,6 +58,7 @@ export class AuthController {
   // OTP SEND
   // -------------------------------
   @Public()
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @Post('email/send-otp')
   @ApiOperation({ summary: 'Send email OTP' })
   sendOtp(@Body() dto: SendOtpDto) {
@@ -69,6 +69,7 @@ export class AuthController {
   // OTP VERIFY
   // -------------------------------
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('email/verify-otp')
   @ApiOperation({ summary: 'Verify email OTP' })
   verifyOtp(@Body() dto: VerifyOtpDto) {
@@ -79,6 +80,7 @@ export class AuthController {
   // RESEND OTP
   // -------------------------------
   @Public()
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @Post('email/resend-otp')
   @ApiOperation({ summary: 'Resend email verification OTP' })
   resendOtp(@Body() dto: ResendOtpDto) {
@@ -89,6 +91,7 @@ export class AuthController {
   // FORGOT PASSWORD
   // -------------------------------
   @Public()
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @Post('password/forgot')
   @ApiOperation({ summary: 'Request password reset OTP' })
   forgotPassword(@Body() dto: ForgotPasswordDto) {
@@ -99,6 +102,7 @@ export class AuthController {
   // RESET PASSWORD
   // -------------------------------
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('password/reset')
   @ApiOperation({ summary: 'Reset password using OTP' })
   resetPassword(@Body() dto: ResetPasswordDto) {
@@ -109,9 +113,10 @@ export class AuthController {
   // REFRESH TOKEN
   // -------------------------------
   @Public()
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh JWT token pair' })
-  async refresh(@Body() dto: RefreshDto): Promise<TokenPair> {
+  async refresh(@Body() dto: RefreshDto) {
     return this.authService.refresh(dto);
   }
 

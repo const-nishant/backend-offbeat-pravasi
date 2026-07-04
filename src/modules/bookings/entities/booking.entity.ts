@@ -15,36 +15,69 @@ export enum BookingStatus {
   FAILED = 'FAILED',
 }
 
+export interface TrekSnapshot {
+  name: string;
+  location?: string;
+  startDate?: string | Date;
+  endDate?: string | Date;
+  difficulty?: string;
+  durationDays?: number;
+  maxAltitude?: number;
+  [key: string]: unknown;
+}
+
+export interface Participant {
+  fullName: string;
+  email?: string;
+  phone?: string;
+  age?: number;
+  [key: string]: unknown;
+}
+
+export interface BookingMetadata {
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  specialRequirements?: string;
+  ticketIssued?: boolean;
+  ticketToken?: string;
+  ticketIssuedAt?: string;
+  paymentFailedAt?: string;
+  refundReason?: string;
+  refundedAt?: string;
+  [key: string]: unknown;
+}
+
 @Entity({ name: 'bookings' })
 @Index(['trekId', 'status'])
 export class Booking {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column('uuid')
-  trekId: string;
+  trekId!: string;
 
   @Column({ type: 'jsonb', nullable: false })
-  trekSnapshot: any;
+  trekSnapshot!: TrekSnapshot;
 
   @Column('uuid')
-  userId: string;
+  userId!: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  participants?: any[];
+  participants?: Participant[];
 
   @Column('int')
-  quantity: number;
+  quantity!: number;
 
   @Column('int')
-  unitPriceInr: number;
+  unitPriceInr!: number;
 
   @Column('int')
-  totalAmountInr: number;
+  totalAmountInr!: number;
 
   @Column({ type: 'varchar', length: 32, default: BookingStatus.PENDING })
   @Index()
-  status: BookingStatus;
+  status!: BookingStatus;
 
   @Column('uuid', { nullable: true })
   paymentId?: string;
@@ -53,13 +86,13 @@ export class Booking {
   holdExpiresAt?: Date;
 
   @Column({ type: 'jsonb', nullable: true })
-  metadata?: any;
+  metadata?: BookingMetadata;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @DeleteDateColumn()
   deletedAt?: Date;

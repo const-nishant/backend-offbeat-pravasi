@@ -19,7 +19,10 @@ import { AuditLogQueryDto } from './dtos/audit-log-query.dto';
 import { AdminGuard } from 'src/common/guards/admin.guard';
 import { AuditLogService } from './audit-log.service';
 import { UpdatePlatformSettingsDto } from './dtos/update-platform-settings.dto';
-import { AdminReferralQueryDto, AdminReferralCodeQueryDto } from '../referrals/dtos/admin-referral-query.dto';
+import {
+  AdminReferralQueryDto,
+  AdminReferralCodeQueryDto,
+} from '../referrals/dtos/admin-referral-query.dto';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('Admin')

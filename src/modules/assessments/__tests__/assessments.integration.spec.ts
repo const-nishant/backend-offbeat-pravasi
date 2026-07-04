@@ -24,7 +24,8 @@ class SqliteUser {
   @PrimaryGeneratedColumn('uuid') id!: string;
   @Column({ type: 'varchar', length: 255 }) email!: string;
   @Column({ type: 'varchar', length: 255, nullable: true }) fullName?: string;
-  @Column({ type: 'varchar', length: 32, nullable: true }) organizerStatus?: string;
+  @Column({ type: 'varchar', length: 32, nullable: true })
+  organizerStatus?: string;
   @CreateDateColumn({ type: 'datetime' }) createdAt!: Date;
 }
 
@@ -84,13 +85,22 @@ describe('Assessments Integration', () => {
       answers: [
         { questionId: 'exercise_frequency', selectedOption: '3-5x week' },
         { questionId: 'longest_walk', selectedOption: '10-20 km' },
-        { questionId: 'altitude_experience', selectedOption: 'High hills (2000-4000m)' },
+        {
+          questionId: 'altitude_experience',
+          selectedOption: 'High hills (2000-4000m)',
+        },
         { questionId: 'camping_comfort', selectedOption: 'Comfortable' },
-        { questionId: 'medical_conditions', selectedOption: 'No known conditions' },
+        {
+          questionId: 'medical_conditions',
+          selectedOption: 'No known conditions',
+        },
         { questionId: 'primary_goal', selectedOption: 'Adventure / thrill' },
         { questionId: 'age_range', selectedOption: '18-30' },
         { questionId: 'prior_trek_count', selectedOption: '3-5 treks' },
-        { questionId: 'swimming_comfort', selectedOption: 'Comfortable swimmer' },
+        {
+          questionId: 'swimming_comfort',
+          selectedOption: 'Comfortable swimmer',
+        },
         { questionId: 'sleeping_conditions', selectedOption: 'Okay with it' },
       ],
     });
@@ -115,13 +125,22 @@ describe('Assessments Integration', () => {
       answers: [
         { questionId: 'exercise_frequency', selectedOption: 'Daily' },
         { questionId: 'longest_walk', selectedOption: '> 20 km' },
-        { questionId: 'altitude_experience', selectedOption: 'Mountains (> 4000m)' },
+        {
+          questionId: 'altitude_experience',
+          selectedOption: 'Mountains (> 4000m)',
+        },
         { questionId: 'camping_comfort', selectedOption: 'Very comfortable' },
-        { questionId: 'medical_conditions', selectedOption: 'Excellent health' },
+        {
+          questionId: 'medical_conditions',
+          selectedOption: 'Excellent health',
+        },
         { questionId: 'primary_goal', selectedOption: 'Summit / endurance' },
         { questionId: 'age_range', selectedOption: '18-30' },
         { questionId: 'prior_trek_count', selectedOption: '6+ treks' },
-        { questionId: 'swimming_comfort', selectedOption: 'Very strong swimmer' },
+        {
+          questionId: 'swimming_comfort',
+          selectedOption: 'Very strong swimmer',
+        },
         { questionId: 'sleeping_conditions', selectedOption: 'Prefer it' },
       ],
     });
@@ -141,14 +160,23 @@ describe('Assessments Integration', () => {
       answers: [
         { questionId: 'exercise_frequency', selectedOption: 'Never' },
         { questionId: 'longest_walk', selectedOption: '< 5 km' },
-        { questionId: 'altitude_experience', selectedOption: 'Sea level (< 500m)' },
+        {
+          questionId: 'altitude_experience',
+          selectedOption: 'Sea level (< 500m)',
+        },
         { questionId: 'camping_comfort', selectedOption: 'Not comfortable' },
-        { questionId: 'medical_conditions', selectedOption: 'Yes, significant concerns' },
+        {
+          questionId: 'medical_conditions',
+          selectedOption: 'Yes, significant concerns',
+        },
         { questionId: 'primary_goal', selectedOption: 'Leisure / sightseeing' },
         { questionId: 'age_range', selectedOption: 'Under 18' },
         { questionId: 'prior_trek_count', selectedOption: 'None' },
         { questionId: 'swimming_comfort', selectedOption: 'Cannot swim' },
-        { questionId: 'sleeping_conditions', selectedOption: 'Very uncomfortable' },
+        {
+          questionId: 'sleeping_conditions',
+          selectedOption: 'Very uncomfortable',
+        },
       ],
     });
 
@@ -156,13 +184,22 @@ describe('Assessments Integration', () => {
       answers: [
         { questionId: 'exercise_frequency', selectedOption: 'Daily' },
         { questionId: 'longest_walk', selectedOption: '> 20 km' },
-        { questionId: 'altitude_experience', selectedOption: 'Mountains (> 4000m)' },
+        {
+          questionId: 'altitude_experience',
+          selectedOption: 'Mountains (> 4000m)',
+        },
         { questionId: 'camping_comfort', selectedOption: 'Very comfortable' },
-        { questionId: 'medical_conditions', selectedOption: 'Excellent health' },
+        {
+          questionId: 'medical_conditions',
+          selectedOption: 'Excellent health',
+        },
         { questionId: 'primary_goal', selectedOption: 'Summit / endurance' },
         { questionId: 'age_range', selectedOption: '18-30' },
         { questionId: 'prior_trek_count', selectedOption: '6+ treks' },
-        { questionId: 'swimming_comfort', selectedOption: 'Very strong swimmer' },
+        {
+          questionId: 'swimming_comfort',
+          selectedOption: 'Very strong swimmer',
+        },
         { questionId: 'sleeping_conditions', selectedOption: 'Prefer it' },
       ],
     });
@@ -192,14 +229,23 @@ describe('Assessments Integration', () => {
       answers: [
         { questionId: 'exercise_frequency', selectedOption: 'Never' },
         { questionId: 'longest_walk', selectedOption: '< 5 km' },
-        { questionId: 'altitude_experience', selectedOption: 'Sea level (< 500m)' },
+        {
+          questionId: 'altitude_experience',
+          selectedOption: 'Sea level (< 500m)',
+        },
         { questionId: 'camping_comfort', selectedOption: 'Not comfortable' },
-        { questionId: 'medical_conditions', selectedOption: 'Yes, significant concerns' },
+        {
+          questionId: 'medical_conditions',
+          selectedOption: 'Yes, significant concerns',
+        },
         { questionId: 'primary_goal', selectedOption: 'Leisure / sightseeing' },
         { questionId: 'age_range', selectedOption: 'Under 18' },
         { questionId: 'prior_trek_count', selectedOption: 'None' },
         { questionId: 'swimming_comfort', selectedOption: 'Cannot swim' },
-        { questionId: 'sleeping_conditions', selectedOption: 'Very uncomfortable' },
+        {
+          questionId: 'sleeping_conditions',
+          selectedOption: 'Very uncomfortable',
+        },
       ],
     });
 

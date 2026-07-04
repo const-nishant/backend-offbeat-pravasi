@@ -16,7 +16,8 @@
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { TrekSafetyInfo } from '../entities/trek-safety-info.entity';
 import { UserEmergencyContact } from '../entities/user-emergency-contact.entity';
 import { TrekCheckIn } from '../entities/trek-check-in.entity';
@@ -61,7 +62,9 @@ describe('SafetyService — QA Edge Cases', () => {
     trekSnapshot: { name: 'Test Trek' },
   } as unknown as Booking;
 
-  function createMockCheckIn(overrides: Partial<TrekCheckIn> = {}): TrekCheckIn {
+  function createMockCheckIn(
+    overrides: Partial<TrekCheckIn> = {},
+  ): TrekCheckIn {
     return {
       id: 'checkin-1',
       bookingId: 'booking-1',
@@ -235,9 +238,9 @@ describe('SafetyService — QA Edge Cases', () => {
           const result = await service.checkOut('booking-1', 'user-1');
           expect(result.status).toBe(CheckInStatus.COMPLETED);
         } else {
-          await expect(
-            service.checkOut('booking-1', 'user-1'),
-          ).rejects.toThrow(ForbiddenException);
+          await expect(service.checkOut('booking-1', 'user-1')).rejects.toThrow(
+            ForbiddenException,
+          );
         }
       },
     );
@@ -336,7 +339,9 @@ describe('SafetyService — QA Edge Cases', () => {
           longitude: 78.0,
         }),
       ).rejects.toThrow(
-        expect.objectContaining({ message: expect.stringContaining('checked') }),
+        expect.objectContaining({
+          message: expect.stringContaining('checked'),
+        }),
       );
     });
 
@@ -365,7 +370,10 @@ describe('SafetyService — QA Edge Cases', () => {
     it('should follow ACTIVE → COMPLETED on timely check-out', async () => {
       checkInRepo.findOne.mockResolvedValue(createMockCheckIn());
       checkInRepo.save.mockResolvedValue(
-        createMockCheckIn({ status: CheckInStatus.COMPLETED, checkedOutAt: new Date() }),
+        createMockCheckIn({
+          status: CheckInStatus.COMPLETED,
+          checkedOutAt: new Date(),
+        }),
       );
 
       const result = await service.checkOut('booking-1', 'user-1');
@@ -394,13 +402,17 @@ describe('SafetyService — QA Edge Cases', () => {
     });
 
     it('should skip escalation when already COMPLETED', async () => {
-      checkInRepo.findOne.mockResolvedValue(createMockCheckIn({ status: CheckInStatus.COMPLETED }));
+      checkInRepo.findOne.mockResolvedValue(
+        createMockCheckIn({ status: CheckInStatus.COMPLETED }),
+      );
       await service.escalateMissedCheckout('checkin-1');
       expect(checkInRepo.save).not.toHaveBeenCalled();
     });
 
     it('should skip emergency when already RESOLVED', async () => {
-      checkInRepo.findOne.mockResolvedValue(createMockCheckIn({ status: CheckInStatus.RESOLVED }));
+      checkInRepo.findOne.mockResolvedValue(
+        createMockCheckIn({ status: CheckInStatus.RESOLVED }),
+      );
       await service.escalateEmergency('checkin-1');
       expect(emergencyContactRepo.findOne).not.toHaveBeenCalled();
     });
@@ -541,9 +553,9 @@ describe('SafetyService — QA Edge Cases', () => {
       );
 
       await service.acknowledge('checkin-1', 'user-1');
-      await expect(
-        service.acknowledge('checkin-1', 'user-1'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.acknowledge('checkin-1', 'user-1')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should throw on double check-out', async () => {
@@ -557,9 +569,9 @@ describe('SafetyService — QA Edge Cases', () => {
       );
 
       await service.checkOut('booking-1', 'user-1');
-      await expect(
-        service.checkOut('booking-1', 'user-1'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.checkOut('booking-1', 'user-1')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should allow getCheckInStatus called repeatedly without side effects', async () => {
@@ -622,9 +634,7 @@ describe('SafetyService — QA Edge Cases', () => {
       emergencyContactRepo.findOne.mockResolvedValue(null);
 
       await service.escalateEmergency('checkin-1');
-      expect(
-        notificationsService.sendPushToUser,
-      ).not.toHaveBeenCalled();
+      expect(notificationsService.sendPushToUser).not.toHaveBeenCalled();
     });
   });
 
@@ -727,8 +737,14 @@ describe('SafetyService — QA Edge Cases', () => {
     it('should create safety info when none exists (null findOne)', async () => {
       trekRepo.findOne.mockResolvedValue(baseTrek);
       safetyInfoRepo.findOne.mockResolvedValue(null);
-      safetyInfoRepo.create.mockReturnValue({ id: 's-1', trekId: 'trek-1' } as any);
-      safetyInfoRepo.save.mockResolvedValue({ id: 's-1', trekId: 'trek-1' } as any);
+      safetyInfoRepo.create.mockReturnValue({
+        id: 's-1',
+        trekId: 'trek-1',
+      } as any);
+      safetyInfoRepo.save.mockResolvedValue({
+        id: 's-1',
+        trekId: 'trek-1',
+      } as any);
 
       const result = await service.upsertTrekSafety('trek-1', 'org-1', {
         terrainRisks: 'test',

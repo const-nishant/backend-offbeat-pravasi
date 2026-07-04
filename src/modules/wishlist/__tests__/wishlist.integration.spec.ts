@@ -11,7 +11,11 @@ import {
   OneToOne,
 } from 'typeorm';
 import { WishlistService } from '../wishlist.service';
-import { ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 
 // --- SQLite-compatible entities ---
 
@@ -28,9 +32,13 @@ class SqliteWishlistCollection {
   @PrimaryGeneratedColumn('uuid') id!: string;
   @Column({ type: 'varchar' }) userId!: string;
   @Column({ type: 'varchar', length: 120 }) name!: string;
-  @Column({ type: 'varchar', length: 512, nullable: true }) description!: string | null;
+  @Column({ type: 'varchar', length: 512, nullable: true }) description!:
+    | string
+    | null;
   @Column({ type: 'int', default: 0 }) sortOrder!: number;
-  @Column({ type: 'varchar', length: 64, nullable: true }) shareToken!: string | null;
+  @Column({ type: 'varchar', length: 64, nullable: true }) shareToken!:
+    | string
+    | null;
   @CreateDateColumn({ type: 'datetime' }) createdAt!: Date;
   @UpdateDateColumn({ type: 'datetime' }) updatedAt!: Date;
 }
@@ -40,7 +48,9 @@ class SqliteWishlistItem {
   @PrimaryGeneratedColumn('uuid') id!: string;
   @Column({ type: 'varchar' }) collectionId!: string;
   @Column({ type: 'varchar' }) trekId!: string;
-  @Column({ type: 'varchar', length: 512, nullable: true }) notes!: string | null;
+  @Column({ type: 'varchar', length: 512, nullable: true }) notes!:
+    | string
+    | null;
   @Column({ type: 'int', default: 0 }) priority!: number;
   @Column({ type: 'int', default: 0 }) sortOrder!: number;
   @Column({ type: 'int', nullable: true }) basePriceInr!: number | null;
@@ -86,7 +96,13 @@ describe('Wishlist Integration — Full Lifecycle', () => {
       type: 'sqlite',
       database: ':memory:',
       synchronize: true,
-      entities: [SqliteUser, SqliteWishlistCollection, SqliteWishlistItem, SqliteTrek, SqliteTrekInteraction],
+      entities: [
+        SqliteUser,
+        SqliteWishlistCollection,
+        SqliteWishlistItem,
+        SqliteTrek,
+        SqliteTrekInteraction,
+      ],
     });
     await dataSource.initialize();
 
@@ -134,11 +150,18 @@ describe('Wishlist Integration — Full Lifecycle', () => {
     expect(col.items).toBeUndefined();
 
     // 2. Add items
-    const item1 = await service.addItem(col.id, user.id, { trekId: 'trek-alpha', notes: 'Must do!', priority: 2 });
+    const item1 = await service.addItem(col.id, user.id, {
+      trekId: 'trek-alpha',
+      notes: 'Must do!',
+      priority: 2,
+    });
     expect(item1.trekId).toBe('trek-alpha');
     expect(item1.priority).toBe(2);
 
-    const item2 = await service.addItem(col.id, user.id, { trekId: 'trek-beta', priority: 1 });
+    const item2 = await service.addItem(col.id, user.id, {
+      trekId: 'trek-beta',
+      priority: 1,
+    });
     expect(item2.trekId).toBe('trek-beta');
 
     // 3. List items in collection
@@ -146,7 +169,9 @@ describe('Wishlist Integration — Full Lifecycle', () => {
     expect(items).toHaveLength(2);
 
     // 4. Update an item
-    const updated = await service.updateItem(item1.id, user.id, { notes: 'Absolutely must do!' });
+    const updated = await service.updateItem(item1.id, user.id, {
+      notes: 'Absolutely must do!',
+    });
     expect(updated.notes).toBe('Absolutely must do!');
 
     // 5. Generate share token
@@ -169,7 +194,9 @@ describe('Wishlist Integration — Full Lifecycle', () => {
 
     // 9. Delete collection (cascades)
     await service.deleteCollection(col.id, user.id);
-    await expect(service.getItems(col.id, user.id)).rejects.toThrow(NotFoundException);
+    await expect(service.getItems(col.id, user.id)).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   // === MULTI-COLLECTION MANAGEMENT ===
@@ -177,8 +204,12 @@ describe('Wishlist Integration — Full Lifecycle', () => {
     const u1 = await createUser('user-a');
     const u2 = await createUser('user-b');
 
-    const colA = await service.createCollection(u1.id, { name: 'Summer Plans' });
-    const colB = await service.createCollection(u1.id, { name: 'Winter Plans' });
+    const colA = await service.createCollection(u1.id, {
+      name: 'Summer Plans',
+    });
+    const colB = await service.createCollection(u1.id, {
+      name: 'Winter Plans',
+    });
     await service.createCollection(u2.id, { name: 'Favorites' });
 
     // User A sees 2 collections
@@ -206,33 +237,51 @@ describe('Wishlist Integration — Full Lifecycle', () => {
 
     const col = await service.createCollection(u1.id, { name: 'Private' });
 
-    await expect(service.getItems(col.id, u2.id)).rejects.toThrow(BadRequestException);
-    await expect(service.addItem(col.id, u2.id, { trekId: 'x' })).rejects.toThrow(BadRequestException);
-    await expect(service.updateCollection(col.id, u2.id, { name: 'Hacked' })).rejects.toThrow(BadRequestException);
-    await expect(service.deleteCollection(col.id, u2.id)).rejects.toThrow(BadRequestException);
+    await expect(service.getItems(col.id, u2.id)).rejects.toThrow(
+      BadRequestException,
+    );
+    await expect(
+      service.addItem(col.id, u2.id, { trekId: 'x' }),
+    ).rejects.toThrow(BadRequestException);
+    await expect(
+      service.updateCollection(col.id, u2.id, { name: 'Hacked' }),
+    ).rejects.toThrow(BadRequestException);
+    await expect(service.deleteCollection(col.id, u2.id)).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   test('error handling — duplicate collection name', async () => {
     const user = await createUser('user-dup');
     await service.createCollection(user.id, { name: 'Unique' });
-    await expect(service.createCollection(user.id, { name: 'Unique' })).rejects.toThrow(ConflictException);
+    await expect(
+      service.createCollection(user.id, { name: 'Unique' }),
+    ).rejects.toThrow(ConflictException);
   });
 
   test('error handling — duplicate trek in same collection', async () => {
     const user = await createUser('user-dup-item');
     const col = await service.createCollection(user.id, { name: 'Collection' });
     await service.addItem(col.id, user.id, { trekId: 'trek-1' });
-    await expect(service.addItem(col.id, user.id, { trekId: 'trek-1' })).rejects.toThrow(ConflictException);
+    await expect(
+      service.addItem(col.id, user.id, { trekId: 'trek-1' }),
+    ).rejects.toThrow(ConflictException);
   });
 
   test('error handling — non-existent collection', async () => {
     const user = await createUser('user-ghost');
-    await expect(service.getItems('00000000-0000-0000-0000-000000000000', user.id)).rejects.toThrow(NotFoundException);
+    await expect(
+      service.getItems('00000000-0000-0000-0000-000000000000', user.id),
+    ).rejects.toThrow(NotFoundException);
   });
 
   test('error handling — non-existent item', async () => {
     const user = await createUser('user-ghost-item');
-    await expect(service.updateItem('00000000-0000-0000-0000-000000000000', user.id, { notes: 'x' })).rejects.toThrow(NotFoundException);
+    await expect(
+      service.updateItem('00000000-0000-0000-0000-000000000000', user.id, {
+        notes: 'x',
+      }),
+    ).rejects.toThrow(NotFoundException);
   });
 
   // === QUICK-ADD EDGE CASES ===
@@ -256,7 +305,9 @@ describe('Wishlist Integration — Full Lifecycle', () => {
 
   // === SHARE TOKEN EDGE CASES ===
   test('share token — invalid token returns 404', async () => {
-    await expect(service.getSharedCollection('badtoken')).rejects.toThrow(NotFoundException);
+    await expect(service.getSharedCollection('badtoken')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   test('share token — same token always returned', async () => {
@@ -272,14 +323,23 @@ describe('Wishlist Integration — Full Lifecycle', () => {
     const user = await createUser('user-sort');
     const col = await service.createCollection(user.id, { name: 'Sorted' });
 
-    const low = await service.addItem(col.id, user.id, { trekId: 'trek-low', priority: 0 });
-    const high = await service.addItem(col.id, user.id, { trekId: 'trek-high', priority: 2 });
-    const mid = await service.addItem(col.id, user.id, { trekId: 'trek-mid', priority: 1 });
+    const low = await service.addItem(col.id, user.id, {
+      trekId: 'trek-low',
+      priority: 0,
+    });
+    const high = await service.addItem(col.id, user.id, {
+      trekId: 'trek-high',
+      priority: 2,
+    });
+    const mid = await service.addItem(col.id, user.id, {
+      trekId: 'trek-mid',
+      priority: 1,
+    });
 
     const items = await service.getItems(col.id, user.id);
     expect(items[0].trekId).toBe('trek-high'); // priority 2 first
-    expect(items[1].trekId).toBe('trek-mid');  // priority 1 second
-    expect(items[2].trekId).toBe('trek-low');  // priority 0 last
+    expect(items[1].trekId).toBe('trek-mid'); // priority 1 second
+    expect(items[2].trekId).toBe('trek-low'); // priority 0 last
   });
 
   // === CONCURRENCY SIMULATION ===
@@ -302,8 +362,12 @@ describe('Wishlist Integration — Full Lifecycle', () => {
   // === SQLITE-SPECIFIC: PRIORITY DEFAULT ===
   test('default priority is 0 when not specified', async () => {
     const user = await createUser('user-default-pri');
-    const col = await service.createCollection(user.id, { name: 'Default Pri' });
-    const item = await service.addItem(col.id, user.id, { trekId: 'trek-default' });
+    const col = await service.createCollection(user.id, {
+      name: 'Default Pri',
+    });
+    const item = await service.addItem(col.id, user.id, {
+      trekId: 'trek-default',
+    });
     expect(item.priority).toBe(0);
   });
 
@@ -312,7 +376,10 @@ describe('Wishlist Integration — Full Lifecycle', () => {
     const col = await service.createCollection(user.id, { name: 'Bulk' });
 
     const promises = Array.from({ length: 10 }, (_, i) =>
-      service.addItem(col.id, user.id, { trekId: `trek-${i}`, priority: i % 3 }),
+      service.addItem(col.id, user.id, {
+        trekId: `trek-${i}`,
+        priority: i % 3,
+      }),
     );
     await Promise.all(promises);
 

@@ -1,10 +1,7 @@
-import {
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
 import { ReferralService } from '../referrals.service';
 import { ReferralCode } from '../entities/referral-code.entity';
 import { Referral } from '../entities/referral.entity';
@@ -51,7 +48,9 @@ function createMockReferral(overrides: Partial<Referral> = {}): Referral {
   } as unknown as Referral;
 }
 
-function createMockTierConfig(overrides: Partial<ReferralTierConfig> = {}): ReferralTierConfig {
+function createMockTierConfig(
+  overrides: Partial<ReferralTierConfig> = {},
+): ReferralTierConfig {
   return {
     id: 'tier-base',
     tier: ReferralTier.BASE,
@@ -221,7 +220,9 @@ describe('ReferralService — Senior QA Review', () => {
       codeRepo.findOne.mockResolvedValue(null);
       userRepo.findOne.mockResolvedValue(createMockUser());
       codeRepo.create.mockImplementation((data) => data as ReferralCode);
-      codeRepo.save.mockImplementation((data) => Promise.resolve(data as ReferralCode));
+      codeRepo.save.mockImplementation((data) =>
+        Promise.resolve(data as ReferralCode),
+      );
 
       const result = await service.getOrGenerateCode('user-new');
 
@@ -232,7 +233,9 @@ describe('ReferralService — Senior QA Review', () => {
       codeRepo.findOne.mockResolvedValue(null);
       userRepo.findOne.mockResolvedValue(createMockUser());
       codeRepo.create.mockImplementation((data) => data as ReferralCode);
-      codeRepo.save.mockImplementation((data) => Promise.resolve(data as ReferralCode));
+      codeRepo.save.mockImplementation((data) =>
+        Promise.resolve(data as ReferralCode),
+      );
 
       const result = await service.getOrGenerateCode('user-new');
 
@@ -240,14 +243,29 @@ describe('ReferralService — Senior QA Review', () => {
     });
 
     it('should upgrade to SILVER at exactly 3 successful referrals', async () => {
-      const code = createMockCode({ successfulReferrals: 3, tier: ReferralTier.BASE });
+      const code = createMockCode({
+        successfulReferrals: 3,
+        tier: ReferralTier.BASE,
+      });
       codeRepo.findOne.mockResolvedValue(code);
       tierConfigRepo.find.mockResolvedValue([
-        createMockTierConfig({ tier: ReferralTier.GOLD, minSuccessfulReferrals: 10 }),
-        createMockTierConfig({ tier: ReferralTier.SILVER, minSuccessfulReferrals: 3 }),
-        createMockTierConfig({ tier: ReferralTier.BASE, minSuccessfulReferrals: 0 }),
+        createMockTierConfig({
+          tier: ReferralTier.GOLD,
+          minSuccessfulReferrals: 10,
+        }),
+        createMockTierConfig({
+          tier: ReferralTier.SILVER,
+          minSuccessfulReferrals: 3,
+        }),
+        createMockTierConfig({
+          tier: ReferralTier.BASE,
+          minSuccessfulReferrals: 0,
+        }),
       ]);
-      codeRepo.save.mockResolvedValue({ ...code, tier: ReferralTier.SILVER } as ReferralCode);
+      codeRepo.save.mockResolvedValue({
+        ...code,
+        tier: ReferralTier.SILVER,
+      } as ReferralCode);
 
       await service.recalculateTier('user-1');
 
@@ -257,14 +275,29 @@ describe('ReferralService — Senior QA Review', () => {
     });
 
     it('should upgrade to GOLD at exactly 10 successful referrals', async () => {
-      const code = createMockCode({ successfulReferrals: 10, tier: ReferralTier.SILVER });
+      const code = createMockCode({
+        successfulReferrals: 10,
+        tier: ReferralTier.SILVER,
+      });
       codeRepo.findOne.mockResolvedValue(code);
       tierConfigRepo.find.mockResolvedValue([
-        createMockTierConfig({ tier: ReferralTier.GOLD, minSuccessfulReferrals: 10 }),
-        createMockTierConfig({ tier: ReferralTier.SILVER, minSuccessfulReferrals: 3 }),
-        createMockTierConfig({ tier: ReferralTier.BASE, minSuccessfulReferrals: 0 }),
+        createMockTierConfig({
+          tier: ReferralTier.GOLD,
+          minSuccessfulReferrals: 10,
+        }),
+        createMockTierConfig({
+          tier: ReferralTier.SILVER,
+          minSuccessfulReferrals: 3,
+        }),
+        createMockTierConfig({
+          tier: ReferralTier.BASE,
+          minSuccessfulReferrals: 0,
+        }),
       ]);
-      codeRepo.save.mockResolvedValue({ ...code, tier: ReferralTier.GOLD } as ReferralCode);
+      codeRepo.save.mockResolvedValue({
+        ...code,
+        tier: ReferralTier.GOLD,
+      } as ReferralCode);
 
       await service.recalculateTier('user-1');
 
@@ -274,12 +307,24 @@ describe('ReferralService — Senior QA Review', () => {
     });
 
     it('should stay at BASE with 2 successful referrals (below 3 threshold)', async () => {
-      const code = createMockCode({ successfulReferrals: 2, tier: ReferralTier.BASE });
+      const code = createMockCode({
+        successfulReferrals: 2,
+        tier: ReferralTier.BASE,
+      });
       codeRepo.findOne.mockResolvedValue(code);
       tierConfigRepo.find.mockResolvedValue([
-        createMockTierConfig({ tier: ReferralTier.GOLD, minSuccessfulReferrals: 10 }),
-        createMockTierConfig({ tier: ReferralTier.SILVER, minSuccessfulReferrals: 3 }),
-        createMockTierConfig({ tier: ReferralTier.BASE, minSuccessfulReferrals: 0 }),
+        createMockTierConfig({
+          tier: ReferralTier.GOLD,
+          minSuccessfulReferrals: 10,
+        }),
+        createMockTierConfig({
+          tier: ReferralTier.SILVER,
+          minSuccessfulReferrals: 3,
+        }),
+        createMockTierConfig({
+          tier: ReferralTier.BASE,
+          minSuccessfulReferrals: 0,
+        }),
       ]);
 
       await service.recalculateTier('user-1');
@@ -304,8 +349,9 @@ describe('ReferralService — Senior QA Review', () => {
       });
       referralRepo.findOne.mockResolvedValue(existing);
 
-      await expect(service.claimReferral('ABC12345', 'user-2'))
-        .rejects.toThrow(BadRequestException);
+      await expect(service.claimReferral('ABC12345', 'user-2')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should resume from old declined invite — same email re-claim updates refereeUserId', async () => {
@@ -319,7 +365,10 @@ describe('ReferralService — Senior QA Review', () => {
         status: ReferralStatus.PENDING,
       });
       referralRepo.findOne.mockResolvedValue(existing);
-      referralRepo.save.mockResolvedValue({ ...existing, refereeUserId: 'user-2' } as Referral);
+      referralRepo.save.mockResolvedValue({
+        ...existing,
+        refereeUserId: 'user-2',
+      } as Referral);
 
       const result = await service.claimReferral('ABC12345', 'user-2');
 
@@ -334,7 +383,9 @@ describe('ReferralService — Senior QA Review', () => {
         generated.push((data as any).code);
         return data as ReferralCode;
       });
-      codeRepo.save.mockImplementation((data) => Promise.resolve(data as ReferralCode));
+      codeRepo.save.mockImplementation((data) =>
+        Promise.resolve(data as ReferralCode),
+      );
 
       const r1 = await service.getOrGenerateCode('u1');
       const r2 = await service.getOrGenerateCode('u2');
@@ -348,8 +399,9 @@ describe('ReferralService — Senior QA Review', () => {
       const referee = createMockUser({ id: 'user-self' });
       userRepo.findOne.mockResolvedValue(referee);
 
-      await expect(service.claimReferral('ABC12345', 'user-self'))
-        .rejects.toThrow(BadRequestException);
+      await expect(
+        service.claimReferral('ABC12345', 'user-self'),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -360,7 +412,9 @@ describe('ReferralService — Senior QA Review', () => {
     it('should throw NotFoundException for non-existent referral code in getCodeInfo', async () => {
       codeRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.getCodeInfo('INVALID')).rejects.toThrow(NotFoundException);
+      await expect(service.getCodeInfo('INVALID')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException for non-existent user when claiming', async () => {
@@ -368,21 +422,25 @@ describe('ReferralService — Senior QA Review', () => {
       codeRepo.findOne.mockResolvedValue(code);
       userRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.claimReferral('ABC12345', 'ghost-user'))
-        .rejects.toThrow(NotFoundException);
+      await expect(
+        service.claimReferral('ABC12345', 'ghost-user'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw NotFoundException for non-existent referral in deliverReward', async () => {
       referralRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.deliverReward('missing-ref')).rejects.toThrow(NotFoundException);
+      await expect(service.deliverReward('missing-ref')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should not expose internal DB errors on malformed code', async () => {
       codeRepo.findOne.mockRejectedValue(new Error('DB_CONNECTION_ERROR'));
 
-      await expect(service.getCodeInfo("'; DROP TABLE referrals; --"))
-        .rejects.toThrow();
+      await expect(
+        service.getCodeInfo("'; DROP TABLE referrals; --"),
+      ).rejects.toThrow();
     });
   });
 
@@ -396,15 +454,19 @@ describe('ReferralService — Senior QA Review', () => {
       const referee1 = createMockUser({ id: 'user-a', email: 'a@test.com' });
       const referee2 = createMockUser({ id: 'user-b', email: 'b@test.com' });
 
-      userRepo.findOne.mockImplementation(
-        ({ where: { id } }: any) =>
-          id === 'user-a' ? Promise.resolve(referee1)
-            : id === 'user-b' ? Promise.resolve(referee2) : Promise.resolve(null),
+      userRepo.findOne.mockImplementation(({ where: { id } }: any) =>
+        id === 'user-a'
+          ? Promise.resolve(referee1)
+          : id === 'user-b'
+            ? Promise.resolve(referee2)
+            : Promise.resolve(null),
       );
 
       referralRepo.findOne.mockResolvedValue(null);
       referralRepo.create.mockImplementation((data) => data as Referral);
-      referralRepo.save.mockImplementation((data) => Promise.resolve(data as Referral));
+      referralRepo.save.mockImplementation((data) =>
+        Promise.resolve(data as Referral),
+      );
 
       const [r1, r2] = await Promise.all([
         service.claimReferral('ABC12345', 'user-a'),
@@ -424,7 +486,10 @@ describe('ReferralService — Senior QA Review', () => {
       tierConfigRepo.findOne.mockResolvedValue(createMockTierConfig());
       tierConfigRepo.find.mockResolvedValue([createMockTierConfig()]);
       codeRepo.save.mockResolvedValue(code);
-      referralRepo.save.mockResolvedValue({ ...referral, status: ReferralStatus.REWARDED } as Referral);
+      referralRepo.save.mockResolvedValue({
+        ...referral,
+        status: ReferralStatus.REWARDED,
+      } as Referral);
 
       const [r1, r2] = await Promise.allSettled([
         service.deliverReward('ref-1'),
@@ -545,12 +610,20 @@ describe('ReferralService — Senior QA Review', () => {
     it('should increment userPoints by rewardPerReferralInr on deliverReward', async () => {
       const referral = createMockReferral({ status: ReferralStatus.COMPLETED });
       referralRepo.findOne.mockResolvedValue(referral);
-      const code = createMockCode({ successfulReferrals: 0, totalEarnedInr: 0 });
+      const code = createMockCode({
+        successfulReferrals: 0,
+        totalEarnedInr: 0,
+      });
       codeRepo.findOne.mockResolvedValue(code);
-      tierConfigRepo.findOne.mockResolvedValue(createMockTierConfig({ rewardPerReferralInr: 500 }));
+      tierConfigRepo.findOne.mockResolvedValue(
+        createMockTierConfig({ rewardPerReferralInr: 500 }),
+      );
       tierConfigRepo.find.mockResolvedValue([createMockTierConfig()]);
       codeRepo.save.mockResolvedValue(code);
-      referralRepo.save.mockResolvedValue({ ...referral, status: ReferralStatus.REWARDED } as Referral);
+      referralRepo.save.mockResolvedValue({
+        ...referral,
+        status: ReferralStatus.REWARDED,
+      } as Referral);
 
       await service.deliverReward('ref-1');
 
@@ -564,7 +637,10 @@ describe('ReferralService — Senior QA Review', () => {
     it('should increment successfulReferrals on the code after reward', async () => {
       const referral = createMockReferral({ status: ReferralStatus.COMPLETED });
       referralRepo.findOne.mockResolvedValue(referral);
-      const code = createMockCode({ successfulReferrals: 0, totalEarnedInr: 0 });
+      const code = createMockCode({
+        successfulReferrals: 0,
+        totalEarnedInr: 0,
+      });
       codeRepo.findOne.mockResolvedValue(code);
       tierConfigRepo.findOne.mockResolvedValue(createMockTierConfig());
       tierConfigRepo.find.mockResolvedValue([createMockTierConfig()]);
@@ -573,7 +649,10 @@ describe('ReferralService — Senior QA Review', () => {
         savedCode = c as ReferralCode;
         return Promise.resolve(c as ReferralCode);
       });
-      referralRepo.save.mockResolvedValue({ ...referral, status: ReferralStatus.REWARDED } as Referral);
+      referralRepo.save.mockResolvedValue({
+        ...referral,
+        status: ReferralStatus.REWARDED,
+      } as Referral);
 
       await service.deliverReward('ref-1');
 
@@ -607,9 +686,21 @@ describe('ReferralService — Senior QA Review', () => {
   /* ------------------------------------------------------------------ */
   describe('Leaderboard ordering and limits', () => {
     it('should return top referrers sorted by successfulReferrals DESC', async () => {
-      const code1 = createMockCode({ userId: 'u1', code: 'CODE01', successfulReferrals: 10 });
-      const code2 = createMockCode({ userId: 'u2', code: 'CODE02', successfulReferrals: 5 });
-      const code3 = createMockCode({ userId: 'u3', code: 'CODE03', successfulReferrals: 1 });
+      const code1 = createMockCode({
+        userId: 'u1',
+        code: 'CODE01',
+        successfulReferrals: 10,
+      });
+      const code2 = createMockCode({
+        userId: 'u2',
+        code: 'CODE02',
+        successfulReferrals: 5,
+      });
+      const code3 = createMockCode({
+        userId: 'u3',
+        code: 'CODE03',
+        successfulReferrals: 1,
+      });
       codeRepo.find.mockResolvedValue([code1, code2, code3]);
       (userRepo.findByIds as jest.Mock).mockResolvedValue([
         createMockUser({ id: 'u1', fullName: 'Alice' }),
@@ -627,10 +718,17 @@ describe('ReferralService — Senior QA Review', () => {
 
     it('should respect custom limit parameter', async () => {
       const codes = Array.from({ length: 5 }, (_, i) =>
-        createMockCode({ userId: `u${i}`, code: `CODE${i}`, successfulReferrals: i }));
+        createMockCode({
+          userId: `u${i}`,
+          code: `CODE${i}`,
+          successfulReferrals: i,
+        }),
+      );
       codeRepo.find.mockResolvedValue(codes);
       (userRepo.findByIds as jest.Mock).mockResolvedValue(
-        codes.map((c) => createMockUser({ id: c.userId, fullName: `User${c.userId}` })),
+        codes.map((c) =>
+          createMockUser({ id: c.userId, fullName: `User${c.userId}` }),
+        ),
       );
 
       const result = await service.getLeaderboard(3);
@@ -640,7 +738,12 @@ describe('ReferralService — Senior QA Review', () => {
 
     it('should cap limit at 100', async () => {
       const codes = Array.from({ length: 150 }, (_, i) =>
-        createMockCode({ userId: `u${i}`, code: `CODE${i}`, successfulReferrals: i }));
+        createMockCode({
+          userId: `u${i}`,
+          code: `CODE${i}`,
+          successfulReferrals: i,
+        }),
+      );
       codeRepo.find.mockResolvedValue(codes.slice(0, 100));
       (userRepo.findByIds as jest.Mock).mockResolvedValue(
         codes.slice(0, 100).map((c) => createMockUser({ id: c.userId })),
@@ -666,8 +769,13 @@ describe('ReferralService — Senior QA Review', () => {
       tierConfigRepo.findOne.mockResolvedValue(createMockTierConfig());
       tierConfigRepo.find.mockResolvedValue([createMockTierConfig()]);
       codeRepo.save.mockResolvedValue(code);
-      referralRepo.save.mockResolvedValue({ ...referral, status: ReferralStatus.REWARDED } as Referral);
-      notificationsService.sendPushToUser.mockRejectedValue(new Error('FCM down'));
+      referralRepo.save.mockResolvedValue({
+        ...referral,
+        status: ReferralStatus.REWARDED,
+      } as Referral);
+      notificationsService.sendPushToUser.mockRejectedValue(
+        new Error('FCM down'),
+      );
 
       await expect(service.deliverReward('ref-1')).resolves.not.toThrow();
 
@@ -686,7 +794,10 @@ describe('ReferralService — Senior QA Review', () => {
       tierConfigRepo.findOne.mockResolvedValue(createMockTierConfig());
       tierConfigRepo.find.mockResolvedValue([createMockTierConfig()]);
       codeRepo.save.mockResolvedValue(code);
-      referralRepo.save.mockResolvedValue({ ...referral, status: ReferralStatus.REWARDED } as Referral);
+      referralRepo.save.mockResolvedValue({
+        ...referral,
+        status: ReferralStatus.REWARDED,
+      } as Referral);
 
       await service.deliverReward('ref-1');
 
@@ -718,7 +829,10 @@ describe('ReferralService — Senior QA Review', () => {
       tierConfigRepo.findOne.mockResolvedValue(createMockTierConfig());
       tierConfigRepo.find.mockResolvedValue([createMockTierConfig()]);
       codeRepo.save.mockResolvedValue(code);
-      referralRepo.save.mockResolvedValue({ ...referral, status: ReferralStatus.REWARDED } as Referral);
+      referralRepo.save.mockResolvedValue({
+        ...referral,
+        status: ReferralStatus.REWARDED,
+      } as Referral);
 
       await service.deliverReward('ref-1');
 
@@ -739,12 +853,24 @@ describe('ReferralService — Senior QA Review', () => {
     });
 
     it('should not save if tier has not changed', async () => {
-      const code = createMockCode({ tier: ReferralTier.BASE, successfulReferrals: 1 });
+      const code = createMockCode({
+        tier: ReferralTier.BASE,
+        successfulReferrals: 1,
+      });
       codeRepo.findOne.mockResolvedValue(code);
       tierConfigRepo.find.mockResolvedValue([
-        createMockTierConfig({ tier: ReferralTier.GOLD, minSuccessfulReferrals: 10 }),
-        createMockTierConfig({ tier: ReferralTier.SILVER, minSuccessfulReferrals: 3 }),
-        createMockTierConfig({ tier: ReferralTier.BASE, minSuccessfulReferrals: 0 }),
+        createMockTierConfig({
+          tier: ReferralTier.GOLD,
+          minSuccessfulReferrals: 10,
+        }),
+        createMockTierConfig({
+          tier: ReferralTier.SILVER,
+          minSuccessfulReferrals: 3,
+        }),
+        createMockTierConfig({
+          tier: ReferralTier.BASE,
+          minSuccessfulReferrals: 0,
+        }),
       ]);
 
       await service.recalculateTier('user-1');
@@ -753,14 +879,29 @@ describe('ReferralService — Senior QA Review', () => {
     });
 
     it('should downgrade if successfulReferrals drops (edge: should not happen but handle gracefully)', async () => {
-      const code = createMockCode({ tier: ReferralTier.SILVER, successfulReferrals: 2 });
+      const code = createMockCode({
+        tier: ReferralTier.SILVER,
+        successfulReferrals: 2,
+      });
       codeRepo.findOne.mockResolvedValue(code);
       tierConfigRepo.find.mockResolvedValue([
-        createMockTierConfig({ tier: ReferralTier.GOLD, minSuccessfulReferrals: 10 }),
-        createMockTierConfig({ tier: ReferralTier.SILVER, minSuccessfulReferrals: 3 }),
-        createMockTierConfig({ tier: ReferralTier.BASE, minSuccessfulReferrals: 0 }),
+        createMockTierConfig({
+          tier: ReferralTier.GOLD,
+          minSuccessfulReferrals: 10,
+        }),
+        createMockTierConfig({
+          tier: ReferralTier.SILVER,
+          minSuccessfulReferrals: 3,
+        }),
+        createMockTierConfig({
+          tier: ReferralTier.BASE,
+          minSuccessfulReferrals: 0,
+        }),
       ]);
-      codeRepo.save.mockResolvedValue({ ...code, tier: ReferralTier.BASE } as ReferralCode);
+      codeRepo.save.mockResolvedValue({
+        ...code,
+        tier: ReferralTier.BASE,
+      } as ReferralCode);
 
       await service.recalculateTier('user-1');
 
@@ -779,13 +920,17 @@ describe('ReferralService — Senior QA Review', () => {
       codeRepo.findOne.mockResolvedValue(code);
       userRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.getCodeInfo('ABC12345')).rejects.toThrow(NotFoundException);
+      await expect(service.getCodeInfo('ABC12345')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw when claiming with invalid code', async () => {
       codeRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.claimReferral('NOEXIST', 'user-2')).rejects.toThrow(NotFoundException);
+      await expect(service.claimReferral('NOEXIST', 'user-2')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw when referee user does not exist', async () => {
@@ -793,13 +938,17 @@ describe('ReferralService — Senior QA Review', () => {
       codeRepo.findOne.mockResolvedValue(code);
       userRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.claimReferral('ABC12345', 'ghost')).rejects.toThrow(NotFoundException);
+      await expect(service.claimReferral('ABC12345', 'ghost')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw when delivering reward for missing referral', async () => {
       referralRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.deliverReward('missing')).rejects.toThrow(NotFoundException);
+      await expect(service.deliverReward('missing')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw when referral code is missing during reward delivery', async () => {
@@ -807,7 +956,9 @@ describe('ReferralService — Senior QA Review', () => {
       referralRepo.findOne.mockResolvedValue(referral);
       codeRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.deliverReward('ref-1')).rejects.toThrow(NotFoundException);
+      await expect(service.deliverReward('ref-1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -819,7 +970,11 @@ describe('ReferralService — Senior QA Review', () => {
       const code = createMockCode();
       codeRepo.findOne.mockResolvedValue(code);
       const referrals = Array.from({ length: 25 }, (_, i) =>
-        createMockReferral({ id: `ref-${i}`, refereeEmail: `ref${i}@test.com` }));
+        createMockReferral({
+          id: `ref-${i}`,
+          refereeEmail: `ref${i}@test.com`,
+        }),
+      );
       referralRepo.findAndCount.mockResolvedValue([referrals.slice(0, 10), 25]);
 
       const result = await service.getMyReferrals('user-1', 1, 10);
@@ -853,7 +1008,9 @@ describe('ReferralService — Senior QA Review', () => {
 
       userRepo.findOne.mockResolvedValue(createMockUser());
       codeRepo.create.mockImplementation((data) => data as ReferralCode);
-      codeRepo.save.mockImplementation((data) => Promise.resolve(data as ReferralCode));
+      codeRepo.save.mockImplementation((data) =>
+        Promise.resolve(data as ReferralCode),
+      );
 
       const result = await service.getOrGenerateCode('user-new');
 

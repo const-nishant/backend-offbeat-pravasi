@@ -1,5 +1,8 @@
+import { Logger } from '@nestjs/common';
 import { Redis } from 'ioredis';
 import { redisConfig } from '../../config/redis.config';
+
+const redisLogger = new Logger('Redis');
 
 export const createRedisClient = (): Redis => {
   const client = new Redis({
@@ -22,16 +25,14 @@ export const createRedisClient = (): Redis => {
     },
   });
 
-  // Handle connection errors gracefully
   client.on('error', (err) => {
-    // Only log if not a connection refused error (will retry)
     if (!err.message.includes('ECONNREFUSED')) {
-      console.error('[Redis] Connection error:', err.message);
+      redisLogger.error(`Connection error: ${err.message}`);
     }
   });
 
   client.on('connect', () => {
-    console.log('[Redis] Connected successfully');
+    redisLogger.log('Connected successfully');
   });
 
   return client;

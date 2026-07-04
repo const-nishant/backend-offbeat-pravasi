@@ -7,6 +7,9 @@ import { Booking } from '../bookings/entities/booking.entity';
 import { Trek } from '../treks/entities/trek.entity';
 import { BookingsModule } from '../bookings/bookings.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { StripeAdapter } from './providers/stripe.adapter';
+import { RazorpayAdapter } from './providers/razorpay.adapter';
+import { GatewayRegistry } from './providers/gateway-registry.service';
 
 @Module({
   imports: [
@@ -15,7 +18,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     NotificationsModule,
   ],
   controllers: [PaymentsController],
-  providers: [PaymentsService],
-  exports: [PaymentsService],
+  providers: [PaymentsService, StripeAdapter, RazorpayAdapter, GatewayRegistry],
+  exports: [PaymentsService, GatewayRegistry],
 })
 export class PaymentsModule {}

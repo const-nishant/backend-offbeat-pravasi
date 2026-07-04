@@ -1,7 +1,7 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { AssessmentsController } from '../assessments.controller';
 import { AssessmentsService } from '../assessments.service';
-import { SubmitAssessmentDto } from '../dtos/submit-assessment.dto';
+import type { SubmitAssessmentDto } from '../dtos/submit-assessment.dto';
 
 describe('AssessmentsController', () => {
   let controller: AssessmentsController;
@@ -56,7 +56,9 @@ describe('AssessmentsController', () => {
   describe('POST /assessments/submit', () => {
     it('should submit answers and return result', async () => {
       const dto: SubmitAssessmentDto = {
-        answers: [{ questionId: 'exercise_frequency', selectedOption: 'Daily' }],
+        answers: [
+          { questionId: 'exercise_frequency', selectedOption: 'Daily' },
+        ],
       };
       service.submit.mockResolvedValue(mockResult);
 
@@ -88,7 +90,9 @@ describe('AssessmentsController', () => {
 
   describe('GET /users/:userId/assessment-result', () => {
     it('should return public bracket', async () => {
-      service.getPublicBracket.mockResolvedValue({ difficultyBracket: 'MODERATE' });
+      service.getPublicBracket.mockResolvedValue({
+        difficultyBracket: 'MODERATE',
+      });
 
       const result = await controller.getUserBracket('user-2');
 

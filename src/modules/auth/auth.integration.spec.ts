@@ -115,12 +115,17 @@ describe('AuthService Integration (sqlite)', () => {
     await userRepo.clear();
     jest.clearAllMocks();
 
+    const mockAnalytics = {
+      track: jest.fn().mockResolvedValue(undefined),
+    } as any;
+
     service = new AuthService(
       userRepo,
       jwtService as any,
       redisService as any,
       mailerService as any,
       {} as any, // betterAuthService
+      mockAnalytics,
     );
   });
 

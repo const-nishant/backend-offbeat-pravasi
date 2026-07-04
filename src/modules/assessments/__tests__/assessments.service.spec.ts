@@ -1,9 +1,9 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
 import { AssessmentsService } from '../assessments.service';
 import { FitnessAssessment } from '../entities/fitness-assessment.entity';
-import { SubmitAssessmentDto } from '../dtos/submit-assessment.dto';
+import type { SubmitAssessmentDto } from '../dtos/submit-assessment.dto';
 
 describe('AssessmentsService', () => {
   let service: AssessmentsService;
@@ -65,13 +65,22 @@ describe('AssessmentsService', () => {
         answers: [
           { questionId: 'exercise_frequency', selectedOption: 'Daily' },
           { questionId: 'longest_walk', selectedOption: '> 20 km' },
-          { questionId: 'altitude_experience', selectedOption: 'Mountains (> 4000m)' },
+          {
+            questionId: 'altitude_experience',
+            selectedOption: 'Mountains (> 4000m)',
+          },
           { questionId: 'camping_comfort', selectedOption: 'Very comfortable' },
-          { questionId: 'medical_conditions', selectedOption: 'Excellent health' },
+          {
+            questionId: 'medical_conditions',
+            selectedOption: 'Excellent health',
+          },
           { questionId: 'primary_goal', selectedOption: 'Summit / endurance' },
           { questionId: 'age_range', selectedOption: '18-30' },
           { questionId: 'prior_trek_count', selectedOption: '6+ treks' },
-          { questionId: 'swimming_comfort', selectedOption: 'Very strong swimmer' },
+          {
+            questionId: 'swimming_comfort',
+            selectedOption: 'Very strong swimmer',
+          },
           { questionId: 'sleeping_conditions', selectedOption: 'Prefer it' },
         ],
       };
@@ -98,18 +107,34 @@ describe('AssessmentsService', () => {
         answers: [
           { questionId: 'exercise_frequency', selectedOption: 'Never' },
           { questionId: 'longest_walk', selectedOption: '< 5 km' },
-          { questionId: 'altitude_experience', selectedOption: 'Sea level (< 500m)' },
+          {
+            questionId: 'altitude_experience',
+            selectedOption: 'Sea level (< 500m)',
+          },
           { questionId: 'camping_comfort', selectedOption: 'Not comfortable' },
-          { questionId: 'medical_conditions', selectedOption: 'Yes, significant concerns' },
-          { questionId: 'primary_goal', selectedOption: 'Leisure / sightseeing' },
+          {
+            questionId: 'medical_conditions',
+            selectedOption: 'Yes, significant concerns',
+          },
+          {
+            questionId: 'primary_goal',
+            selectedOption: 'Leisure / sightseeing',
+          },
           { questionId: 'age_range', selectedOption: 'Under 18' },
           { questionId: 'prior_trek_count', selectedOption: 'None' },
           { questionId: 'swimming_comfort', selectedOption: 'Cannot swim' },
-          { questionId: 'sleeping_conditions', selectedOption: 'Very uncomfortable' },
+          {
+            questionId: 'sleeping_conditions',
+            selectedOption: 'Very uncomfortable',
+          },
         ],
       };
 
-      const expectedAssessment = { ...mockAssessment, totalScore: 0, difficultyBracket: 'EASY' } as unknown as FitnessAssessment;
+      const expectedAssessment = {
+        ...mockAssessment,
+        totalScore: 0,
+        difficultyBracket: 'EASY',
+      } as unknown as FitnessAssessment;
       assessmentRepo.create.mockReturnValue(expectedAssessment);
       assessmentRepo.save.mockResolvedValue(expectedAssessment);
 
@@ -124,18 +149,31 @@ describe('AssessmentsService', () => {
         answers: [
           { questionId: 'exercise_frequency', selectedOption: 'Daily' },
           { questionId: 'longest_walk', selectedOption: '> 20 km' },
-          { questionId: 'altitude_experience', selectedOption: 'Mountains (> 4000m)' },
+          {
+            questionId: 'altitude_experience',
+            selectedOption: 'Mountains (> 4000m)',
+          },
           { questionId: 'camping_comfort', selectedOption: 'Very comfortable' },
-          { questionId: 'medical_conditions', selectedOption: 'Excellent health' },
+          {
+            questionId: 'medical_conditions',
+            selectedOption: 'Excellent health',
+          },
           { questionId: 'primary_goal', selectedOption: 'Summit / endurance' },
           { questionId: 'age_range', selectedOption: '18-30' },
           { questionId: 'prior_trek_count', selectedOption: '6+ treks' },
-          { questionId: 'swimming_comfort', selectedOption: 'Very strong swimmer' },
+          {
+            questionId: 'swimming_comfort',
+            selectedOption: 'Very strong swimmer',
+          },
           { questionId: 'sleeping_conditions', selectedOption: 'Prefer it' },
         ],
       };
 
-      const highAssessment = { ...mockAssessment, totalScore: 100, difficultyBracket: 'EXTREME' } as unknown as FitnessAssessment;
+      const highAssessment = {
+        ...mockAssessment,
+        totalScore: 100,
+        difficultyBracket: 'EXTREME',
+      } as unknown as FitnessAssessment;
       assessmentRepo.create.mockReturnValue(highAssessment);
       assessmentRepo.save.mockResolvedValue(highAssessment);
 
@@ -152,7 +190,11 @@ describe('AssessmentsService', () => {
         ],
       };
 
-      const lowAssessment = { ...mockAssessment, totalScore: 0, difficultyBracket: 'EASY' } as unknown as FitnessAssessment;
+      const lowAssessment = {
+        ...mockAssessment,
+        totalScore: 0,
+        difficultyBracket: 'EASY',
+      } as unknown as FitnessAssessment;
       assessmentRepo.create.mockReturnValue(lowAssessment);
       assessmentRepo.save.mockResolvedValue(lowAssessment);
 

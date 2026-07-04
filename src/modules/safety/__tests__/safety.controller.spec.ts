@@ -117,10 +117,7 @@ describe('SafetyController', () => {
         relationship: 'Friend',
       };
       service.addContact.mockResolvedValue(mockContact as any);
-      const result = await controller.addEmergencyContact(
-        mockUser as any,
-        dto,
-      );
+      const result = await controller.addEmergencyContact(mockUser as any, dto);
       expect(result).toEqual(mockContact);
       expect(service.addContact).toHaveBeenCalledWith('user-1', dto);
     });
@@ -175,7 +172,11 @@ describe('SafetyController', () => {
         ...mockCheckIn,
         status: 'COMPLETED',
       } as any);
-      const result = await controller.checkOut('booking-1', mockUser as any, dto);
+      const result = await controller.checkOut(
+        'booking-1',
+        mockUser as any,
+        dto,
+      );
       expect(result.status).toBe('COMPLETED');
       expect(service.checkOut).toHaveBeenCalledWith('booking-1', 'user-1', dto);
     });

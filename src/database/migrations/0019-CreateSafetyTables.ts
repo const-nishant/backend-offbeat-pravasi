@@ -68,7 +68,9 @@ export class CreateSafetyTables0019 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP TABLE IF EXISTS trek_check_ins CASCADE;`);
-    await queryRunner.query(`DROP TABLE IF EXISTS user_emergency_contacts CASCADE;`);
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS user_emergency_contacts CASCADE;`,
+    );
     await queryRunner.query(`DROP TABLE IF EXISTS trek_safety_info CASCADE;`);
   }
 }

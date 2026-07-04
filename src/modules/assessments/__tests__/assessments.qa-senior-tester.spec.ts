@@ -1,6 +1,6 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
 import { AssessmentsService } from '../assessments.service';
 import { FitnessAssessment } from '../entities/fitness-assessment.entity';
 import { QUIZ_QUESTIONS, calculateScore } from '../constants/quiz-questions';
@@ -48,14 +48,18 @@ describe('AssessmentsService — Senior QA Review', () => {
 
   describe('Boundary analysis — score thresholds', () => {
     it('all-minimum answers → EASY (score=6, not 0 — by design)', () => {
-      const { totalScore, difficultyBracket } = calculateScore(extremeAnswers('min'));
+      const { totalScore, difficultyBracket } = calculateScore(
+        extremeAnswers('min'),
+      );
       expect(difficultyBracket).toBe('EASY');
       expect(totalScore).toBe(6);
       // Root cause: primary_goal min=25, age_range min=50 (never 0)
     });
 
     it('all-maximum answers → EXTREME (score=100)', () => {
-      const { totalScore, difficultyBracket } = calculateScore(extremeAnswers('max'));
+      const { totalScore, difficultyBracket } = calculateScore(
+        extremeAnswers('max'),
+      );
       expect(difficultyBracket).toBe('EXTREME');
       expect(totalScore).toBe(100);
     });
@@ -64,8 +68,11 @@ describe('AssessmentsService — Senior QA Review', () => {
       // Use 2 low-score questions to force score into EASY range
       const { totalScore, difficultyBracket } = calculateScore([
         { questionId: 'exercise_frequency', selectedOption: 'Never' }, // 0 * 1.5 = 0
-        { questionId: 'longest_walk', selectedOption: '< 5 km' },     // 0 * 1.5 = 0
-        { questionId: 'altitude_experience', selectedOption: 'Sea level (< 500m)' }, // 0 * 1.5 = 0
+        { questionId: 'longest_walk', selectedOption: '< 5 km' }, // 0 * 1.5 = 0
+        {
+          questionId: 'altitude_experience',
+          selectedOption: 'Sea level (< 500m)',
+        }, // 0 * 1.5 = 0
       ]);
       expect(totalScore).toBeLessThanOrEqual(20);
       expect(difficultyBracket).toBe('EASY');
@@ -73,9 +80,9 @@ describe('AssessmentsService — Senior QA Review', () => {
 
     it('should classify score 21-45 as MODERATE', () => {
       const { totalScore, difficultyBracket } = calculateScore([
-        { questionId: 'exercise_frequency', selectedOption: '1-2x week' },     // 25 * 1.5 = 37.5
-        { questionId: 'longest_walk', selectedOption: '5-10 km' },             // 25 * 1.5 = 37.5
-        { questionId: 'age_range', selectedOption: 'Under 18' },               // 50 * 1.0 = 50
+        { questionId: 'exercise_frequency', selectedOption: '1-2x week' }, // 25 * 1.5 = 37.5
+        { questionId: 'longest_walk', selectedOption: '5-10 km' }, // 25 * 1.5 = 37.5
+        { questionId: 'age_range', selectedOption: 'Under 18' }, // 50 * 1.0 = 50
         { questionId: 'primary_goal', selectedOption: 'Leisure / sightseeing' }, // 25 * 1.0 = 25
       ]);
       // sum=150, weight=5.0, score=30
@@ -86,9 +93,12 @@ describe('AssessmentsService — Senior QA Review', () => {
 
     it('should classify score 46-75 as DIFFICULT', () => {
       const { totalScore, difficultyBracket } = calculateScore([
-        { questionId: 'exercise_frequency', selectedOption: '3-5x week' },     // 50 * 1.5 = 75
-        { questionId: 'longest_walk', selectedOption: '10-20 km' },             // 50 * 1.5 = 75
-        { questionId: 'medical_conditions', selectedOption: 'No known conditions' }, // 75 * 2.0 = 150
+        { questionId: 'exercise_frequency', selectedOption: '3-5x week' }, // 50 * 1.5 = 75
+        { questionId: 'longest_walk', selectedOption: '10-20 km' }, // 50 * 1.5 = 75
+        {
+          questionId: 'medical_conditions',
+          selectedOption: 'No known conditions',
+        }, // 75 * 2.0 = 150
       ]);
       // sum=300, weight=5.0, score=60
       expect(totalScore).toBeGreaterThanOrEqual(46);
@@ -98,10 +108,13 @@ describe('AssessmentsService — Senior QA Review', () => {
 
     it('should classify score 76-100 as EXTREME', () => {
       const { totalScore, difficultyBracket } = calculateScore([
-        { questionId: 'exercise_frequency', selectedOption: 'Daily' },          // 100 * 1.5 = 150
-        { questionId: 'longest_walk', selectedOption: '> 20 km' },              // 100 * 1.5 = 150
-        { questionId: 'medical_conditions', selectedOption: 'Excellent health' }, // 100 * 2.0 = 200
-        { questionId: 'age_range', selectedOption: '18-30' },                   // 100 * 1.0 = 100
+        { questionId: 'exercise_frequency', selectedOption: 'Daily' }, // 100 * 1.5 = 150
+        { questionId: 'longest_walk', selectedOption: '> 20 km' }, // 100 * 1.5 = 150
+        {
+          questionId: 'medical_conditions',
+          selectedOption: 'Excellent health',
+        }, // 100 * 2.0 = 200
+        { questionId: 'age_range', selectedOption: '18-30' }, // 100 * 1.0 = 100
       ]);
       // sum=600, weight=6.0, score=100
       expect(totalScore).toBeGreaterThanOrEqual(76);
@@ -115,7 +128,7 @@ describe('AssessmentsService — Senior QA Review', () => {
       // Let's just verify that 75 is the boundary condition
       const { totalScore, difficultyBracket } = calculateScore([
         { questionId: 'exercise_frequency', selectedOption: '3-5x week' }, // 50
-        { questionId: 'longest_walk', selectedOption: '10-20 km' },       // 50
+        { questionId: 'longest_walk', selectedOption: '10-20 km' }, // 50
         { questionId: 'camping_comfort', selectedOption: 'Very comfortable' }, // 100
       ]);
       // sum = 50*1.5 + 50*1.5 + 100*1.0 = 75+75+100 = 250, weight = 4.0, score = 62.5 → 63 → DIFFICULT
@@ -137,9 +150,12 @@ describe('AssessmentsService — Senior QA Review', () => {
       // score = 700/12 = 58 → DIFFICULT
       // Let me choose answers that sum to 76+
       const { totalScore: ts2, difficultyBracket: db2 } = calculateScore([
-        { questionId: 'exercise_frequency', selectedOption: 'Daily' },         // 100*1.5=150
-        { questionId: 'longest_walk', selectedOption: '> 20 km' },             // 100*1.5=150
-        { questionId: 'medical_conditions', selectedOption: 'Excellent health' }, // 100*2.0=200
+        { questionId: 'exercise_frequency', selectedOption: 'Daily' }, // 100*1.5=150
+        { questionId: 'longest_walk', selectedOption: '> 20 km' }, // 100*1.5=150
+        {
+          questionId: 'medical_conditions',
+          selectedOption: 'Excellent health',
+        }, // 100*2.0=200
       ]);
       // sum=500, weight=5.0, score=100 → EXTREME
       expect(ts2).toBeGreaterThanOrEqual(76);
@@ -152,7 +168,10 @@ describe('AssessmentsService — Senior QA Review', () => {
   describe('Security — injection vectors', () => {
     it('should handle SQL injection in questionId', () => {
       const { totalScore, difficultyBracket } = calculateScore([
-        { questionId: "'; DROP TABLE fitness_assessments; --", selectedOption: 'Daily' },
+        {
+          questionId: "'; DROP TABLE fitness_assessments; --",
+          selectedOption: 'Daily',
+        },
         { questionId: 'exercise_frequency', selectedOption: '3-5x week' },
       ]);
       expect(totalScore).toBeGreaterThan(0);
@@ -161,7 +180,10 @@ describe('AssessmentsService — Senior QA Review', () => {
 
     it('should handle XSS in selectedOption', () => {
       const { totalScore, difficultyBracket } = calculateScore([
-        { questionId: 'exercise_frequency', selectedOption: '<script>alert("xss")</script>' },
+        {
+          questionId: 'exercise_frequency',
+          selectedOption: '<script>alert("xss")</script>',
+        },
       ]);
       expect(difficultyBracket).toBe('EASY');
       expect(totalScore).toBe(0);
@@ -169,7 +191,10 @@ describe('AssessmentsService — Senior QA Review', () => {
 
     it('should handle NoSQL-style injection in questionId', () => {
       const { totalScore, difficultyBracket } = calculateScore([
-        { questionId: { $ne: 'exercise_frequency' } as any, selectedOption: 'Daily' },
+        {
+          questionId: { $ne: 'exercise_frequency' } as any,
+          selectedOption: 'Daily',
+        },
       ]);
       expect(difficultyBracket).toBe('EASY');
       expect(totalScore).toBe(0);
@@ -199,7 +224,10 @@ describe('AssessmentsService — Senior QA Review', () => {
 
     it('should handle very long selectedOption (10k chars)', () => {
       const { totalScore } = calculateScore([
-        { questionId: 'exercise_frequency', selectedOption: 'A'.repeat(10_000) },
+        {
+          questionId: 'exercise_frequency',
+          selectedOption: 'A'.repeat(10_000),
+        },
       ]);
       expect(totalScore).toBe(0);
     });
@@ -268,7 +296,9 @@ describe('AssessmentsService — Senior QA Review', () => {
         selectedOption: q.options[2].label,
       }));
 
-      const results = Array.from({ length: 100 }, () => calculateScore(answers));
+      const results = Array.from({ length: 100 }, () =>
+        calculateScore(answers),
+      );
       const first = results[0];
       for (const r of results) {
         expect(r.totalScore).toBe(first.totalScore);
@@ -399,7 +429,9 @@ describe('AssessmentsService — Senior QA Review', () => {
       } as FitnessAssessment);
 
       const result = await service.submit('user-1', {
-        answers: [{ questionId: 'exercise_frequency', selectedOption: '3-5x week' }],
+        answers: [
+          { questionId: 'exercise_frequency', selectedOption: '3-5x week' },
+        ],
       });
 
       expect(result.completedAt).toEqual(dbDate);
@@ -411,18 +443,42 @@ describe('AssessmentsService — Senior QA Review', () => {
   describe('Concurrency — race conditions', () => {
     it('should handle two simultaneous submissions for same user', async () => {
       assessmentRepo.create
-        .mockReturnValueOnce({ id: 'a1', totalScore: 20, difficultyBracket: 'EASY', completedAt: new Date() } as any)
-        .mockReturnValueOnce({ id: 'a2', totalScore: 80, difficultyBracket: 'EXTREME', completedAt: new Date() } as any);
+        .mockReturnValueOnce({
+          id: 'a1',
+          totalScore: 20,
+          difficultyBracket: 'EASY',
+          completedAt: new Date(),
+        } as any)
+        .mockReturnValueOnce({
+          id: 'a2',
+          totalScore: 80,
+          difficultyBracket: 'EXTREME',
+          completedAt: new Date(),
+        } as any);
       assessmentRepo.save
-        .mockResolvedValueOnce({ totalScore: 20, difficultyBracket: 'EASY', completedAt: new Date('2026-01-01') } as any)
-        .mockResolvedValueOnce({ totalScore: 80, difficultyBracket: 'EXTREME', completedAt: new Date('2026-06-01') } as any);
+        .mockResolvedValueOnce({
+          totalScore: 20,
+          difficultyBracket: 'EASY',
+          completedAt: new Date('2026-01-01'),
+        } as any)
+        .mockResolvedValueOnce({
+          totalScore: 80,
+          difficultyBracket: 'EXTREME',
+          completedAt: new Date('2026-06-01'),
+        } as any);
 
       const [r1, r2] = await Promise.all([
         service.submit('race-user', {
-          answers: QUIZ_QUESTIONS.map((q) => ({ questionId: q.id, selectedOption: q.options[0].label })),
+          answers: QUIZ_QUESTIONS.map((q) => ({
+            questionId: q.id,
+            selectedOption: q.options[0].label,
+          })),
         }),
         service.submit('race-user', {
-          answers: QUIZ_QUESTIONS.map((q) => ({ questionId: q.id, selectedOption: q.options[3].label })),
+          answers: QUIZ_QUESTIONS.map((q) => ({
+            questionId: q.id,
+            selectedOption: q.options[3].label,
+          })),
         }),
       ]);
 
@@ -439,13 +495,17 @@ describe('AssessmentsService — Senior QA Review', () => {
   describe('Non-existent user', () => {
     it('getLatestResult should return null for UUID with no data', async () => {
       assessmentRepo.findOne.mockResolvedValue(null);
-      const result = await service.getLatestResult('00000000-0000-0000-0000-000000000000');
+      const result = await service.getLatestResult(
+        '00000000-0000-0000-0000-000000000000',
+      );
       expect(result).toBeNull();
     });
 
     it('getPublicBracket should return null bracket for non-existent user', async () => {
       assessmentRepo.findOne.mockResolvedValue(null);
-      const result = await service.getPublicBracket('00000000-0000-0000-0000-000000000000');
+      const result = await service.getPublicBracket(
+        '00000000-0000-0000-0000-000000000000',
+      );
       expect(result.difficultyBracket).toBeNull();
     });
   });
@@ -493,8 +553,18 @@ describe('AssessmentsService — Senior QA Review', () => {
       const { totalScore } = calculateScore(answers);
       expect(totalScore).toBe(100);
       // Verify that even with 10x repetition (duplicate question IDs), no overflow occurs
-      const tenX = [...answers, ...answers, ...answers, ...answers, ...answers,
-        ...answers, ...answers, ...answers, ...answers, ...answers];
+      const tenX = [
+        ...answers,
+        ...answers,
+        ...answers,
+        ...answers,
+        ...answers,
+        ...answers,
+        ...answers,
+        ...answers,
+        ...answers,
+        ...answers,
+      ];
       const { totalScore: bigScore } = calculateScore(tenX);
       expect(bigScore).toBe(100); // weighted avg normalizes duplicates
     });
@@ -540,9 +610,13 @@ describe('AssessmentsService — Senior QA Review', () => {
 
 function extremeAnswers(type: 'min' | 'max'): SubmitAssessmentDto['answers'] {
   return QUIZ_QUESTIONS.map((q) => {
-    const idx = type === 'min'
-      ? 0
-      : q.options.reduce((best, opt, i, arr) => (opt.score > arr[best].score ? i : best), 0);
+    const idx =
+      type === 'min'
+        ? 0
+        : q.options.reduce(
+            (best, opt, i, arr) => (opt.score > arr[best].score ? i : best),
+            0,
+          );
     return {
       questionId: q.id,
       selectedOption: q.options[idx].label,

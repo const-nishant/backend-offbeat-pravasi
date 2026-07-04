@@ -105,7 +105,27 @@ export const ormConfig: DataSourceOptions = {
   migrationsTableName: 'migrations',
 
   ssl:
-    process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+    process.env.DB_SSL === 'true'
+      ? process.env.DB_CA_CERT
+        ? { ca: process.env.DB_CA_CERT, rejectUnauthorized: true }
+        : {
+            rejectUnauthorized:
+              process.env.NODE_ENV !== 'development' &&
+              process.env.NODE_ENV !== 'test',
+          }
+      : undefined,
+
+  extra: {
+    max: parseInt(process.env.DB_POOL_MAX ?? '20', 10),
+    idleTimeoutMillis: parseInt(
+      process.env.DB_POOL_IDLE_TIMEOUT ?? '30000',
+      10,
+    ),
+    connectionTimeoutMillis: parseInt(
+      process.env.DB_POOL_CONNECT_TIMEOUT ?? '5000',
+      10,
+    ),
+  },
 
   logging: process.env.DB_LOGGING === 'true',
 };

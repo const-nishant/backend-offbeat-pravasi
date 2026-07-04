@@ -1,7 +1,11 @@
-import { ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
 import { WishlistService } from '../wishlist.service';
 import { WishlistCollection } from '../entities/wishlist-collection.entity';
 import { WishlistItem } from '../entities/wishlist-item.entity';
@@ -69,7 +73,12 @@ describe('WishlistService', () => {
         },
         {
           provide: getRepositoryToken(TrekInteraction),
-          useValue: { findOne: jest.fn(), create: jest.fn(), save: jest.fn(), delete: jest.fn() },
+          useValue: {
+            findOne: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+            delete: jest.fn(),
+          },
         },
       ],
     }).compile();
@@ -110,7 +119,10 @@ describe('WishlistService', () => {
       collectionRepo.create.mockReturnValue(mockCollection);
       collectionRepo.save.mockResolvedValue(mockCollection);
 
-      const result = await service.createCollection('user-1', { name: 'Bucket List', description: 'My dream treks' });
+      const result = await service.createCollection('user-1', {
+        name: 'Bucket List',
+        description: 'My dream treks',
+      });
       expect(result.name).toBe('Bucket List');
       expect(collectionRepo.create).toHaveBeenCalledWith({
         userId: 'user-1',
@@ -121,28 +133,38 @@ describe('WishlistService', () => {
 
     it('should throw ConflictException when name already exists', async () => {
       collectionRepo.findOne.mockResolvedValue(mockCollection);
-      await expect(service.createCollection('user-1', { name: 'Bucket List' })).rejects.toThrow(ConflictException);
+      await expect(
+        service.createCollection('user-1', { name: 'Bucket List' }),
+      ).rejects.toThrow(ConflictException);
     });
   });
 
   describe('updateCollection', () => {
     it('should update collection name', async () => {
-      collectionRepo.findOne.mockResolvedValueOnce(mockCollection).mockResolvedValueOnce(null);
+      collectionRepo.findOne
+        .mockResolvedValueOnce(mockCollection)
+        .mockResolvedValueOnce(null);
       const updated = { ...mockCollection, name: 'Updated' };
       collectionRepo.save.mockResolvedValue(updated);
 
-      const result = await service.updateCollection('col-1', 'user-1', { name: 'Updated' });
+      const result = await service.updateCollection('col-1', 'user-1', {
+        name: 'Updated',
+      });
       expect(result.name).toBe('Updated');
     });
 
     it('should throw NotFoundException for non-existent collection', async () => {
       collectionRepo.findOne.mockResolvedValue(null);
-      await expect(service.updateCollection('bad-id', 'user-1', { name: 'x' })).rejects.toThrow(NotFoundException);
+      await expect(
+        service.updateCollection('bad-id', 'user-1', { name: 'x' }),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw BadRequestException for wrong user', async () => {
       collectionRepo.findOne.mockResolvedValue(mockCollection);
-      await expect(service.updateCollection('col-1', 'other-user', { name: 'x' })).rejects.toThrow(BadRequestException);
+      await expect(
+        service.updateCollection('col-1', 'other-user', { name: 'x' }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -172,14 +194,18 @@ describe('WishlistService', () => {
       itemRepo.create.mockReturnValue(mockItem);
       itemRepo.save.mockResolvedValue(mockItem);
 
-      const result = await service.addItem('col-1', 'user-1', { trekId: 'trek-1' });
+      const result = await service.addItem('col-1', 'user-1', {
+        trekId: 'trek-1',
+      });
       expect(result.trekId).toBe('trek-1');
     });
 
     it('should throw ConflictException when trek already in collection', async () => {
       collectionRepo.findOne.mockResolvedValue(mockCollection);
       itemRepo.findOne.mockResolvedValue(mockItem);
-      await expect(service.addItem('col-1', 'user-1', { trekId: 'trek-1' })).rejects.toThrow(ConflictException);
+      await expect(
+        service.addItem('col-1', 'user-1', { trekId: 'trek-1' }),
+      ).rejects.toThrow(ConflictException);
     });
   });
 
@@ -189,7 +215,10 @@ describe('WishlistService', () => {
       const updated = { ...mockItem, notes: 'Exciting!', priority: 1 };
       itemRepo.save.mockResolvedValue(updated);
 
-      const result = await service.updateItem('item-1', 'user-1', { notes: 'Exciting!', priority: 1 });
+      const result = await service.updateItem('item-1', 'user-1', {
+        notes: 'Exciting!',
+        priority: 1,
+      });
       expect(result.notes).toBe('Exciting!');
       expect(result.priority).toBe(1);
     });
@@ -265,9 +294,15 @@ describe('WishlistService', () => {
 
   describe('getSharedCollection', () => {
     it('should return collection with items by token', async () => {
-      const sharedCol = { ...mockCollection, name: 'Shared List', userId: 'user-2' };
+      const sharedCol = {
+        ...mockCollection,
+        name: 'Shared List',
+        userId: 'user-2',
+      };
       collectionRepo.findOne.mockResolvedValue(sharedCol);
-      itemRepo.find.mockResolvedValue([{ ...mockItem, collectionId: sharedCol.id } as WishlistItem]);
+      itemRepo.find.mockResolvedValue([
+        { ...mockItem, collectionId: sharedCol.id } as WishlistItem,
+      ]);
 
       const result = await service.getSharedCollection('token');
       expect(result.name).toBe('Shared List');
@@ -276,7 +311,9 @@ describe('WishlistService', () => {
 
     it('should throw NotFoundException for bad token', async () => {
       collectionRepo.findOne.mockResolvedValue(null);
-      await expect(service.getSharedCollection('bad-token')).rejects.toThrow(NotFoundException);
+      await expect(service.getSharedCollection('bad-token')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

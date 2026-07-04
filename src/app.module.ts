@@ -1,24 +1,21 @@
-import { Module, Global } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { createRedisClient } from './common/utils/redis.client';
 import { APP_FILTER, APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 import { ValidationExceptionFilter } from './common/filters/validation-exception.filter';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { ApiKeyGuard } from './common/guards/api-key.guard';
-import { RedisService } from './common/utils/redis.service';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ormConfig } from './config/ormconfig';
 import configuration from './config/configuration';
 import { validationSchema } from './config/validation';
+import { RedisModule } from './common/modules/redis.module';
 import { HealthModule } from './modules/health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { TreksModule } from './modules/treks/treks.module';
-import { PostsModule } from './modules/posts/posts.module';
-import { StoriesModule } from './modules/stories/stories.module';
 
 import { FriendshipsModule } from './modules/friendships/friendships.module';
 import { OrganizerModule } from './modules/organizer/organizer.module';
@@ -41,7 +38,6 @@ import { GroupsModule } from './modules/groups/groups.module';
 import { ReferralsModule } from './modules/referrals/referrals.module';
 import { WishlistModule } from './modules/wishlist/wishlist.module';
 import { RecommendationsModule } from './modules/recommendations/recommendations.module';
-@Global()
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -56,13 +52,12 @@ import { RecommendationsModule } from './modules/recommendations/recommendations
       },
     ]),
     TypeOrmModule.forRoot(ormConfig),
+    RedisModule,
     MailerModule,
     HealthModule,
     AuthModule,
     UsersModule,
     TreksModule,
-    PostsModule,
-    StoriesModule,
     FriendshipsModule,
     OrganizerModule,
     AdminModule,
@@ -85,22 +80,16 @@ import { RecommendationsModule } from './modules/recommendations/recommendations
     RecommendationsModule,
   ],
   providers: [
-    {
-      provide: 'REDIS_CLIENT',
-      useFactory: () => createRedisClient(),
-    },
-    RedisService,
-
-    // global filters & guards
+    // global guards
     { provide: APP_GUARD, useClass: ApiKeyGuard },
-    { provide: APP_FILTER, useClass: AllExceptionsFilter },
+
+    // Global exception filters: order matters — specific before catch-all
     { provide: APP_FILTER, useClass: ValidationExceptionFilter },
+    { provide: APP_FILTER, useClass: AllExceptionsFilter },
+
+    // Global interceptors
     { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: LoggingInterceptor,
-    },
+    { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
   ],
-  exports: ['REDIS_CLIENT', RedisService],
 })
 export class AppModule {}

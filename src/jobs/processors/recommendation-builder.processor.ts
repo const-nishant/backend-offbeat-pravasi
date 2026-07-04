@@ -1,10 +1,17 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { Worker } from 'bullmq';
 import { RecommendationsService } from '../../modules/recommendations/recommendations.service';
 import { bullConnection } from '../config';
 
 @Injectable()
-export class RecommendationBuilderWorkerService implements OnModuleInit, OnModuleDestroy {
+export class RecommendationBuilderWorkerService
+  implements OnModuleInit, OnModuleDestroy
+{
   private readonly logger = new Logger(RecommendationBuilderWorkerService.name);
   private worker!: Worker;
 
@@ -28,7 +35,9 @@ export class RecommendationBuilderWorkerService implements OnModuleInit, OnModul
     });
 
     this.worker.on('failed', (job, err) => {
-      this.logger.error(`Recommendation build job ${job?.id} failed: ${err.message}`);
+      this.logger.error(
+        `Recommendation build job ${job?.id} failed: ${err.message}`,
+      );
     });
   }
 
