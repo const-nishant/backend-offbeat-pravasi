@@ -36,13 +36,11 @@ export class StripeAdapter implements PaymentGateway {
     const stripe = this.client;
     if (!stripe) throw new Error('Stripe not configured');
     const amount = Math.round(amountInr * 100);
-      {
-        amount,
-        currency: 'inr',
-        payment_method_types: ['card'],
-      },
-      idempotencyKey ? { idempotencyKey } : undefined,
-    );
+    const intent = await stripe.paymentIntents.create({
+      amount,
+      currency: 'inr',
+      payment_method_types: ['card'],
+    });
     return {
       providerPaymentId: intent.id,
       rawResponse: intent,
