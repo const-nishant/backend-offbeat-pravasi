@@ -6,4 +6,6 @@ export const bullConnection: ConnectionOptions = {
   port: redisConfig.port,
   password: redisConfig.password,
   db: redisConfig.db,
+  maxRetriesPerRequest: null,
+  enableReadyCheck: false,
 };

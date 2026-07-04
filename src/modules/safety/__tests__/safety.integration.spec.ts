@@ -46,7 +46,8 @@ class SqliteUser {
   @Column({ type: 'varchar', length: 255, nullable: true }) fullName?: string;
   @Column({ type: 'varchar', length: 255, nullable: true }) username?: string;
   @Column({ type: 'boolean', default: false }) isAdmin!: boolean;
-  @Column({ type: 'varchar', length: 32, nullable: true }) organizerStatus?: string;
+  @Column({ type: 'varchar', length: 32, nullable: true })
+  organizerStatus?: string;
   @CreateDateColumn({ type: 'datetime' }) createdAt!: Date;
   @UpdateDateColumn({ type: 'datetime' }) updatedAt!: Date;
 }
@@ -63,8 +64,10 @@ class SqliteTrek {
   @Column({ type: 'datetime', nullable: true }) startDate?: Date;
   @Column({ type: 'datetime', nullable: true }) endDate?: Date;
   @Column({ type: 'int', default: 0 }) costInr!: number;
-  @Column({ type: 'varchar', length: 32, default: 'MODERATE' }) difficulty!: string;
-  @Column({ type: 'varchar', length: 32, default: 'PUBLISHED' }) status!: string;
+  @Column({ type: 'varchar', length: 32, default: 'MODERATE' })
+  difficulty!: string;
+  @Column({ type: 'varchar', length: 32, default: 'PUBLISHED' })
+  status!: string;
   @Column({ type: 'boolean', default: true }) isPublished!: boolean;
   @Column({ type: 'float', nullable: true }) latitude?: number;
   @Column({ type: 'float', nullable: true }) longitude?: number;
@@ -100,9 +103,12 @@ class SqliteTrekSafetyInfo {
   @Column({ type: 'text', nullable: true }) altitudeWarnings?: string;
   @Column({ type: 'text', nullable: true }) wildlifeAdvisories?: string;
   @Column({ type: 'text', nullable: true }) generalGuidelines?: string;
-  @Column({ type: 'varchar', length: 32, nullable: true }) baseCampContact?: string;
-  @Column({ type: 'varchar', length: 32, nullable: true }) localRescueContact?: string;
-  @Column({ type: 'varchar', length: 255, nullable: true }) nearestHospital?: string;
+  @Column({ type: 'varchar', length: 32, nullable: true })
+  baseCampContact?: string;
+  @Column({ type: 'varchar', length: 32, nullable: true })
+  localRescueContact?: string;
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  nearestHospital?: string;
   @CreateDateColumn({ type: 'datetime' }) createdAt!: Date;
   @UpdateDateColumn({ type: 'datetime' }) updatedAt!: Date;
 }
@@ -158,7 +164,10 @@ describe('Safety Integration — SQLite', () => {
   let booking: SqliteBooking;
 
   async function createOrganizer(): Promise<SqliteUser> {
-    return userRepo.save({ email: 'org@test.com', fullName: 'Organizer' } as any);
+    return userRepo.save({
+      email: 'org@test.com',
+      fullName: 'Organizer',
+    } as any);
   }
 
   async function createTrek(org: SqliteUser): Promise<SqliteTrek> {
@@ -217,7 +226,9 @@ describe('Safety Integration — SQLite', () => {
       trekRepo as any,
       bookingRepo as any,
       dataSource as any,
-      new (jest.requireMock('../../notifications/notifications.service').NotificationsService)(),
+      new (jest.requireMock(
+        '../../notifications/notifications.service',
+      ).NotificationsService)(),
     );
   });
 
@@ -400,9 +411,7 @@ describe('Safety Integration — SQLite', () => {
       longitude: 78.0,
     });
     await service.checkOut(booking.id, organizer.id);
-    await expect(
-      service.checkOut(booking.id, organizer.id),
-    ).rejects.toThrow();
+    await expect(service.checkOut(booking.id, organizer.id)).rejects.toThrow();
   });
 
   test('should not allow acknowledge on already completed check-in', async () => {

@@ -1,7 +1,12 @@
-import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { GroupsService } from '../groups.service';
 import { TrekGroup } from '../entities/trek-group.entity';
 import { GroupMember } from '../entities/group-member.entity';
@@ -29,24 +34,39 @@ describe('GroupsService', () => {
   let notificationsService: jest.Mocked<NotificationsService>;
 
   const mockTrek = {
-    id: 'trek-1', name: 'Test Trek', costInr: 5000,
-    maxParticipants: 20, currentParticipants: 0,
+    id: 'trek-1',
+    name: 'Test Trek',
+    costInr: 5000,
+    maxParticipants: 20,
+    currentParticipants: 0,
   } as unknown as Trek;
 
   const mockGroup = {
-    id: 'group-1', trekId: 'trek-1', leadUserId: 'user-1',
-    name: 'Test Group', maxSize: 5,
-    expiresAt: new Date('2099-12-31'), status: GroupStatus.OPEN,
-    shareCode: 'ABC123', createdAt: new Date(), updatedAt: new Date(),
+    id: 'group-1',
+    trekId: 'trek-1',
+    leadUserId: 'user-1',
+    name: 'Test Group',
+    maxSize: 5,
+    expiresAt: new Date('2099-12-31'),
+    status: GroupStatus.OPEN,
+    shareCode: 'ABC123',
+    createdAt: new Date(),
+    updatedAt: new Date(),
   } as unknown as TrekGroup;
 
   function createMockMember(overrides: Partial<GroupMember> = {}): GroupMember {
     return {
-      id: 'member-1', groupId: 'group-1', userId: 'user-2',
-      email: 'member@test.com', status: MemberStatus.JOINED,
-      fullName: 'Member User', phone: '+911234567890',
-      emergencyContact: null, medicalConditions: null,
-      joinedAt: new Date(), createdAt: new Date(),
+      id: 'member-1',
+      groupId: 'group-1',
+      userId: 'user-2',
+      email: 'member@test.com',
+      status: MemberStatus.JOINED,
+      fullName: 'Member User',
+      phone: '+911234567890',
+      emergencyContact: null,
+      medicalConditions: null,
+      joinedAt: new Date(),
+      createdAt: new Date(),
       ...overrides,
     } as unknown as GroupMember;
   }
@@ -125,27 +145,40 @@ describe('GroupsService', () => {
       groupRepo.save.mockResolvedValue(mockGroup);
 
       const result = await service.create('user-1', {
-        trekId: 'trek-1', maxSize: 5, expiresAt: '2099-12-31T00:00:00Z',
+        trekId: 'trek-1',
+        maxSize: 5,
+        expiresAt: '2099-12-31T00:00:00Z',
       });
 
       expect(result.id).toBe('group-1');
       expect(groupRepo.create).toHaveBeenCalledWith(
-        expect.objectContaining({ trekId: 'trek-1', leadUserId: 'user-1', maxSize: 5 }),
+        expect.objectContaining({
+          trekId: 'trek-1',
+          leadUserId: 'user-1',
+          maxSize: 5,
+        }),
       );
     });
 
     it('should throw when trek not found', async () => {
       trekRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.create('user-1', {
-        trekId: 'bad-trek', maxSize: 5, expiresAt: '2099-12-31T00:00:00Z',
-      })).rejects.toThrow(NotFoundException);
+      await expect(
+        service.create('user-1', {
+          trekId: 'bad-trek',
+          maxSize: 5,
+          expiresAt: '2099-12-31T00:00:00Z',
+        }),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('getById', () => {
     it('should return group for lead user', async () => {
-      groupRepo.findOne.mockResolvedValue({ ...mockGroup, members: [] } as unknown as TrekGroup);
+      groupRepo.findOne.mockResolvedValue({
+        ...mockGroup,
+        members: [],
+      } as unknown as TrekGroup);
 
       const result = await service.getById('group-1', 'user-1');
 
@@ -154,7 +187,8 @@ describe('GroupsService', () => {
 
     it('should return group for member user', async () => {
       groupRepo.findOne.mockResolvedValue({
-        ...mockGroup, members: [createMockMember()],
+        ...mockGroup,
+        members: [createMockMember()],
       } as unknown as TrekGroup);
 
       const result = await service.getById('group-1', 'user-2');
@@ -163,15 +197,22 @@ describe('GroupsService', () => {
     });
 
     it('should throw for non-member', async () => {
-      groupRepo.findOne.mockResolvedValue({ ...mockGroup, members: [] } as unknown as TrekGroup);
+      groupRepo.findOne.mockResolvedValue({
+        ...mockGroup,
+        members: [],
+      } as unknown as TrekGroup);
 
-      await expect(service.getById('group-1', 'stranger')).rejects.toThrow(ForbiddenException);
+      await expect(service.getById('group-1', 'stranger')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should throw for non-existent group', async () => {
       groupRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.getById('bad-id', 'user-1')).rejects.toThrow(NotFoundException);
+      await expect(service.getById('bad-id', 'user-1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -179,9 +220,14 @@ describe('GroupsService', () => {
     it('should update group name', async () => {
       groupRepo.findOne.mockResolvedValue(mockGroup);
       memberRepo.count.mockResolvedValue(2);
-      groupRepo.save.mockResolvedValue({ ...mockGroup, name: 'New Name' } as TrekGroup);
+      groupRepo.save.mockResolvedValue({
+        ...mockGroup,
+        name: 'New Name',
+      } as TrekGroup);
 
-      const result = await service.update('group-1', 'user-1', { name: 'New Name' });
+      const result = await service.update('group-1', 'user-1', {
+        name: 'New Name',
+      });
 
       expect(result).toBeDefined();
     });
@@ -190,8 +236,9 @@ describe('GroupsService', () => {
       groupRepo.findOne.mockResolvedValue(mockGroup);
       memberRepo.count.mockResolvedValue(4);
 
-      await expect(service.update('group-1', 'user-1', { maxSize: 3 }))
-        .rejects.toThrow(BadRequestException);
+      await expect(
+        service.update('group-1', 'user-1', { maxSize: 3 }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -213,17 +260,23 @@ describe('GroupsService', () => {
     it('should throw if not lead', async () => {
       groupRepo.findOne.mockResolvedValue(mockGroup);
 
-      await expect(service.invite('group-1', 'user-2', {
-        invites: [{ email: 'new@test.com' }],
-      })).rejects.toThrow(ForbiddenException);
+      await expect(
+        service.invite('group-1', 'user-2', {
+          invites: [{ email: 'new@test.com' }],
+        }),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
   describe('join', () => {
     it('should join a group via share code', async () => {
       groupRepo.findOne.mockResolvedValue(mockGroup);
-      memberRepo.findOne.mockResolvedValue(createMockMember({ status: MemberStatus.INVITED }));
-      memberRepo.save.mockResolvedValue(createMockMember({ status: MemberStatus.JOINED }));
+      memberRepo.findOne.mockResolvedValue(
+        createMockMember({ status: MemberStatus.INVITED }),
+      );
+      memberRepo.save.mockResolvedValue(
+        createMockMember({ status: MemberStatus.JOINED }),
+      );
 
       const result = await service.join('ABC123', 'user-2', 'member@test.com');
 
@@ -233,17 +286,25 @@ describe('GroupsService', () => {
     it('should throw for invalid share code', async () => {
       groupRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.join('BAD', 'user-2', 'a@b.com')).rejects.toThrow(NotFoundException);
+      await expect(service.join('BAD', 'user-2', 'a@b.com')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
   describe('updateMemberStatus', () => {
     it('should update member status to JOINED', async () => {
-      memberRepo.findOne.mockResolvedValue(createMockMember({ status: MemberStatus.INVITED }));
-      memberRepo.save.mockResolvedValue(createMockMember({ status: MemberStatus.JOINED }));
+      memberRepo.findOne.mockResolvedValue(
+        createMockMember({ status: MemberStatus.INVITED }),
+      );
+      memberRepo.save.mockResolvedValue(
+        createMockMember({ status: MemberStatus.JOINED }),
+      );
 
       const result = await service.updateMemberStatus(
-        'group-1', 'member-1', 'user-2',
+        'group-1',
+        'member-1',
+        'user-2',
         { status: MemberStatus.JOINED, fullName: 'Full Name' },
       );
 
@@ -251,12 +312,15 @@ describe('GroupsService', () => {
     });
 
     it('should throw if not the member', async () => {
-      memberRepo.findOne.mockResolvedValue(createMockMember({ userId: 'other-user' }));
+      memberRepo.findOne.mockResolvedValue(
+        createMockMember({ userId: 'other-user' }),
+      );
 
-      await expect(service.updateMemberStatus(
-        'group-1', 'member-1', 'wrong-user',
-        { status: MemberStatus.JOINED },
-      )).rejects.toThrow(ForbiddenException);
+      await expect(
+        service.updateMemberStatus('group-1', 'member-1', 'wrong-user', {
+          status: MemberStatus.JOINED,
+        }),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
@@ -274,7 +338,10 @@ describe('GroupsService', () => {
   describe('cancel', () => {
     it('should cancel a group', async () => {
       groupRepo.findOne.mockResolvedValue(mockGroup);
-      groupRepo.save.mockResolvedValue({ ...mockGroup, status: GroupStatus.CANCELLED } as TrekGroup);
+      groupRepo.save.mockResolvedValue({
+        ...mockGroup,
+        status: GroupStatus.CANCELLED,
+      } as TrekGroup);
       memberRepo.find.mockResolvedValue([]);
 
       await service.cancel('group-1', 'user-1');
@@ -305,15 +372,25 @@ describe('GroupsService', () => {
 
   describe('bookForGroup', () => {
     it('should throw if not lead', async () => {
-      groupRepo.findOne.mockResolvedValue({ ...mockGroup, members: [] } as unknown as TrekGroup);
+      groupRepo.findOne.mockResolvedValue({
+        ...mockGroup,
+        members: [],
+      } as unknown as TrekGroup);
 
-      await expect(service.bookForGroup('group-1', 'user-2')).rejects.toThrow(ForbiddenException);
+      await expect(service.bookForGroup('group-1', 'user-2')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should throw if no members joined', async () => {
-      groupRepo.findOne.mockResolvedValue({ ...mockGroup, members: [] } as unknown as TrekGroup);
+      groupRepo.findOne.mockResolvedValue({
+        ...mockGroup,
+        members: [],
+      } as unknown as TrekGroup);
 
-      await expect(service.bookForGroup('group-1', 'user-1')).rejects.toThrow(BadRequestException);
+      await expect(service.bookForGroup('group-1', 'user-1')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 });

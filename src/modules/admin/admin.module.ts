@@ -11,8 +11,7 @@ import { AdminBroadcastService } from './admin-broadcast.service';
 import { AdminAnalyticsController } from './admin-analytics.controller';
 import { AdminAnalyticsService } from './admin-analytics.service';
 import { AuditLog } from './entities/audit-log.entity';
-import { PlatformSettings } from './entities/platform-settings.entity';
-import { PlatformSettingsService } from './platform-settings.service';
+import { PlatformSettingsModule } from './platform-settings.module';
 import { User } from '../users/entities/user.entity';
 import { Trek } from '../treks/entities/trek.entity';
 import { Booking } from '../bookings/entities/booking.entity';
@@ -35,7 +34,6 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     TypeOrmModule.forFeature([
       AuditLog,
       User,
-      PlatformSettings,
       Trek,
       Booking,
       Payment,
@@ -44,6 +42,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
       Referral,
       NotificationCampaign,
     ]),
+    PlatformSettingsModule,
     OrganizerModule,
     JobsModule,
     NotificationsModule,
@@ -64,9 +63,8 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminBroadcastService,
     AdminAnalyticsService,
     AuditLogService,
-    PlatformSettingsService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
-  exports: [AdminService, AuditLogService, PlatformSettingsService],
+  exports: [AdminService, AuditLogService],
 })
 export class AdminModule {}

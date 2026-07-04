@@ -74,6 +74,8 @@ export class CreateReferralTables0022 implements MigrationInterface {
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP TABLE IF EXISTS referrals CASCADE;`);
     await queryRunner.query(`DROP TABLE IF EXISTS referral_codes CASCADE;`);
-    await queryRunner.query(`DROP TABLE IF EXISTS referral_tier_config CASCADE;`);
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS referral_tier_config CASCADE;`,
+    );
   }
 }

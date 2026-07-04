@@ -3,7 +3,8 @@ import Joi from 'joi';
 export const validationSchema = Joi.object({
   NODE_ENV: Joi.string()
     .valid('development', 'production', 'test')
-    .default('development'),
+    .default('development')
+    .description('Application environment'),
   PORT: Joi.number().default(4000),
   APP_URL: Joi.string().uri().allow('').default('http://localhost:4000'),
   FRONTEND_URL: Joi.string().uri().allow('').default('http://localhost:3000'),

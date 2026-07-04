@@ -66,10 +66,9 @@ describe('StripeAdapter', () => {
 
       await adapter.createPaymentIntent(1000, 'idem-key-1');
 
-      expect(mockStripeCreate).toHaveBeenCalledWith(
-        expect.any(Object),
-        { idempotencyKey: 'idem-key-1' },
-      );
+      expect(mockStripeCreate).toHaveBeenCalledWith(expect.any(Object), {
+        idempotencyKey: 'idem-key-1',
+      });
     });
 
     it('throws error when stripe is not configured', async () => {
@@ -116,9 +115,9 @@ describe('StripeAdapter', () => {
       delete process.env.STRIPE_SECRET_KEY;
       const unconfigured = new StripeAdapter();
 
-      await expect(
-        unconfigured.refundPayment('pi_123'),
-      ).rejects.toThrow('Stripe not configured');
+      await expect(unconfigured.refundPayment('pi_123')).rejects.toThrow(
+        'Stripe not configured',
+      );
     });
   });
 

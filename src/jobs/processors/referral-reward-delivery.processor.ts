@@ -5,7 +5,9 @@ import { ReferralService } from '../../modules/referrals/referrals.service';
 
 @Injectable()
 export class ReferralRewardDeliveryWorkerService {
-  private readonly logger = new Logger(ReferralRewardDeliveryWorkerService.name);
+  private readonly logger = new Logger(
+    ReferralRewardDeliveryWorkerService.name,
+  );
   private readonly worker: Worker;
 
   constructor(private readonly referralService: ReferralService) {

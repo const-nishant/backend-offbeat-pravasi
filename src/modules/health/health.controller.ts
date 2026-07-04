@@ -1,4 +1,9 @@
-import { Controller, Get, Inject } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Inject,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { HealthService } from './health.service';
 import { Public } from '../../common/decorators/public.decorator';
 import type { RedisClient } from '../../common/utils/redis.client';
@@ -16,7 +21,11 @@ export class HealthController {
   @Get()
   @ApiOperation({ summary: 'Base health check (includes Redis + DB liveness)' })
   async base() {
-    return this.healthService.baseHealth();
+    const result = await this.healthService.baseHealth();
+    if (!result.success) {
+      throw new ServiceUnavailableException(result);
+    }
+    return result;
   }
 
   @Public()

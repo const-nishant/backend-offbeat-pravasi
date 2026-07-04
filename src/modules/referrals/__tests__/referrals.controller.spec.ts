@@ -88,7 +88,11 @@ describe('ReferralController', () => {
       const result = await controller.getMyReferrals(mockUser, 1, 20);
 
       expect(result.meta.total).toBe(0);
-      expect(referralService.getMyReferrals).toHaveBeenCalledWith('user-1', 1, 20);
+      expect(referralService.getMyReferrals).toHaveBeenCalledWith(
+        'user-1',
+        1,
+        20,
+      );
     });
   });
 

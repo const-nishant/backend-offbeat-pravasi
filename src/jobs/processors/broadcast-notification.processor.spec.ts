@@ -155,9 +155,9 @@ describe('BroadcastNotificationWorkerService', () => {
         }
       };
 
-      await expect(
-        processJob({ campaignId: 'nonexistent' }),
-      ).rejects.toThrow('Campaign nonexistent not found');
+      await expect(processJob({ campaignId: 'nonexistent' })).rejects.toThrow(
+        'Campaign nonexistent not found',
+      );
 
       expect(campaignRepo.findOne).toHaveBeenCalledWith({
         where: { id: 'nonexistent' },
@@ -235,8 +235,7 @@ describe('BroadcastNotificationWorkerService', () => {
           type: 'all',
         });
 
-        const actualBatchSize =
-          Number(process.env.BROADCAST_BATCH_SIZE) || 500;
+        const actualBatchSize = Number(process.env.BROADCAST_BATCH_SIZE) || 500;
         const actualBatches: string[][] = [];
         for (let i = 0; i < resolvedUserIds.length; i += actualBatchSize) {
           actualBatches.push(resolvedUserIds.slice(i, i + actualBatchSize));

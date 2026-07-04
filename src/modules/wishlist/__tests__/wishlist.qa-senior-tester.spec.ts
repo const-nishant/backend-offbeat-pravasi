@@ -1,7 +1,11 @@
-import { ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
 import { WishlistService } from '../wishlist.service';
 import { WishlistCollection } from '../entities/wishlist-collection.entity';
 import { WishlistItem } from '../entities/wishlist-item.entity';
@@ -15,38 +19,67 @@ describe('WishlistService QA Senior Review', () => {
   let trekRepo: jest.Mocked<Repository<Trek>>;
   let interactionRepo: jest.Mocked<Repository<TrekInteraction>>;
 
-  const baseCollection = () => ({
-    id: 'col-1',
-    userId: 'user-1',
-    name: 'Test Collection',
-    description: null,
-    sortOrder: 0,
-    shareToken: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  }) as WishlistCollection;
+  const baseCollection = () =>
+    ({
+      id: 'col-1',
+      userId: 'user-1',
+      name: 'Test Collection',
+      description: null,
+      sortOrder: 0,
+      shareToken: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }) as WishlistCollection;
 
-  const baseItem = (overrides = {}) => ({
-    id: 'item-1',
-    collectionId: 'col-1',
-    trekId: 'trek-1',
-    notes: null,
-    priority: 0,
-    sortOrder: 0,
-    addedAt: new Date(),
-    basePriceInr: null,
-    collection: baseCollection(),
-    ...overrides,
-  }) as unknown as WishlistItem;
+  const baseItem = (overrides = {}) =>
+    ({
+      id: 'item-1',
+      collectionId: 'col-1',
+      trekId: 'trek-1',
+      notes: null,
+      priority: 0,
+      sortOrder: 0,
+      addedAt: new Date(),
+      basePriceInr: null,
+      collection: baseCollection(),
+      ...overrides,
+    }) as unknown as WishlistItem;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WishlistService,
-        { provide: getRepositoryToken(WishlistCollection), useValue: { find: jest.fn(), findOne: jest.fn(), create: jest.fn(), save: jest.fn(), remove: jest.fn() } },
-        { provide: getRepositoryToken(WishlistItem), useValue: { find: jest.fn(), findOne: jest.fn(), create: jest.fn(), save: jest.fn(), remove: jest.fn(), findAndCount: jest.fn() } },
+        {
+          provide: getRepositoryToken(WishlistCollection),
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+            remove: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(WishlistItem),
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+            remove: jest.fn(),
+            findAndCount: jest.fn(),
+          },
+        },
         { provide: getRepositoryToken(Trek), useValue: { findOne: jest.fn() } },
-        { provide: getRepositoryToken(TrekInteraction), useValue: { findOne: jest.fn(), create: jest.fn(), save: jest.fn(), delete: jest.fn() } },
+        {
+          provide: getRepositoryToken(TrekInteraction),
+          useValue: {
+            findOne: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+            delete: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -57,7 +90,9 @@ describe('WishlistService QA Senior Review', () => {
     interactionRepo = module.get(getRepositoryToken(TrekInteraction));
   });
 
-  beforeEach(() => { jest.clearAllMocks(); });
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
   // 1. Boundary analysis — collection name length
   describe('Boundary: collection name length', () => {
@@ -65,7 +100,9 @@ describe('WishlistService QA Senior Review', () => {
       collectionRepo.findOne.mockResolvedValue(null);
       collectionRepo.create.mockReturnValue(baseCollection());
       collectionRepo.save.mockResolvedValue(baseCollection());
-      await expect(service.createCollection('user-1', { name: 'X' })).resolves.toBeDefined();
+      await expect(
+        service.createCollection('user-1', { name: 'X' }),
+      ).resolves.toBeDefined();
     });
 
     it('should accept 120-char name', async () => {
@@ -74,7 +111,9 @@ describe('WishlistService QA Senior Review', () => {
       const col = { ...baseCollection(), name: longName };
       collectionRepo.create.mockReturnValue(col);
       collectionRepo.save.mockResolvedValue(col);
-      await expect(service.createCollection('user-1', { name: longName })).resolves.toBeDefined();
+      await expect(
+        service.createCollection('user-1', { name: longName }),
+      ).resolves.toBeDefined();
     });
   });
 
@@ -82,28 +121,38 @@ describe('WishlistService QA Senior Review', () => {
   describe('Security: access control', () => {
     it('should reject update from non-owner', async () => {
       collectionRepo.findOne.mockResolvedValue(baseCollection());
-      await expect(service.updateCollection('col-1', 'other-user', { name: 'x' })).rejects.toThrow(BadRequestException);
+      await expect(
+        service.updateCollection('col-1', 'other-user', { name: 'x' }),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should reject delete from non-owner', async () => {
       collectionRepo.findOne.mockResolvedValue(baseCollection());
-      await expect(service.deleteCollection('col-1', 'other-user')).rejects.toThrow(BadRequestException);
+      await expect(
+        service.deleteCollection('col-1', 'other-user'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should reject item view from non-owner', async () => {
       collectionRepo.findOne.mockResolvedValue(baseCollection());
-      await expect(service.getItems('col-1', 'other-user')).rejects.toThrow(BadRequestException);
+      await expect(service.getItems('col-1', 'other-user')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should reject item add from non-owner', async () => {
       collectionRepo.findOne.mockResolvedValue(baseCollection());
-      await expect(service.addItem('col-1', 'other-user', { trekId: 'trek-1' })).rejects.toThrow(BadRequestException);
+      await expect(
+        service.addItem('col-1', 'other-user', { trekId: 'trek-1' }),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should reject item update from non-owner', async () => {
       const item = baseItem();
       itemRepo.findOne.mockResolvedValue(item);
-      await expect(service.updateItem('item-1', 'other-user', { notes: 'x' })).rejects.toThrow(BadRequestException);
+      await expect(
+        service.updateItem('item-1', 'other-user', { notes: 'x' }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -111,17 +160,23 @@ describe('WishlistService QA Senior Review', () => {
   describe('Security: non-existent resources', () => {
     it('should throw NotFoundException for missing collection', async () => {
       collectionRepo.findOne.mockResolvedValue(null);
-      await expect(service.getItems('bad-id', 'user-1')).rejects.toThrow(NotFoundException);
+      await expect(service.getItems('bad-id', 'user-1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException for missing item', async () => {
       itemRepo.findOne.mockResolvedValue(null);
-      await expect(service.updateItem('bad-id', 'user-1', { notes: 'x' })).rejects.toThrow(NotFoundException);
+      await expect(
+        service.updateItem('bad-id', 'user-1', { notes: 'x' }),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw NotFoundException for missing shared token', async () => {
       collectionRepo.findOne.mockResolvedValue(null);
-      await expect(service.getSharedCollection('bad-token')).rejects.toThrow(NotFoundException);
+      await expect(service.getSharedCollection('bad-token')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -129,7 +184,9 @@ describe('WishlistService QA Senior Review', () => {
   describe('Duplicate prevention', () => {
     it('should reject duplicate collection name per user', async () => {
       collectionRepo.findOne.mockResolvedValue(baseCollection());
-      await expect(service.createCollection('user-1', { name: 'Test Collection' })).rejects.toThrow(ConflictException);
+      await expect(
+        service.createCollection('user-1', { name: 'Test Collection' }),
+      ).rejects.toThrow(ConflictException);
     });
 
     it('should allow same name for different users', async () => {
@@ -137,13 +194,17 @@ describe('WishlistService QA Senior Review', () => {
       const user2Col = { ...baseCollection(), userId: 'user-2' };
       collectionRepo.create.mockReturnValue(user2Col);
       collectionRepo.save.mockResolvedValue(user2Col);
-      await expect(service.createCollection('user-2', { name: 'Test Collection' })).resolves.toBeDefined();
+      await expect(
+        service.createCollection('user-2', { name: 'Test Collection' }),
+      ).resolves.toBeDefined();
     });
 
     it('should reject duplicate trek in same collection', async () => {
       collectionRepo.findOne.mockResolvedValue(baseCollection());
       itemRepo.findOne.mockResolvedValue(baseItem());
-      await expect(service.addItem('col-1', 'user-1', { trekId: 'trek-1' })).rejects.toThrow(ConflictException);
+      await expect(
+        service.addItem('col-1', 'user-1', { trekId: 'trek-1' }),
+      ).rejects.toThrow(ConflictException);
     });
   });
 
@@ -221,7 +282,9 @@ describe('WishlistService QA Senior Review', () => {
 
       const result = await service.quickAdd('trek-1', 'user-1');
       expect(result).toBeDefined();
-      expect(collectionRepo.create).toHaveBeenCalledWith(expect.objectContaining({ name: 'Saved Treks' }));
+      expect(collectionRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'Saved Treks' }),
+      );
     });
   });
 
@@ -232,7 +295,9 @@ describe('WishlistService QA Senior Review', () => {
       itemRepo.findOne.mockResolvedValue(null);
       itemRepo.create.mockReturnValue(baseItem());
       itemRepo.save.mockResolvedValue(baseItem());
-      const result = await service.addItem('col-1', 'user-1', { trekId: 'trek-1' });
+      const result = await service.addItem('col-1', 'user-1', {
+        trekId: 'trek-1',
+      });
       expect(result.priority).toBe(0);
     });
 
@@ -242,7 +307,10 @@ describe('WishlistService QA Senior Review', () => {
       const highItem = baseItem({ priority: 2 });
       itemRepo.create.mockReturnValue(highItem);
       itemRepo.save.mockResolvedValue(highItem);
-      const result = await service.addItem('col-1', 'user-1', { trekId: 'trek-1', priority: 2 });
+      const result = await service.addItem('col-1', 'user-1', {
+        trekId: 'trek-1',
+        priority: 2,
+      });
       expect(result.priority).toBe(2);
     });
   });
@@ -250,11 +318,18 @@ describe('WishlistService QA Senior Review', () => {
   // 9. Data integrity — returned fields match saved fields
   describe('Data integrity', () => {
     it('should return correct fields from createCollection', async () => {
-      const saved = { ...baseCollection(), name: 'Integrity Test', description: 'desc' };
+      const saved = {
+        ...baseCollection(),
+        name: 'Integrity Test',
+        description: 'desc',
+      };
       collectionRepo.findOne.mockResolvedValue(null);
       collectionRepo.create.mockReturnValue(saved);
       collectionRepo.save.mockResolvedValue(saved);
-      const result = await service.createCollection('user-1', { name: 'Integrity Test', description: 'desc' });
+      const result = await service.createCollection('user-1', {
+        name: 'Integrity Test',
+        description: 'desc',
+      });
       expect(result.id).toBeDefined();
       expect(result.name).toBe('Integrity Test');
       expect(result.description).toBe('desc');
@@ -267,7 +342,10 @@ describe('WishlistService QA Senior Review', () => {
       itemRepo.findOne.mockResolvedValue(item);
       const updated = { ...item, notes: 'Updated note', priority: 1 };
       itemRepo.save.mockResolvedValue(updated);
-      const result = await service.updateItem('item-1', 'user-1', { notes: 'Updated note', priority: 1 });
+      const result = await service.updateItem('item-1', 'user-1', {
+        notes: 'Updated note',
+        priority: 1,
+      });
       expect(result.notes).toBe('Updated note');
       expect(result.priority).toBe(1);
     });
@@ -300,7 +378,9 @@ describe('WishlistService QA Senior Review', () => {
       const col = baseCollection();
       collectionRepo.findOne.mockResolvedValue(col);
       await service.deleteCollection('col-1', 'user-1');
-      expect(collectionRepo.remove).toHaveBeenCalledWith(expect.objectContaining({ id: 'col-1', userId: 'user-1' }));
+      expect(collectionRepo.remove).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'col-1', userId: 'user-1' }),
+      );
     });
   });
 });

@@ -116,30 +116,27 @@ describe('AdminPaymentService', () => {
       await service.searchPayments({ bookingId: 'book-42' });
 
       const qb = paymentRepo.createQueryBuilder();
-      expect(qb.andWhere).toHaveBeenCalledWith(
-        'p.bookingId = :bookingId',
-        { bookingId: 'book-42' },
-      );
+      expect(qb.andWhere).toHaveBeenCalledWith('p.bookingId = :bookingId', {
+        bookingId: 'book-42',
+      });
     });
 
     it('applies provider filter', async () => {
       await service.searchPayments({ provider: 'STRIPE' });
 
       const qb = paymentRepo.createQueryBuilder();
-      expect(qb.andWhere).toHaveBeenCalledWith(
-        'p.provider = :provider',
-        { provider: 'STRIPE' },
-      );
+      expect(qb.andWhere).toHaveBeenCalledWith('p.provider = :provider', {
+        provider: 'STRIPE',
+      });
     });
 
     it('applies status filter', async () => {
       await service.searchPayments({ status: 'REFUNDED' });
 
       const qb = paymentRepo.createQueryBuilder();
-      expect(qb.andWhere).toHaveBeenCalledWith(
-        'p.status = :status',
-        { status: 'REFUNDED' },
-      );
+      expect(qb.andWhere).toHaveBeenCalledWith('p.status = :status', {
+        status: 'REFUNDED',
+      });
     });
 
     it('applies date range filters', async () => {
@@ -149,14 +146,12 @@ describe('AdminPaymentService', () => {
       });
 
       const qb = paymentRepo.createQueryBuilder();
-      expect(qb.andWhere).toHaveBeenCalledWith(
-        'p.createdAt >= :start',
-        { start: '2024-01-01' },
-      );
-      expect(qb.andWhere).toHaveBeenCalledWith(
-        'p.createdAt <= :end',
-        { end: '2024-12-31' },
-      );
+      expect(qb.andWhere).toHaveBeenCalledWith('p.createdAt >= :start', {
+        start: '2024-01-01',
+      });
+      expect(qb.andWhere).toHaveBeenCalledWith('p.createdAt <= :end', {
+        end: '2024-12-31',
+      });
     });
 
     it('returns empty array when no payments match', async () => {

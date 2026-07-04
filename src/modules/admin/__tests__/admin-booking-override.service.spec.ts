@@ -409,11 +409,13 @@ describe('AdminBookingOverrideService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    function buildTxEm(overrides: {
-      cancelled?: boolean;
-      hasPayment?: boolean;
-      refundOverride?: ForceCancelRefund;
-    } = {}) {
+    function buildTxEm(
+      overrides: {
+        cancelled?: boolean;
+        hasPayment?: boolean;
+        refundOverride?: ForceCancelRefund;
+      } = {},
+    ) {
       const getOneResult = overrides.cancelled
         ? { ...createMockBooking(), status: BookingStatus.CANCELLED }
         : createMockBooking();

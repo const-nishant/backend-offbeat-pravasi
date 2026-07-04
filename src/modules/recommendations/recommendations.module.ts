@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RecommendationsController } from './recommendations.controller';
 import { RecommendationsService } from './recommendations.service';
@@ -11,7 +11,7 @@ import { FitnessAssessment } from '../assessments/entities/fitness-assessment.en
 import { Booking } from '../bookings/entities/booking.entity';
 import { WishlistCollection } from '../wishlist/entities/wishlist-collection.entity';
 import { WishlistItem } from '../wishlist/entities/wishlist-item.entity';
-import { AdminModule } from '../admin/admin.module';
+import { PlatformSettingsModule } from '../admin/platform-settings.module';
 
 @Module({
   imports: [
@@ -26,7 +26,7 @@ import { AdminModule } from '../admin/admin.module';
       WishlistCollection,
       WishlistItem,
     ]),
-    forwardRef(() => AdminModule),
+    PlatformSettingsModule,
   ],
   controllers: [RecommendationsController],
   providers: [RecommendationsService],

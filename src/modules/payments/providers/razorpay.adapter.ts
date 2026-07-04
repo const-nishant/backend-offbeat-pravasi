@@ -1,6 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Razorpay from 'razorpay';
-import type { PaymentGateway, RefundResult } from '../interfaces/payment-gateway.interface';
+import type {
+  PaymentGateway,
+  RefundResult,
+} from '../interfaces/payment-gateway.interface';
 
 @Injectable()
 export class RazorpayAdapter implements PaymentGateway {

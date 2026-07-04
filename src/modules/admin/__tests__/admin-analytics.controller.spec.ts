@@ -7,19 +7,33 @@ describe('AdminAnalyticsController', () => {
 
   beforeEach(() => {
     service = {
-      getDau: jest.fn<any>().mockResolvedValue([{ date: '2026-07-01', count: 42 }]),
-      getTrekPopularity: jest.fn<any>().mockResolvedValue([
-        { trekId: 'trek-1', name: 'Trek A', views: 100, bookmarks: 20 },
-      ]),
+      getDau: jest
+        .fn<any>()
+        .mockResolvedValue([{ date: '2026-07-01', count: 42 }]),
+      getTrekPopularity: jest
+        .fn<any>()
+        .mockResolvedValue([
+          { trekId: 'trek-1', name: 'Trek A', views: 100, bookmarks: 20 },
+        ]),
       getConversionFunnel: jest.fn<any>().mockResolvedValue({
-        stages: { views: 1000, bookingsStarted: 200, paymentsInitiated: 150, paymentsCompleted: 130, bookingsConfirmed: 120 },
+        stages: {
+          views: 1000,
+          bookingsStarted: 200,
+          paymentsInitiated: 150,
+          paymentsCompleted: 130,
+          bookingsConfirmed: 120,
+        },
       }),
-      getRevenueTrends: jest.fn<any>().mockResolvedValue([
-        { date: '2026-07-01', provider: 'STRIPE', revenue: 50000 },
-      ]),
-      getRetentionCohorts: jest.fn<any>().mockResolvedValue([
-        { cohortMonth: '2026-06-01', totalUsers: 100, retentionRateD7: 60 },
-      ]),
+      getRevenueTrends: jest
+        .fn<any>()
+        .mockResolvedValue([
+          { date: '2026-07-01', provider: 'STRIPE', revenue: 50000 },
+        ]),
+      getRetentionCohorts: jest
+        .fn<any>()
+        .mockResolvedValue([
+          { cohortMonth: '2026-06-01', totalUsers: 100, retentionRateD7: 60 },
+        ]),
     };
 
     controller = new AdminAnalyticsController(service);
@@ -62,14 +76,22 @@ describe('AdminAnalyticsController', () => {
         endDate: '2026-06-30',
       });
 
-      expect(service.getConversionFunnel).toHaveBeenCalledWith('2026-01-01', '2026-06-30', undefined);
+      expect(service.getConversionFunnel).toHaveBeenCalledWith(
+        '2026-01-01',
+        '2026-06-30',
+        undefined,
+      );
       expect(result.stages.views).toBe(1000);
     });
 
     it('passes trekId filter', async () => {
       await controller.getConversionFunnel({ trekId: 'trek-1' });
 
-      expect(service.getConversionFunnel).toHaveBeenCalledWith(undefined, undefined, 'trek-1');
+      expect(service.getConversionFunnel).toHaveBeenCalledWith(
+        undefined,
+        undefined,
+        'trek-1',
+      );
     });
   });
 

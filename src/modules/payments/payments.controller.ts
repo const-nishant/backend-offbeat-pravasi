@@ -77,6 +77,14 @@ export class PaymentsController {
       }
 
       if (event.type === 'charge.refunded') {
+        const intent = event.data.object;
+        const providerPaymentId = intent.payment_intent || intent.id;
+        const amount = Math.round((intent.amount || 0) / 100);
+        await this.paymentsService
+          .handleProviderRefund('STRIPE' as any, providerPaymentId, amount)
+          .catch((e) =>
+            console.error('Stripe refund webhook processing failed', e),
+          );
         return { received: true };
       }
 

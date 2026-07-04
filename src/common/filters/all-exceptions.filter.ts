@@ -42,7 +42,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         const typed = responseObj as HttpExceptionResponse;
 
         if (Array.isArray(typed.message)) {
-          details = this.formatValidationMessages(typed.message);
+          details = this.extractFieldErrors(typed.message);
           message = 'Validation failed';
         } else if (typeof typed.message === 'string') {
           message = typed.message;
@@ -69,11 +69,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
     response.status(status).json(payload);
   }
 
-  private formatValidationMessages(messages: string[]): ValidationErrorPayload {
+  private extractFieldErrors(messages: string[]): ValidationErrorPayload {
     const result: ValidationErrorPayload = {};
 
     messages.forEach((msg, index) => {
-      result[`error_${index + 1}`] = msg;
+      const parts = msg.split(' ');
+      const possibleField = parts[0];
+
+      if (possibleField && /^[a-zA-Z0-9_]+$/.test(possibleField)) {
+        result[possibleField] = msg.replace(`${possibleField} `, '');
+      } else {
+        result[`error_${index + 1}`] = msg;
+      }
     });
 
     return result;

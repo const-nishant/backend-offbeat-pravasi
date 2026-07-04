@@ -33,9 +33,15 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
 
   const defaultDauRow = { date: new Date('2026-07-01'), count: '42' };
   const defaultTrekRow = {
-    id: 'trek-1', name: 'Everest Base Camp', state: 'Nepal',
-    difficulty: 'HARD', total_users: '10', views: '100',
-    bookmarks: '20', likes: '15', bookings: '5',
+    id: 'trek-1',
+    name: 'Everest Base Camp',
+    state: 'Nepal',
+    difficulty: 'HARD',
+    total_users: '10',
+    views: '100',
+    bookmarks: '20',
+    likes: '15',
+    bookings: '5',
   };
   const emptyResult: any[] = [];
 
@@ -70,30 +76,40 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('DAU: defaults to 7 when omitted', () => {
-      const dto = plainToInstance(AdminAnalyticsDauQueryDto, { days: undefined });
+      const dto = plainToInstance(AdminAnalyticsDauQueryDto, {
+        days: undefined,
+      });
       expect(dto.days).toBe(7);
     });
 
     it('DAU: defaults to 7 when null or undefined', () => {
       const dto1 = plainToInstance(AdminAnalyticsDauQueryDto, { days: null });
-      const dto2 = plainToInstance(AdminAnalyticsDauQueryDto, { days: undefined });
+      const dto2 = plainToInstance(AdminAnalyticsDauQueryDto, {
+        days: undefined,
+      });
       expect(dto1.days).toBe(7);
       expect(dto2.days).toBe(7);
     });
 
     it('Trek popularity: rejects days > 365', async () => {
-      const dto = plainToInstance(AdminAnalyticsTrekPopularityQueryDto, { days: 366 });
+      const dto = plainToInstance(AdminAnalyticsTrekPopularityQueryDto, {
+        days: 366,
+      });
       const errors = await validate(dto);
       expect(errors.some((e) => e.property === 'days')).toBe(true);
     });
 
     it('Trek popularity: defaults limit to 50', () => {
-      const dto = plainToInstance(AdminAnalyticsTrekPopularityQueryDto, { limit: undefined });
+      const dto = plainToInstance(AdminAnalyticsTrekPopularityQueryDto, {
+        limit: undefined,
+      });
       expect(dto.limit).toBe(50);
     });
 
     it('Trek popularity: rejects limit > 200', async () => {
-      const dto = plainToInstance(AdminAnalyticsTrekPopularityQueryDto, { limit: 201 });
+      const dto = plainToInstance(AdminAnalyticsTrekPopularityQueryDto, {
+        limit: 201,
+      });
       const errors = await validate(dto);
       expect(errors.some((e) => e.property === 'limit')).toBe(true);
     });
@@ -116,26 +132,34 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('Revenue: rejects invalid period value', async () => {
-      const dto = plainToInstance(AdminAnalyticsRevenueQueryDto, { period: 'yearly' });
+      const dto = plainToInstance(AdminAnalyticsRevenueQueryDto, {
+        period: 'yearly',
+      });
       const errors = await validate(dto);
       expect(errors.some((e) => e.property === 'period')).toBe(true);
     });
 
     it('Revenue: accepts valid periods', async () => {
       for (const p of ['daily', 'weekly', 'monthly']) {
-        const dto = plainToInstance(AdminAnalyticsRevenueQueryDto, { period: p });
+        const dto = plainToInstance(AdminAnalyticsRevenueQueryDto, {
+          period: p,
+        });
         expect((await validate(dto)).length).toBe(0);
       }
     });
 
     it('Retention: rejects months > 36', async () => {
-      const dto = plainToInstance(AdminAnalyticsRetentionQueryDto, { months: 37 });
+      const dto = plainToInstance(AdminAnalyticsRetentionQueryDto, {
+        months: 37,
+      });
       const errors = await validate(dto);
       expect(errors.some((e) => e.property === 'months')).toBe(true);
     });
 
     it('Retention: defaults to 12 months', () => {
-      const dto = plainToInstance(AdminAnalyticsRetentionQueryDto, { months: undefined });
+      const dto = plainToInstance(AdminAnalyticsRetentionQueryDto, {
+        months: undefined,
+      });
       expect(dto.months).toBe(12);
     });
 
@@ -156,7 +180,9 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
 
   describe('Cache layer — read-through behaviour', () => {
     it('returns cached DAU without touching DB', async () => {
-      redisService.get.mockResolvedValue(JSON.stringify([{ date: '2026-07-01', count: 42 }]));
+      redisService.get.mockResolvedValue(
+        JSON.stringify([{ date: '2026-07-01', count: 42 }]),
+      );
 
       const result = await service.getDau(7);
 
@@ -319,21 +345,31 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
 
       const result = await service.getConversionFunnel();
 
-      expect(result.stages.views).toBeGreaterThanOrEqual(result.stages.bookingsStarted);
-      expect(result.stages.bookingsStarted).toBeGreaterThanOrEqual(result.stages.paymentsInitiated);
-      expect(result.stages.paymentsInitiated).toBeGreaterThanOrEqual(result.stages.paymentsCompleted);
-      expect(result.stages.paymentsCompleted).toBeGreaterThanOrEqual(result.stages.bookingsConfirmed);
+      expect(result.stages.views).toBeGreaterThanOrEqual(
+        result.stages.bookingsStarted,
+      );
+      expect(result.stages.bookingsStarted).toBeGreaterThanOrEqual(
+        result.stages.paymentsInitiated,
+      );
+      expect(result.stages.paymentsInitiated).toBeGreaterThanOrEqual(
+        result.stages.paymentsCompleted,
+      );
+      expect(result.stages.paymentsCompleted).toBeGreaterThanOrEqual(
+        result.stages.bookingsConfirmed,
+      );
     });
 
     it('retention rates are between 0 and 100 percent', async () => {
       redisService.get.mockResolvedValue(null);
-      dataSource.query.mockResolvedValue([{
-        cohort_month: new Date('2026-01-01'),
-        total_users: '100',
-        retained_d7: '50',
-        retained_d30: '30',
-        retained_d90: '10',
-      }]);
+      dataSource.query.mockResolvedValue([
+        {
+          cohort_month: new Date('2026-01-01'),
+          total_users: '100',
+          retained_d7: '50',
+          retained_d30: '30',
+          retained_d90: '10',
+        },
+      ]);
 
       const result = await service.getRetentionCohorts(12);
 
@@ -347,13 +383,15 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
 
     it('retention rates handle division by zero when totalUsers is 0', async () => {
       redisService.get.mockResolvedValue(null);
-      dataSource.query.mockResolvedValue([{
-        cohort_month: new Date('2026-01-01'),
-        total_users: '0',
-        retained_d7: '0',
-        retained_d30: '0',
-        retained_d90: '0',
-      }]);
+      dataSource.query.mockResolvedValue([
+        {
+          cohort_month: new Date('2026-01-01'),
+          total_users: '0',
+          retained_d7: '0',
+          retained_d30: '0',
+          retained_d90: '0',
+        },
+      ]);
 
       const result = await service.getRetentionCohorts(12);
 
@@ -364,8 +402,20 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     it('revenue trends returns provider names correctly', async () => {
       redisService.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([
-        { date: new Date('2026-07-01'), provider: 'STRIPE', transaction_count: '10', revenue: '50000', active_users: '8' },
-        { date: new Date('2026-07-01'), provider: 'RAZORPAY', transaction_count: '5', revenue: '25000', active_users: '4' },
+        {
+          date: new Date('2026-07-01'),
+          provider: 'STRIPE',
+          transaction_count: '10',
+          revenue: '50000',
+          active_users: '8',
+        },
+        {
+          date: new Date('2026-07-01'),
+          provider: 'RAZORPAY',
+          transaction_count: '5',
+          revenue: '25000',
+          active_users: '4',
+        },
       ]);
 
       const result = await service.getRevenueTrends('daily', 30);
@@ -416,16 +466,22 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
   describe('Error propagation', () => {
     it('throws when DB query fails', async () => {
       redisService.get.mockResolvedValue(null);
-      dataSource.query.mockRejectedValue(new Error('Connection pool exhausted'));
+      dataSource.query.mockRejectedValue(
+        new Error('Connection pool exhausted'),
+      );
 
-      await expect(service.getDau(7)).rejects.toThrow('Connection pool exhausted');
+      await expect(service.getDau(7)).rejects.toThrow(
+        'Connection pool exhausted',
+      );
     });
 
     it('throws on DB failure for trek popularity', async () => {
       redisService.get.mockResolvedValue(null);
       dataSource.query.mockRejectedValue(new Error('Deadlock detected'));
 
-      await expect(service.getTrekPopularity(30, 10)).rejects.toThrow('Deadlock detected');
+      await expect(service.getTrekPopularity(30, 10)).rejects.toThrow(
+        'Deadlock detected',
+      );
     });
 
     it('propagates error when one of 5 funnel queries fails', async () => {
@@ -482,7 +538,10 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
 
       const result = await service.getTrekPopularity(30, 1);
 
-      expect(dataSource.query).toHaveBeenCalledWith(expect.any(String), [30, 1]);
+      expect(dataSource.query).toHaveBeenCalledWith(
+        expect.any(String),
+        [30, 1],
+      );
       expect(result).toHaveLength(1);
     });
 
@@ -505,10 +564,16 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
       dataSource.query.mockResolvedValue([]);
 
       await service.getRevenueTrends('monthly', 365);
-      expect(dataSource.query).toHaveBeenCalledWith(expect.any(String), ['month', 365]);
+      expect(dataSource.query).toHaveBeenCalledWith(expect.any(String), [
+        'month',
+        365,
+      ]);
 
       await service.getRevenueTrends('daily', 90);
-      expect(dataSource.query).toHaveBeenCalledWith(expect.any(String), ['day', 90]);
+      expect(dataSource.query).toHaveBeenCalledWith(expect.any(String), [
+        'day',
+        90,
+      ]);
     });
 
     it('revenue with no period specified defaults to daily', async () => {
@@ -516,7 +581,10 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
       dataSource.query.mockResolvedValue([]);
 
       await service.getRevenueTrends(undefined as any, 30);
-      expect(dataSource.query).toHaveBeenCalledWith(expect.any(String), ['day', 30]);
+      expect(dataSource.query).toHaveBeenCalledWith(expect.any(String), [
+        'day',
+        30,
+      ]);
     });
   });
 
@@ -524,9 +592,15 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
 
   describe('Concurrent request behaviour', () => {
     it('parallel calls to same endpoint result in single DB query (cache reuse)', async () => {
-      redisService.get.mockResolvedValue(JSON.stringify([{ date: '2026-07-01', count: 42 }]));
+      redisService.get.mockResolvedValue(
+        JSON.stringify([{ date: '2026-07-01', count: 42 }]),
+      );
 
-      await Promise.all([service.getDau(7), service.getDau(7), service.getDau(7)]);
+      await Promise.all([
+        service.getDau(7),
+        service.getDau(7),
+        service.getDau(7),
+      ]);
 
       expect(dataSource.query).not.toHaveBeenCalled();
     });
@@ -560,13 +634,15 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
 
     it('retention cohort query handles single-row result efficiently', async () => {
       redisService.get.mockResolvedValue(null);
-      dataSource.query.mockResolvedValue([{
-        cohort_month: new Date('2026-06-01'),
-        total_users: '1',
-        retained_d7: '1',
-        retained_d30: '0',
-        retained_d90: '0',
-      }]);
+      dataSource.query.mockResolvedValue([
+        {
+          cohort_month: new Date('2026-06-01'),
+          total_users: '1',
+          retained_d7: '1',
+          retained_d30: '0',
+          retained_d90: '0',
+        },
+      ]);
 
       const result = await service.getRetentionCohorts(1);
 

@@ -1,10 +1,15 @@
-import StripeLib from 'stripe';
+import StripeConstructor from 'stripe';
+type StripeInstance = StripeConstructor.Stripe;
 
-export function createStripeClient(): any | null {
+export type StripeClient = StripeInstance | null;
+
+export function createStripeClient(): StripeInstance | null {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) return null;
   try {
-    return new StripeLib(key, { apiVersion: '2025-02-24.acacia' as any });
+    return new StripeConstructor(key, {
+      apiVersion: StripeConstructor.API_VERSION,
+    }) as StripeInstance;
   } catch {
     return null;
   }

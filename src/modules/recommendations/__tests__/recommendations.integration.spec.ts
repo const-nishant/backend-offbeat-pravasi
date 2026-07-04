@@ -27,16 +27,24 @@ class SqliteUser {
 class SqliteTrek {
   @PrimaryGeneratedColumn('uuid') id!: string;
   @Column({ type: 'varchar', length: 255 }) name!: string;
-  @Column({ type: 'varchar', length: 16, nullable: true }) difficulty!: string | null;
+  @Column({ type: 'varchar', length: 16, nullable: true }) difficulty!:
+    | string
+    | null;
   @Column({ type: 'int', default: 0 }) popularityScore!: number;
   @Column({ type: 'datetime', nullable: true }) startDate!: Date | null;
   @Column({ type: 'boolean', default: false }) isPublished!: boolean;
   @Column({ type: 'int', default: 0 }) costInr!: number;
-  @Column({ type: 'varchar', length: 80, nullable: true }) state!: string | null;
+  @Column({ type: 'varchar', length: 80, nullable: true }) state!:
+    | string
+    | null;
   @CreateDateColumn({ type: 'datetime' }) createdAt!: Date;
   @UpdateDateColumn({ type: 'datetime' }) updatedAt!: Date;
   @ManyToMany(() => SqliteTrekTag, (tag) => tag.treks)
-  @JoinTable({ name: 'trek_tags_link', joinColumn: { name: 'trekId', referencedColumnName: 'id' }, inverseJoinColumn: { name: 'trekTagId', referencedColumnName: 'id' } })
+  @JoinTable({
+    name: 'trek_tags_link',
+    joinColumn: { name: 'trekId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'trekTagId', referencedColumnName: 'id' },
+  })
   tags!: SqliteTrekTag[];
 }
 
@@ -117,11 +125,15 @@ class SqliteRecResult {
 class SqliteRecEvent {
   @PrimaryGeneratedColumn('uuid') id!: string;
   @Column({ type: 'varchar' }) userId!: string;
-  @Column({ type: 'varchar', nullable: true }) recommendationResultId!: string | null;
+  @Column({ type: 'varchar', nullable: true }) recommendationResultId!:
+    | string
+    | null;
   @Column({ type: 'varchar' }) trekId!: string;
   @Column({ type: 'varchar', length: 32 }) eventType!: string;
   @Column({ type: 'float', nullable: true }) score!: number | null;
-  @Column({ type: 'varchar', length: 32, nullable: true }) reason!: string | null;
+  @Column({ type: 'varchar', length: 32, nullable: true }) reason!:
+    | string
+    | null;
   @CreateDateColumn({ type: 'datetime' }) createdAt!: Date;
 }
 
@@ -178,7 +190,8 @@ describe('Recommendations Integration — Full Lifecycle', () => {
     resultRepo = dataSource.getRepository(SqliteRecResult);
     eventRepo = dataSource.getRepository(SqliteRecEvent);
 
-    const platformSettings = new StubPlatformSettingsService() as unknown as PlatformSettingsService;
+    const platformSettings =
+      new StubPlatformSettingsService() as unknown as PlatformSettingsService;
 
     service = new RecommendationsService(
       trekRepo as unknown as Repository<any>,
@@ -246,7 +259,9 @@ describe('Recommendations Integration — Full Lifecycle', () => {
 
   async function getTrekTags(trekId: string): Promise<string[]> {
     const links = await linkRepo.find({ where: { trekId } });
-    const tags = await Promise.all(links.map((l) => tagRepo.findOne({ where: { id: l.trekTagId } })));
+    const tags = await Promise.all(
+      links.map((l) => tagRepo.findOne({ where: { id: l.trekTagId } })),
+    );
     return tags.filter(Boolean).map((t) => t!.name);
   }
 
@@ -258,10 +273,39 @@ describe('Recommendations Integration — Full Lifecycle', () => {
     const farFuture = new Date(now.getTime() + 200 * 86400000);
 
     // Create 4 treks with differing popularity
-    await createTrek('t-popular', 'Popular Trek', 'EASY', ['nature', 'scenic'], 500, nearFuture);
-    await createTrek('t-seasonal', 'Seasonal Trek', 'MODERATE', ['adventure'], 50, nearFuture);
-    await createTrek('t-old', 'Old Trek', 'DIFFICULT', ['expert'], 300, farFuture);
-    await createTrek('t-unpublished', 'Hidden', 'EASY', ['nature'], 100, nearFuture, false);
+    await createTrek(
+      't-popular',
+      'Popular Trek',
+      'EASY',
+      ['nature', 'scenic'],
+      500,
+      nearFuture,
+    );
+    await createTrek(
+      't-seasonal',
+      'Seasonal Trek',
+      'MODERATE',
+      ['adventure'],
+      50,
+      nearFuture,
+    );
+    await createTrek(
+      't-old',
+      'Old Trek',
+      'DIFFICULT',
+      ['expert'],
+      300,
+      farFuture,
+    );
+    await createTrek(
+      't-unpublished',
+      'Hidden',
+      'EASY',
+      ['nature'],
+      100,
+      nearFuture,
+      false,
+    );
 
     const results = await service.getForUser(user.id, 5);
     expect(results).toBeDefined();
@@ -281,14 +325,44 @@ describe('Recommendations Integration — Full Lifecycle', () => {
   test('user with completed treks — similar tags get boosted', async () => {
     const user = await createUser('vet-user');
 
-    await createTrek('done-1', 'Done Trek', 'MODERATE', ['mountain', 'camping'], 200);
+    await createTrek(
+      'done-1',
+      'Done Trek',
+      'MODERATE',
+      ['mountain', 'camping'],
+      200,
+    );
     await createTrek('done-2', 'Done Trek 2', 'EASY', ['river', 'forest'], 150);
-    await createTrek('sim-1', 'Similar Trek', 'MODERATE', ['mountain', 'camping', 'river'], 10);
-    await createTrek('diff-1', 'Different Trek', 'DIFFICULT', ['desert', 'heat'], 300);
+    await createTrek(
+      'sim-1',
+      'Similar Trek',
+      'MODERATE',
+      ['mountain', 'camping', 'river'],
+      10,
+    );
+    await createTrek(
+      'diff-1',
+      'Different Trek',
+      'DIFFICULT',
+      ['desert', 'heat'],
+      300,
+    );
 
     // Book the completed treks (2+ to exit cold start)
-    await bookingRepo.save(bookingRepo.create({ userId: user.id, trekId: 'done-1', status: 'CONFIRMED' }));
-    await bookingRepo.save(bookingRepo.create({ userId: user.id, trekId: 'done-2', status: 'CONFIRMED' }));
+    await bookingRepo.save(
+      bookingRepo.create({
+        userId: user.id,
+        trekId: 'done-1',
+        status: 'CONFIRMED',
+      }),
+    );
+    await bookingRepo.save(
+      bookingRepo.create({
+        userId: user.id,
+        trekId: 'done-2',
+        status: 'CONFIRMED',
+      }),
+    );
 
     const results = await service.getForUser(user.id, 10);
     expect(results).toBeDefined();
@@ -304,17 +378,43 @@ describe('Recommendations Integration — Full Lifecycle', () => {
   // === WISHLIST SIMILARITY ===
   test('wishlisted treks influence recommendations', async () => {
     const user = await createUser('wish-user');
-    await createTrek('wish-1', 'Wishlisted', 'MODERATE', ['lake', 'forest'], 100);
-    await createTrek('wish-2', 'Wishlisted 2', 'EASY', ['camping', 'river'], 80);
+    await createTrek(
+      'wish-1',
+      'Wishlisted',
+      'MODERATE',
+      ['lake', 'forest'],
+      100,
+    );
+    await createTrek(
+      'wish-2',
+      'Wishlisted 2',
+      'EASY',
+      ['camping', 'river'],
+      80,
+    );
     await createTrek('wish-3', 'Wishlisted 3', 'MODERATE', ['mountain'], 60);
-    await createTrek('rel-1', 'Related', 'MODERATE', ['lake', 'forest', 'wildlife'], 50);
+    await createTrek(
+      'rel-1',
+      'Related',
+      'MODERATE',
+      ['lake', 'forest', 'wildlife'],
+      50,
+    );
     await createTrek('unrel-1', 'Unrelated', 'EASY', ['city', 'museum'], 80);
 
     // Create collection + add wishlist items (3+ to exit cold start)
-    const col = await colRepo.save(colRepo.create({ userId: user.id, name: 'My List' }));
-    await itemRepo.save(itemRepo.create({ collectionId: col.id, trekId: 'wish-1' }));
-    await itemRepo.save(itemRepo.create({ collectionId: col.id, trekId: 'wish-2' }));
-    await itemRepo.save(itemRepo.create({ collectionId: col.id, trekId: 'wish-3' }));
+    const col = await colRepo.save(
+      colRepo.create({ userId: user.id, name: 'My List' }),
+    );
+    await itemRepo.save(
+      itemRepo.create({ collectionId: col.id, trekId: 'wish-1' }),
+    );
+    await itemRepo.save(
+      itemRepo.create({ collectionId: col.id, trekId: 'wish-2' }),
+    );
+    await itemRepo.save(
+      itemRepo.create({ collectionId: col.id, trekId: 'wish-3' }),
+    );
 
     const results = await service.getForUser(user.id, 10);
     const related = results.find((r) => r.trekId === 'rel-1');
@@ -372,7 +472,13 @@ describe('Recommendations Integration — Full Lifecycle', () => {
 
   // === GET FOR TREK (SIMILAR TREKS) ===
   test('getForTrek returns similar treks sorted by score descending', async () => {
-    await createTrek('base', 'Base Trek', 'MODERATE', ['mountain', 'river', 'camping'], 200);
+    await createTrek(
+      'base',
+      'Base Trek',
+      'MODERATE',
+      ['mountain', 'river', 'camping'],
+      200,
+    );
     await createTrek('a', 'Trek A', 'MODERATE', ['mountain', 'river'], 100);
     await createTrek('b', 'Trek B', 'EASY', ['mountain'], 50);
     await createTrek('c', 'Trek C', 'DIFFICULT', ['desert', 'heat'], 300);
@@ -422,10 +528,20 @@ describe('Recommendations Integration — Full Lifecycle', () => {
 
   test('logConversion records CLICKED and BOOKED events', async () => {
     const user = await createUser('conv-user');
-    await service.logConversion(user.id, 'trek-1', 'CLICKED', undefined, 0.8, 'POPULAR');
+    await service.logConversion(
+      user.id,
+      'trek-1',
+      'CLICKED',
+      undefined,
+      0.8,
+      'POPULAR',
+    );
     await service.logConversion(user.id, 'trek-1', 'BOOKED');
 
-    const events = await eventRepo.find({ where: { userId: user.id }, order: { createdAt: 'ASC' } });
+    const events = await eventRepo.find({
+      where: { userId: user.id },
+      order: { createdAt: 'ASC' },
+    });
     expect(events).toHaveLength(2);
     expect(events[0].eventType).toBe('CLICKED');
     expect(events[0].score).toBe(0.8);
@@ -482,7 +598,10 @@ describe('Recommendations Integration — Full Lifecycle', () => {
   test('updatePreferences creates and retrieves preferences', async () => {
     const user = await createUser('pref-user');
 
-    await service.updatePreferences(user.id, { maxBudget: 20000, preferredDifficulty: [TrekDifficulty.MODERATE] });
+    await service.updatePreferences(user.id, {
+      maxBudget: 20000,
+      preferredDifficulty: [TrekDifficulty.MODERATE],
+    });
     const pref = await service.getPreferences(user.id);
     expect(pref).toBeDefined();
     expect(pref!.maxBudget).toBe(20000);

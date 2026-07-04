@@ -63,7 +63,13 @@ describe('AdminBroadcastService', () => {
         id: 'campaign-1',
         title: validAllDto.title,
         body: validAllDto.body,
-        segmentConfig: { type: 'all', trekTagIds: [], states: [], cities: [], inactiveDays: null },
+        segmentConfig: {
+          type: 'all',
+          trekTagIds: [],
+          states: [],
+          cities: [],
+          inactiveDays: null,
+        },
         status: CampaignStatus.PENDING,
         createdById: mockActor.id,
       };

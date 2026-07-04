@@ -83,7 +83,8 @@ describe('AdminBroadcastService — Senior QA Review', () => {
     it('accepts unicode and emoji in title and body', async () => {
       const dto = new AdminBroadcastDto();
       dto.title = '🏔️ Trek Alert! Himalaya special!';
-      dto.body = 'नमस्ते! Get 20% off on Himalayan treks. Limited time offer! 🌄';
+      dto.body =
+        'नमस्ते! Get 20% off on Himalayan treks. Limited time offer! 🌄';
       dto.segment = SegmentType.ALL;
 
       const errors = await validate(dto);
@@ -306,7 +307,9 @@ describe('AdminBroadcastService — Senior QA Review', () => {
     it('handles queue.add failure (Redis down) — campaign still saved', async () => {
       campaignRepo.create.mockReturnValue({ id: 'c-queue-fail' });
       campaignRepo.save.mockResolvedValue({ id: 'c-queue-fail' });
-      broadcastQueue.add.mockRejectedValue(new Error('Redis connection refused'));
+      broadcastQueue.add.mockRejectedValue(
+        new Error('Redis connection refused'),
+      );
 
       await expect(
         service.broadcast(validMinimalDto(), mockActor),
@@ -491,15 +494,16 @@ describe('AdminBroadcastService — Senior QA Review', () => {
     it('handles two simultaneous broadcasts independently', async () => {
       let resolve1: (v: any) => void;
       let resolve2: (v: any) => void;
-      const p1 = new Promise((r) => { resolve1 = r; });
-      const p2 = new Promise((r) => { resolve2 = r; });
+      const p1 = new Promise((r) => {
+        resolve1 = r;
+      });
+      const p2 = new Promise((r) => {
+        resolve2 = r;
+      });
 
-      campaignRepo.save
-        .mockResolvedValueOnce(p1)
-        .mockResolvedValueOnce(p2);
+      campaignRepo.save.mockResolvedValueOnce(p1).mockResolvedValueOnce(p2);
 
-      broadcastQueue.add
-        .mockResolvedValue({ id: 'job-concurrent' });
+      broadcastQueue.add.mockResolvedValue({ id: 'job-concurrent' });
 
       const dto = validMinimalDto();
       const call1 = service.broadcast(dto, mockActor);

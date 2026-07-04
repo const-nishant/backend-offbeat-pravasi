@@ -388,6 +388,44 @@ export class PaymentsService {
     }
   }
 
+  async handleProviderRefund(
+    provider: PaymentProvider,
+    providerPaymentId: string,
+    amount: number,
+  ) {
+    const payment = await this.paymentRepo.findOne({
+      where: { providerPaymentId } as any,
+    });
+    if (!payment) {
+      this.logger.warn(
+        `Refund webhook: payment not found for ${providerPaymentId}`,
+      );
+      return null;
+    }
+
+    if (payment.status === PaymentStatus.REFUNDED) {
+      return { payment, alreadyRefunded: true };
+    }
+
+    payment.status = PaymentStatus.REFUNDED;
+    payment.metadata = {
+      ...(payment.metadata ?? {}),
+      refundedAt: new Date().toISOString(),
+      refundSource: 'provider_webhook',
+    } as any;
+    await this.paymentRepo.save(payment);
+
+    const booking = await this.bookingRepo.findOne({
+      where: { id: payment.bookingId },
+    });
+    if (booking) {
+      booking.status = BookingStatus.CANCELLED;
+      await this.bookingRepo.save(booking);
+    }
+
+    return { payment, booking };
+  }
+
   async refundPayment(paymentId: string, reason?: string) {
     const payment = await this.paymentRepo.findOne({
       where: { id: paymentId },

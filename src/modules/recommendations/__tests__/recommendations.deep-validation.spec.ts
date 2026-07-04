@@ -1,6 +1,6 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
 import { RecommendationsService } from '../recommendations.service';
 import { UserRecommendationPreference } from '../entities/user-recommendation-preference.entity';
 import { RecommendationResult } from '../entities/recommendation-result.entity';
@@ -37,45 +37,52 @@ describe('Recommendations Deep Validation — 12yr QA', () => {
     isPublished = true,
     startDate?: Date,
     state?: string,
-  ): Trek => ({
-    id,
-    name: `Trek ${id}`,
-    difficulty,
-    popularityScore: pop,
-    startDate: startDate ?? new Date(),
-    isPublished,
-    state: state ?? null,
-    location: null,
-    latitude: null,
-    longitude: null,
-    costInr: 0,
-    maxParticipants: 10,
-    currentParticipants: 0,
-    avgRating: 0,
-    ratingCount: 0,
-    status: 'PUBLISHED' as any,
-    slug: null,
-    shortDescription: null,
-    fullDescription: null,
-    geom: null,
-    organizer: null as any,
-    images: [],
-    reviews: [],
-    itineraryDays: [],
-    gearItems: [],
-    tags: tags.map((name) => ({ id: `tag-${name}`, name }) as TrekTag),
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    deletedAt: null,
-  }) as unknown as Trek;
+  ): Trek =>
+    ({
+      id,
+      name: `Trek ${id}`,
+      difficulty,
+      popularityScore: pop,
+      startDate: startDate ?? new Date(),
+      isPublished,
+      state: state ?? null,
+      location: null,
+      latitude: null,
+      longitude: null,
+      costInr: 0,
+      maxParticipants: 10,
+      currentParticipants: 0,
+      avgRating: 0,
+      ratingCount: 0,
+      status: 'PUBLISHED' as any,
+      slug: null,
+      shortDescription: null,
+      fullDescription: null,
+      geom: null,
+      organizer: null as any,
+      images: [],
+      reviews: [],
+      itineraryDays: [],
+      gearItems: [],
+      tags: tags.map((name) => ({ id: `tag-${name}`, name }) as TrekTag),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: null,
+    }) as unknown as Trek;
 
   // Helper: make weights that isolate exactly one signal
   const singleSignalWeights = (signal: string) => {
     const base: Record<string, number> = {
-      completedSimilarity: 0, wishlistSimilarity: 0, fitnessMatch: 0,
-      seasonalScore: 0, popularityScore: 0,
-      coldStartCompletedSimilarity: 0, coldStartWishlistSimilarity: 0,
-      coldStartFitnessMatch: 0, coldStartSeasonalScore: 0, coldStartPopularityScore: 0,
+      completedSimilarity: 0,
+      wishlistSimilarity: 0,
+      fitnessMatch: 0,
+      seasonalScore: 0,
+      popularityScore: 0,
+      coldStartCompletedSimilarity: 0,
+      coldStartWishlistSimilarity: 0,
+      coldStartFitnessMatch: 0,
+      coldStartSeasonalScore: 0,
+      coldStartPopularityScore: 0,
     };
     base[signal] = 1.0;
     base[`coldStart${signal[0].toUpperCase() + signal.slice(1)}`] = 1.0;
@@ -86,16 +93,49 @@ describe('Recommendations Deep Validation — 12yr QA', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RecommendationsService,
-        { provide: getRepositoryToken(Trek), useValue: { find: jest.fn(), findOne: jest.fn() } },
+        {
+          provide: getRepositoryToken(Trek),
+          useValue: { find: jest.fn(), findOne: jest.fn() },
+        },
         { provide: getRepositoryToken(TrekTag), useValue: { find: jest.fn() } },
-        { provide: getRepositoryToken(FitnessAssessment), useValue: { findOne: jest.fn() } },
+        {
+          provide: getRepositoryToken(FitnessAssessment),
+          useValue: { findOne: jest.fn() },
+        },
         { provide: getRepositoryToken(Booking), useValue: { find: jest.fn() } },
-        { provide: getRepositoryToken(WishlistCollection), useValue: { find: jest.fn() } },
-        { provide: getRepositoryToken(WishlistItem), useValue: { find: jest.fn() } },
-        { provide: getRepositoryToken(UserRecommendationPreference), useValue: { findOne: jest.fn(), create: jest.fn(), save: jest.fn() } },
-        { provide: getRepositoryToken(RecommendationResult), useValue: { find: jest.fn(), findOne: jest.fn(), create: jest.fn(), save: jest.fn(), delete: jest.fn() } },
-        { provide: getRepositoryToken(RecommendationEvent), useValue: { create: jest.fn(), save: jest.fn().mockResolvedValue([]) } },
-        { provide: PlatformSettingsService, useValue: { getSettings: jest.fn().mockResolvedValue({}) } },
+        {
+          provide: getRepositoryToken(WishlistCollection),
+          useValue: { find: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(WishlistItem),
+          useValue: { find: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(UserRecommendationPreference),
+          useValue: { findOne: jest.fn(), create: jest.fn(), save: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(RecommendationResult),
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+            delete: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(RecommendationEvent),
+          useValue: {
+            create: jest.fn(),
+            save: jest.fn().mockResolvedValue([]),
+          },
+        },
+        {
+          provide: PlatformSettingsService,
+          useValue: { getSettings: jest.fn().mockResolvedValue({}) },
+        },
       ],
     }).compile();
 
@@ -238,7 +278,10 @@ describe('Recommendations Deep Validation — 12yr QA', () => {
       // need coldStartFitnessMatch set (singleSignalWeights handles this)
       bookingRepo.find.mockResolvedValue([]);
       collectionRepo.find.mockResolvedValue([]);
-      assessmentRepo.findOne.mockResolvedValue({ difficultyBracket: 'MODERATE', totalScore: 50 } as FitnessAssessment);
+      assessmentRepo.findOne.mockResolvedValue({
+        difficultyBracket: 'MODERATE',
+        totalScore: 50,
+      } as FitnessAssessment);
 
       const trek = makeTrek('t-1', TrekDifficulty.MODERATE, ['a']);
       trekRepo.find.mockResolvedValue([trek]);
@@ -258,7 +301,10 @@ describe('Recommendations Deep Validation — 12yr QA', () => {
       });
       bookingRepo.find.mockResolvedValue([]);
       collectionRepo.find.mockResolvedValue([]);
-      assessmentRepo.findOne.mockResolvedValue({ difficultyBracket: 'EASY', totalScore: 10 } as FitnessAssessment);
+      assessmentRepo.findOne.mockResolvedValue({
+        difficultyBracket: 'EASY',
+        totalScore: 10,
+      } as FitnessAssessment);
 
       const trek = makeTrek('t-1', TrekDifficulty.EXTREME, ['a']);
       trekRepo.find.mockResolvedValue([trek]);
@@ -287,7 +333,14 @@ describe('Recommendations Deep Validation — 12yr QA', () => {
       assessmentRepo.findOne.mockResolvedValue(null);
 
       const nearDate = new Date(Date.now() + 15 * 86400000);
-      const trek = makeTrek('t-1', TrekDifficulty.EASY, ['a'], 0, true, nearDate);
+      const trek = makeTrek(
+        't-1',
+        TrekDifficulty.EASY,
+        ['a'],
+        0,
+        true,
+        nearDate,
+      );
       trekRepo.find.mockResolvedValue([trek]);
       resultRepo.delete.mockResolvedValue({} as any);
       resultRepo.create.mockImplementation((d: any) => d);
@@ -385,12 +438,30 @@ describe('Recommendations Deep Validation — 12yr QA', () => {
     });
 
     it('should assign FITNESS_MATCH when fitnessScore > 0.6', async () => {
-      platformSettings.getSettings.mockResolvedValue({ recommendationWeights: { fitnessMatch: 1.0, coldStartFitnessMatch: 1.0, coldStartPopularityScore: 0, coldStartSeasonalScore: 0, coldStartCompletedSimilarity: 0, coldStartWishlistSimilarity: 0, completedSimilarity: 0, wishlistSimilarity: 0, seasonalScore: 0, popularityScore: 0 } });
+      platformSettings.getSettings.mockResolvedValue({
+        recommendationWeights: {
+          fitnessMatch: 1.0,
+          coldStartFitnessMatch: 1.0,
+          coldStartPopularityScore: 0,
+          coldStartSeasonalScore: 0,
+          coldStartCompletedSimilarity: 0,
+          coldStartWishlistSimilarity: 0,
+          completedSimilarity: 0,
+          wishlistSimilarity: 0,
+          seasonalScore: 0,
+          popularityScore: 0,
+        },
+      });
       bookingRepo.find.mockResolvedValue([]);
       collectionRepo.find.mockResolvedValue([]);
-      assessmentRepo.findOne.mockResolvedValue({ difficultyBracket: 'MODERATE', totalScore: 60 } as FitnessAssessment);
+      assessmentRepo.findOne.mockResolvedValue({
+        difficultyBracket: 'MODERATE',
+        totalScore: 60,
+      } as FitnessAssessment);
 
-      trekRepo.find.mockResolvedValue([makeTrek('t', TrekDifficulty.MODERATE, ['a'])]);
+      trekRepo.find.mockResolvedValue([
+        makeTrek('t', TrekDifficulty.MODERATE, ['a']),
+      ]);
       resultRepo.delete.mockResolvedValue({} as any);
       resultRepo.create.mockImplementation((d: any) => d);
       resultRepo.save.mockImplementation((e: any) => Promise.resolve(e));
@@ -400,13 +471,28 @@ describe('Recommendations Deep Validation — 12yr QA', () => {
     });
 
     it('should assign SEASONAL when seasonalScore > 0.5', async () => {
-      platformSettings.getSettings.mockResolvedValue({ recommendationWeights: { seasonalScore: 1.0, coldStartSeasonalScore: 1.0, coldStartPopularityScore: 0, coldStartFitnessMatch: 0, coldStartCompletedSimilarity: 0, coldStartWishlistSimilarity: 0, completedSimilarity: 0, wishlistSimilarity: 0, fitnessMatch: 0, popularityScore: 0 } });
+      platformSettings.getSettings.mockResolvedValue({
+        recommendationWeights: {
+          seasonalScore: 1.0,
+          coldStartSeasonalScore: 1.0,
+          coldStartPopularityScore: 0,
+          coldStartFitnessMatch: 0,
+          coldStartCompletedSimilarity: 0,
+          coldStartWishlistSimilarity: 0,
+          completedSimilarity: 0,
+          wishlistSimilarity: 0,
+          fitnessMatch: 0,
+          popularityScore: 0,
+        },
+      });
       bookingRepo.find.mockResolvedValue([]);
       collectionRepo.find.mockResolvedValue([]);
       assessmentRepo.findOne.mockResolvedValue(null);
 
       // This month's trek → seasonalScore = 1.0
-      trekRepo.find.mockResolvedValue([makeTrek('t', TrekDifficulty.EASY, ['a'])]);
+      trekRepo.find.mockResolvedValue([
+        makeTrek('t', TrekDifficulty.EASY, ['a']),
+      ]);
       resultRepo.delete.mockResolvedValue({} as any);
       resultRepo.create.mockImplementation((d: any) => d);
       resultRepo.save.mockImplementation((e: any) => Promise.resolve(e));
@@ -421,11 +507,16 @@ describe('Recommendations Deep Validation — 12yr QA', () => {
 
       platformSettings.getSettings.mockResolvedValue({
         recommendationWeights: {
-          popularityScore: 1.0, coldStartPopularityScore: 1.0,
-          seasonalScore: 0, coldStartSeasonalScore: 0,
-          fitnessMatch: 0, coldStartFitnessMatch: 0,
-          completedSimilarity: 0, coldStartCompletedSimilarity: 0,
-          wishlistSimilarity: 0, coldStartWishlistSimilarity: 0,
+          popularityScore: 1.0,
+          coldStartPopularityScore: 1.0,
+          seasonalScore: 0,
+          coldStartSeasonalScore: 0,
+          fitnessMatch: 0,
+          coldStartFitnessMatch: 0,
+          completedSimilarity: 0,
+          coldStartCompletedSimilarity: 0,
+          wishlistSimilarity: 0,
+          coldStartWishlistSimilarity: 0,
         },
       });
       bookingRepo.find.mockResolvedValue([]);
@@ -446,7 +537,9 @@ describe('Recommendations Deep Validation — 12yr QA', () => {
   // ──────────────────────────────────────────────
   describe('getForTrek correctness', () => {
     it('should exclude the queried trek from results', async () => {
-      trekRepo.findOne.mockResolvedValue(makeTrek('self', TrekDifficulty.EASY, ['a']));
+      trekRepo.findOne.mockResolvedValue(
+        makeTrek('self', TrekDifficulty.EASY, ['a']),
+      );
       trekRepo.find.mockResolvedValue([
         makeTrek('self', TrekDifficulty.EASY, ['a']),
         makeTrek('other', TrekDifficulty.EASY, ['b']),
@@ -456,7 +549,9 @@ describe('Recommendations Deep Validation — 12yr QA', () => {
     });
 
     it('should return results sorted descending by score', async () => {
-      trekRepo.findOne.mockResolvedValue(makeTrek('base', TrekDifficulty.EASY, ['a', 'b', 'c']));
+      trekRepo.findOne.mockResolvedValue(
+        makeTrek('base', TrekDifficulty.EASY, ['a', 'b', 'c']),
+      );
       trekRepo.find.mockResolvedValue([
         makeTrek('base', TrekDifficulty.EASY, ['a', 'b', 'c']),
         makeTrek('high', TrekDifficulty.EASY, ['a', 'b']),
@@ -539,12 +634,18 @@ describe('Recommendations Deep Validation — 12yr QA', () => {
         groupBy: jest.fn().mockReturnThis(),
         offset: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn()
-          .mockResolvedValueOnce([{ b_userId: 'user-1' }, { b_userId: 'user-2' }])
+        getRawMany: jest
+          .fn()
+          .mockResolvedValueOnce([
+            { b_userId: 'user-1' },
+            { b_userId: 'user-2' },
+          ])
           .mockResolvedValueOnce([]),
       };
       bookingRepo.createQueryBuilder = jest.fn().mockReturnValue(qb as any);
-      trekRepo.find.mockRejectedValueOnce(new Error('DB fail')).mockResolvedValueOnce([]);
+      trekRepo.find
+        .mockRejectedValueOnce(new Error('DB fail'))
+        .mockResolvedValueOnce([]);
 
       await expect(service.buildAll()).resolves.toBeUndefined();
     });
@@ -555,10 +656,21 @@ describe('Recommendations Deep Validation — 12yr QA', () => {
   // ──────────────────────────────────────────────
   describe('Preference partial update', () => {
     it('should only update provided fields, preserve others', async () => {
-      const existing = { id: 'p-1', userId: 'user-1', maxBudget: 5000, preferredDifficulty: ['MODERATE'], preferredStates: null, preferredDurationDays: null, interests: null };
+      const existing = {
+        id: 'p-1',
+        userId: 'user-1',
+        maxBudget: 5000,
+        preferredDifficulty: ['MODERATE'],
+        preferredStates: null,
+        preferredDurationDays: null,
+        interests: null,
+      };
       prefRepo.findOne.mockResolvedValue(existing as any);
       let saved: any = null;
-      prefRepo.save.mockImplementation((e: any) => { saved = e; return Promise.resolve(e); });
+      prefRepo.save.mockImplementation((e: any) => {
+        saved = e;
+        return Promise.resolve(e);
+      });
 
       await service.updatePreferences('user-1', { maxBudget: 10000 });
       expect(saved.maxBudget).toBe(10000);
@@ -613,7 +725,16 @@ describe('Recommendations Deep Validation — 12yr QA', () => {
       collectionRepo.find.mockResolvedValue([]);
       assessmentRepo.findOne.mockResolvedValue(null);
 
-      const validResults = [{ id: 'r-1', userId: 'u', trekId: 't', score: 0.5, reason: 'POPULAR', expiresAt: new Date(Date.now() + 86400000) }];
+      const validResults = [
+        {
+          id: 'r-1',
+          userId: 'u',
+          trekId: 't',
+          score: 0.5,
+          reason: 'POPULAR',
+          expiresAt: new Date(Date.now() + 86400000),
+        },
+      ];
       resultRepo.find.mockResolvedValue(validResults as RecommendationResult[]);
       resultRepo.create.mockImplementation((d: any) => d);
       resultRepo.save.mockImplementation((e: any) => Promise.resolve(e));
@@ -629,7 +750,9 @@ describe('Recommendations Deep Validation — 12yr QA', () => {
   describe('logConversion resilience', () => {
     it('should not throw when event save fails', async () => {
       eventRepo.save.mockRejectedValue(new Error('DB down'));
-      await expect(service.logConversion('user', 'trek', 'CLICKED')).resolves.toBeUndefined();
+      await expect(
+        service.logConversion('user', 'trek', 'CLICKED'),
+      ).resolves.toBeUndefined();
     });
   });
 

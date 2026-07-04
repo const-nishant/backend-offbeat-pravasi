@@ -10,9 +10,7 @@ import { bullConnection } from '../config';
 import { NotificationsService } from '../../modules/notifications/notifications.service';
 
 @Injectable()
-export class PriceDropWorkerService
-  implements OnModuleInit, OnModuleDestroy
-{
+export class PriceDropWorkerService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PriceDropWorkerService.name);
   private worker!: Worker;
 

@@ -110,9 +110,9 @@ describe('RazorpayAdapter', () => {
       delete process.env.RAZORPAY_KEY_SECRET;
       const unconfigured = new RazorpayAdapter();
 
-      await expect(
-        unconfigured.refundPayment('pay_rzp_123'),
-      ).rejects.toThrow('Razorpay not configured');
+      await expect(unconfigured.refundPayment('pay_rzp_123')).rejects.toThrow(
+        'Razorpay not configured',
+      );
     });
   });
 

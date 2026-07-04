@@ -1,6 +1,6 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
 import { RecommendationsService } from '../recommendations.service';
 import { UserRecommendationPreference } from '../entities/user-recommendation-preference.entity';
 import { RecommendationResult } from '../entities/recommendation-result.entity';
@@ -26,52 +26,92 @@ describe('RecommendationsService QA Senior Review', () => {
   let platformSettings: jest.Mocked<PlatformSettingsService>;
   let prefRepo: jest.Mocked<Repository<UserRecommendationPreference>>;
 
-  const makeTrek = (id: string, difficulty: TrekDifficulty, tags: string[], pop = 100, isPublished = true): Trek => ({
-    id,
-    name: `Trek ${id}`,
-    difficulty,
-    popularityScore: pop,
-    startDate: new Date(),
-    isPublished,
-    tags: tags.map((name) => ({ id: `tag-${name}`, name }) as TrekTag),
-    state: null,
-    location: null,
-    latitude: null,
-    longitude: null,
-    costInr: 0,
-    maxParticipants: 10,
-    currentParticipants: 0,
-    avgRating: 0,
-    ratingCount: 0,
-    status: 'PUBLISHED' as any,
-    slug: null,
-    shortDescription: null,
-    fullDescription: null,
-    geom: null,
-    organizer: null as any,
-    images: [],
-    reviews: [],
-    itineraryDays: [],
-    gearItems: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    deletedAt: null,
-  }) as unknown as Trek;
+  const makeTrek = (
+    id: string,
+    difficulty: TrekDifficulty,
+    tags: string[],
+    pop = 100,
+    isPublished = true,
+  ): Trek =>
+    ({
+      id,
+      name: `Trek ${id}`,
+      difficulty,
+      popularityScore: pop,
+      startDate: new Date(),
+      isPublished,
+      tags: tags.map((name) => ({ id: `tag-${name}`, name }) as TrekTag),
+      state: null,
+      location: null,
+      latitude: null,
+      longitude: null,
+      costInr: 0,
+      maxParticipants: 10,
+      currentParticipants: 0,
+      avgRating: 0,
+      ratingCount: 0,
+      status: 'PUBLISHED' as any,
+      slug: null,
+      shortDescription: null,
+      fullDescription: null,
+      geom: null,
+      organizer: null as any,
+      images: [],
+      reviews: [],
+      itineraryDays: [],
+      gearItems: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: null,
+    }) as unknown as Trek;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RecommendationsService,
-        { provide: getRepositoryToken(Trek), useValue: { find: jest.fn(), findOne: jest.fn() } },
+        {
+          provide: getRepositoryToken(Trek),
+          useValue: { find: jest.fn(), findOne: jest.fn() },
+        },
         { provide: getRepositoryToken(TrekTag), useValue: { find: jest.fn() } },
-        { provide: getRepositoryToken(FitnessAssessment), useValue: { findOne: jest.fn() } },
-        { provide: getRepositoryToken(Booking), useValue: { find: jest.fn(), createQueryBuilder: jest.fn() } },
-        { provide: getRepositoryToken(WishlistCollection), useValue: { find: jest.fn() } },
-        { provide: getRepositoryToken(WishlistItem), useValue: { find: jest.fn() } },
-        { provide: getRepositoryToken(UserRecommendationPreference), useValue: { findOne: jest.fn(), create: jest.fn(), save: jest.fn() } },
-        { provide: getRepositoryToken(RecommendationResult), useValue: { find: jest.fn(), findOne: jest.fn(), create: jest.fn(), save: jest.fn(), delete: jest.fn() } },
-        { provide: getRepositoryToken(RecommendationEvent), useValue: { create: jest.fn(), save: jest.fn() } },
-        { provide: PlatformSettingsService, useValue: { getSettings: jest.fn() } },
+        {
+          provide: getRepositoryToken(FitnessAssessment),
+          useValue: { findOne: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(Booking),
+          useValue: { find: jest.fn(), createQueryBuilder: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(WishlistCollection),
+          useValue: { find: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(WishlistItem),
+          useValue: { find: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(UserRecommendationPreference),
+          useValue: { findOne: jest.fn(), create: jest.fn(), save: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(RecommendationResult),
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+            delete: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(RecommendationEvent),
+          useValue: { create: jest.fn(), save: jest.fn() },
+        },
+        {
+          provide: PlatformSettingsService,
+          useValue: { getSettings: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -87,13 +127,17 @@ describe('RecommendationsService QA Senior Review', () => {
     prefRepo = module.get(getRepositoryToken(UserRecommendationPreference));
   });
 
-  beforeEach(() => { jest.clearAllMocks(); });
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
   // 1. Boundary analysis — scoring thresholds
   describe('Boundary: scoring weights', () => {
     it('should use default weights when settings missing', async () => {
       platformSettings.getSettings.mockRejectedValue(new Error('No settings'));
-      trekRepo.find.mockResolvedValue([makeTrek('t-1', TrekDifficulty.EASY, ['adventure'])]);
+      trekRepo.find.mockResolvedValue([
+        makeTrek('t-1', TrekDifficulty.EASY, ['adventure']),
+      ]);
       bookingRepo.find.mockResolvedValue([]);
       collectionRepo.find.mockResolvedValue([]);
       assessmentRepo.findOne.mockResolvedValue(null);
@@ -107,7 +151,9 @@ describe('RecommendationsService QA Senior Review', () => {
 
     it('should use cold-start weights when user has no history', async () => {
       platformSettings.getSettings.mockResolvedValue({});
-      trekRepo.find.mockResolvedValue([makeTrek('t-1', TrekDifficulty.EASY, ['adventure'])]);
+      trekRepo.find.mockResolvedValue([
+        makeTrek('t-1', TrekDifficulty.EASY, ['adventure']),
+      ]);
       bookingRepo.find.mockResolvedValue([]);
       collectionRepo.find.mockResolvedValue([]);
       assessmentRepo.findOne.mockResolvedValue(null);
@@ -121,10 +167,19 @@ describe('RecommendationsService QA Senior Review', () => {
 
     it('should use normal weights when user has history', async () => {
       platformSettings.getSettings.mockResolvedValue({});
-      trekRepo.find.mockResolvedValue([makeTrek('t-1', TrekDifficulty.EASY, ['adventure']), makeTrek('t-2', TrekDifficulty.MODERATE, ['scenic'])]);
-      bookingRepo.find.mockResolvedValue([{ trekId: 't-1' } as Booking, { trekId: 't-2' } as Booking]);
+      trekRepo.find.mockResolvedValue([
+        makeTrek('t-1', TrekDifficulty.EASY, ['adventure']),
+        makeTrek('t-2', TrekDifficulty.MODERATE, ['scenic']),
+      ]);
+      bookingRepo.find.mockResolvedValue([
+        { trekId: 't-1' } as Booking,
+        { trekId: 't-2' } as Booking,
+      ]);
       collectionRepo.find.mockResolvedValue([]);
-      assessmentRepo.findOne.mockResolvedValue({ difficultyBracket: 'MODERATE', totalScore: 50 } as FitnessAssessment);
+      assessmentRepo.findOne.mockResolvedValue({
+        difficultyBracket: 'MODERATE',
+        totalScore: 50,
+      } as FitnessAssessment);
       resultRepo.delete.mockResolvedValue({} as any);
       resultRepo.create.mockReturnValue({} as any);
       resultRepo.save.mockResolvedValue([] as any);
@@ -138,10 +193,15 @@ describe('RecommendationsService QA Senior Review', () => {
   describe('Fitness score calculation', () => {
     it('should give high fitness score for matching difficulty', async () => {
       platformSettings.getSettings.mockResolvedValue({});
-      trekRepo.find.mockResolvedValue([makeTrek('t-1', TrekDifficulty.MODERATE, ['adventure'])]);
+      trekRepo.find.mockResolvedValue([
+        makeTrek('t-1', TrekDifficulty.MODERATE, ['adventure']),
+      ]);
       bookingRepo.find.mockResolvedValue([]);
       collectionRepo.find.mockResolvedValue([]);
-      assessmentRepo.findOne.mockResolvedValue({ difficultyBracket: 'MODERATE', totalScore: 50 } as FitnessAssessment);
+      assessmentRepo.findOne.mockResolvedValue({
+        difficultyBracket: 'MODERATE',
+        totalScore: 50,
+      } as FitnessAssessment);
       resultRepo.delete.mockResolvedValue({} as any);
       resultRepo.create.mockReturnValue({} as any);
       resultRepo.save.mockResolvedValue([] as any);
@@ -152,7 +212,9 @@ describe('RecommendationsService QA Senior Review', () => {
 
     it('should give 0 fitness score when assessment missing', async () => {
       platformSettings.getSettings.mockResolvedValue({});
-      trekRepo.find.mockResolvedValue([makeTrek('t-1', TrekDifficulty.DIFFICULT, ['adventure'])]);
+      trekRepo.find.mockResolvedValue([
+        makeTrek('t-1', TrekDifficulty.DIFFICULT, ['adventure']),
+      ]);
       bookingRepo.find.mockResolvedValue([]);
       collectionRepo.find.mockResolvedValue([]);
       assessmentRepo.findOne.mockResolvedValue(null);
@@ -176,8 +238,14 @@ describe('RecommendationsService QA Senior Review', () => {
         makeTrek('far', TrekDifficulty.EASY, ['b'], 50, true),
       ]);
       trekRepo.find.mockResolvedValueOnce([
-        { ...makeTrek('near', TrekDifficulty.EASY, ['a'], 50, true), startDate: nearFuture },
-        { ...makeTrek('far', TrekDifficulty.EASY, ['b'], 50, true), startDate: farFuture },
+        {
+          ...makeTrek('near', TrekDifficulty.EASY, ['a'], 50, true),
+          startDate: nearFuture,
+        },
+        {
+          ...makeTrek('far', TrekDifficulty.EASY, ['b'], 50, true),
+          startDate: farFuture,
+        },
       ] as any);
       bookingRepo.find.mockResolvedValue([]);
       collectionRepo.find.mockResolvedValue([]);
@@ -202,7 +270,9 @@ describe('RecommendationsService QA Senior Review', () => {
 
     it('should handle single trek gracefully', async () => {
       platformSettings.getSettings.mockResolvedValue({});
-      trekRepo.find.mockResolvedValue([makeTrek('t-1', TrekDifficulty.EASY, ['adventure'])]);
+      trekRepo.find.mockResolvedValue([
+        makeTrek('t-1', TrekDifficulty.EASY, ['adventure']),
+      ]);
       bookingRepo.find.mockResolvedValue([]);
       collectionRepo.find.mockResolvedValue([]);
       assessmentRepo.findOne.mockResolvedValue(null);
@@ -236,7 +306,14 @@ describe('RecommendationsService QA Senior Review', () => {
   describe('Conversion event logging', () => {
     it('should log SERVED events for recommendations', async () => {
       resultRepo.find.mockResolvedValue([
-        { id: 'r-1', userId: 'user-1', trekId: 't-1', score: 0.8, reason: 'POPULAR', expiresAt: new Date(Date.now() + 3600000) } as RecommendationResult,
+        {
+          id: 'r-1',
+          userId: 'user-1',
+          trekId: 't-1',
+          score: 0.8,
+          reason: 'POPULAR',
+          expiresAt: new Date(Date.now() + 3600000),
+        } as RecommendationResult,
       ]);
       eventRepo.create.mockReturnValue({} as any);
       eventRepo.save.mockResolvedValue({} as any);
@@ -248,7 +325,14 @@ describe('RecommendationsService QA Senior Review', () => {
 
     it('should not throw when event logging fails', async () => {
       resultRepo.find.mockResolvedValue([
-        { id: 'r-1', userId: 'user-1', trekId: 't-1', score: 0.8, reason: 'POPULAR', expiresAt: new Date(Date.now() + 3600000) } as RecommendationResult,
+        {
+          id: 'r-1',
+          userId: 'user-1',
+          trekId: 't-1',
+          score: 0.8,
+          reason: 'POPULAR',
+          expiresAt: new Date(Date.now() + 3600000),
+        } as RecommendationResult,
       ]);
       eventRepo.save.mockRejectedValue(new Error('Log failed'));
       await expect(service.getForUser('user-1', 10)).resolves.toBeDefined();
@@ -267,7 +351,12 @@ describe('RecommendationsService QA Senior Review', () => {
     });
 
     it('should handle empty preference DTO (no changes)', async () => {
-      const existing = { id: 'p-1', userId: 'user-1', maxBudget: 5000, preferredDifficulty: ['MODERATE'] as string[] };
+      const existing = {
+        id: 'p-1',
+        userId: 'user-1',
+        maxBudget: 5000,
+        preferredDifficulty: ['MODERATE'] as string[],
+      };
       prefRepo.findOne.mockResolvedValue(existing as any);
       prefRepo.save.mockResolvedValue(existing as any);
 
@@ -280,7 +369,9 @@ describe('RecommendationsService QA Senior Review', () => {
   describe('Data integrity', () => {
     it('should store all required fields in recommendation results', async () => {
       platformSettings.getSettings.mockResolvedValue({});
-      trekRepo.find.mockResolvedValue([makeTrek('t-1', TrekDifficulty.EASY, ['adventure'])]);
+      trekRepo.find.mockResolvedValue([
+        makeTrek('t-1', TrekDifficulty.EASY, ['adventure']),
+      ]);
       bookingRepo.find.mockResolvedValue([]);
       collectionRepo.find.mockResolvedValue([]);
       assessmentRepo.findOne.mockResolvedValue(null);
@@ -310,7 +401,9 @@ describe('RecommendationsService QA Senior Review', () => {
   describe('Non-existent user', () => {
     it('should handle user with no bookings, no assessments, no wishlist', async () => {
       platformSettings.getSettings.mockResolvedValue({});
-      trekRepo.find.mockResolvedValue([makeTrek('t-1', TrekDifficulty.EASY, ['adventure'])]);
+      trekRepo.find.mockResolvedValue([
+        makeTrek('t-1', TrekDifficulty.EASY, ['adventure']),
+      ]);
       bookingRepo.find.mockResolvedValue([]);
       collectionRepo.find.mockResolvedValue([]);
       assessmentRepo.findOne.mockResolvedValue(null);
@@ -331,16 +424,27 @@ describe('RecommendationsService QA Senior Review', () => {
       trekRepo.find.mockResolvedValue(treks);
       bookingRepo.find.mockResolvedValue([]);
       collectionRepo.find.mockResolvedValue([]);
-      assessmentRepo.findOne.mockResolvedValue({ difficultyBracket: 'MODERATE', totalScore: 60 } as FitnessAssessment);
+      assessmentRepo.findOne.mockResolvedValue({
+        difficultyBracket: 'MODERATE',
+        totalScore: 60,
+      } as FitnessAssessment);
       resultRepo.delete.mockResolvedValue({} as any);
       resultRepo.create.mockImplementation((data: any) => data as any);
-      resultRepo.save.mockImplementation((entities: any) => Promise.resolve(entities));
+      resultRepo.save.mockImplementation((entities: any) =>
+        Promise.resolve(entities),
+      );
 
       const results = await service.refresh('user-1', 5);
       expect(results).toBeDefined();
       if (results.length > 0) {
         expect(typeof results[0].reason).toBe('string');
-        expect(['COMPLETED_SIMILAR', 'WISHLIST_SIMILAR', 'FITNESS_MATCH', 'SEASONAL', 'POPULAR']).toContain(results[0].reason);
+        expect([
+          'COMPLETED_SIMILAR',
+          'WISHLIST_SIMILAR',
+          'FITNESS_MATCH',
+          'SEASONAL',
+          'POPULAR',
+        ]).toContain(results[0].reason);
       }
     });
   });
@@ -349,7 +453,9 @@ describe('RecommendationsService QA Senior Review', () => {
   describe('Refresh clears old results', () => {
     it('should delete old results before saving new', async () => {
       platformSettings.getSettings.mockResolvedValue({});
-      trekRepo.find.mockResolvedValue([makeTrek('t-1', TrekDifficulty.EASY, ['adventure'])]);
+      trekRepo.find.mockResolvedValue([
+        makeTrek('t-1', TrekDifficulty.EASY, ['adventure']),
+      ]);
       bookingRepo.find.mockResolvedValue([]);
       collectionRepo.find.mockResolvedValue([]);
       assessmentRepo.findOne.mockResolvedValue(null);

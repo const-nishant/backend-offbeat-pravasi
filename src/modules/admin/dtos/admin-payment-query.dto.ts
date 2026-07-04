@@ -1,5 +1,16 @@
-import { IsOptional, IsString, IsUUID, IsEnum, IsInt, Min, Max } from 'class-validator';
-import { PaymentProvider, PaymentStatus } from '../../bookings/entities/payment.entity';
+import {
+  IsOptional,
+  IsString,
+  IsUUID,
+  IsEnum,
+  IsInt,
+  Min,
+  Max,
+} from 'class-validator';
+import {
+  PaymentProvider,
+  PaymentStatus,
+} from '../../bookings/entities/payment.entity';
 import { Transform } from 'class-transformer';
 
 export class AdminPaymentQueryDto {

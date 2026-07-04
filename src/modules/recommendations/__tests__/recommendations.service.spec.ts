@@ -1,6 +1,7 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository, In, LessThan } from 'typeorm';
+import type { Repository } from 'typeorm';
+import { In, LessThan } from 'typeorm';
 import { RecommendationsService } from '../recommendations.service';
 import { UserRecommendationPreference } from '../entities/user-recommendation-preference.entity';
 import { RecommendationResult } from '../entities/recommendation-result.entity';
@@ -51,16 +52,49 @@ describe('RecommendationsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RecommendationsService,
-        { provide: getRepositoryToken(Trek), useValue: { find: jest.fn(), findOne: jest.fn() } },
+        {
+          provide: getRepositoryToken(Trek),
+          useValue: { find: jest.fn(), findOne: jest.fn() },
+        },
         { provide: getRepositoryToken(TrekTag), useValue: { find: jest.fn() } },
-        { provide: getRepositoryToken(FitnessAssessment), useValue: { findOne: jest.fn() } },
-        { provide: getRepositoryToken(Booking), useValue: { find: jest.fn(), createQueryBuilder: jest.fn() } },
-        { provide: getRepositoryToken(WishlistCollection), useValue: { find: jest.fn() } },
-        { provide: getRepositoryToken(WishlistItem), useValue: { find: jest.fn() } },
-        { provide: getRepositoryToken(UserRecommendationPreference), useValue: { findOne: jest.fn(), create: jest.fn(), save: jest.fn() } },
-        { provide: getRepositoryToken(RecommendationResult), useValue: { find: jest.fn(), findOne: jest.fn(), create: jest.fn(), save: jest.fn(), delete: jest.fn() } },
-        { provide: getRepositoryToken(RecommendationEvent), useValue: { create: jest.fn(), save: jest.fn() } },
-        { provide: PlatformSettingsService, useValue: { getSettings: jest.fn() } },
+        {
+          provide: getRepositoryToken(FitnessAssessment),
+          useValue: { findOne: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(Booking),
+          useValue: { find: jest.fn(), createQueryBuilder: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(WishlistCollection),
+          useValue: { find: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(WishlistItem),
+          useValue: { find: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(UserRecommendationPreference),
+          useValue: { findOne: jest.fn(), create: jest.fn(), save: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(RecommendationResult),
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            create: jest.fn(),
+            save: jest.fn(),
+            delete: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(RecommendationEvent),
+          useValue: { create: jest.fn(), save: jest.fn() },
+        },
+        {
+          provide: PlatformSettingsService,
+          useValue: { getSettings: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -101,7 +135,14 @@ describe('RecommendationsService', () => {
   describe('getForUser', () => {
     it('should return cached recommendations if available', async () => {
       resultRepo.find.mockResolvedValue([
-        { id: 'r-1', userId: 'user-1', trekId: 'trek-1', score: 0.8, reason: 'POPULAR', expiresAt: new Date(Date.now() + 3600000) } as RecommendationResult,
+        {
+          id: 'r-1',
+          userId: 'user-1',
+          trekId: 'trek-1',
+          score: 0.8,
+          reason: 'POPULAR',
+          expiresAt: new Date(Date.now() + 3600000),
+        } as RecommendationResult,
       ]);
       eventRepo.create.mockReturnValue({} as any);
       eventRepo.save.mockResolvedValue({} as any);
@@ -137,7 +178,10 @@ describe('RecommendationsService', () => {
         groupBy: jest.fn().mockReturnThis(),
         offset: jest.fn().mockReturnThis(),
         limit: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValueOnce([{ b_userId: 'user-1' }]).mockResolvedValueOnce([]),
+        getRawMany: jest
+          .fn()
+          .mockResolvedValueOnce([{ b_userId: 'user-1' }])
+          .mockResolvedValueOnce([]),
       };
       bookingRepo.createQueryBuilder.mockReturnValue(qb as any);
       trekRepo.find.mockResolvedValue([mockTrek, mockTrek2]);
@@ -164,7 +208,11 @@ describe('RecommendationsService', () => {
 
   describe('logConversion', () => {
     it('should log a conversion event', async () => {
-      eventRepo.create.mockReturnValue({ userId: 'user-1', trekId: 'trek-1', eventType: 'CLICKED' } as any);
+      eventRepo.create.mockReturnValue({
+        userId: 'user-1',
+        trekId: 'trek-1',
+        eventType: 'CLICKED',
+      } as any);
       eventRepo.save.mockResolvedValue({} as any);
       await service.logConversion('user-1', 'trek-1', 'CLICKED');
       expect(eventRepo.create).toHaveBeenCalled();
@@ -173,7 +221,9 @@ describe('RecommendationsService', () => {
 
     it('should not throw on save failure', async () => {
       eventRepo.save.mockRejectedValue(new Error('DB error'));
-      await expect(service.logConversion('user-1', 'trek-1', 'CLICKED')).resolves.toBeUndefined();
+      await expect(
+        service.logConversion('user-1', 'trek-1', 'CLICKED'),
+      ).resolves.toBeUndefined();
     });
   });
 

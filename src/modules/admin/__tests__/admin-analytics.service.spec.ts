@@ -42,7 +42,11 @@ describe('AdminAnalyticsService', () => {
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({ date: expect.any(Date), count: 42 });
       expect(result[1]).toEqual({ date: expect.any(Date), count: 55 });
-      expect(redisService.set).toHaveBeenCalledWith(expect.any(String), expect.any(String), 300);
+      expect(redisService.set).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        300,
+      );
     });
   });
 
@@ -50,17 +54,34 @@ describe('AdminAnalyticsService', () => {
     it('queries trek_interactions grouped by trek', async () => {
       redisService.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([
-        { id: 'trek-1', name: 'Trek A', state: 'HP', difficulty: 'MODERATE', total_users: '10', views: '100', bookmarks: '20', likes: '15', bookings: '5' },
+        {
+          id: 'trek-1',
+          name: 'Trek A',
+          state: 'HP',
+          difficulty: 'MODERATE',
+          total_users: '10',
+          views: '100',
+          bookmarks: '20',
+          likes: '15',
+          bookings: '5',
+        },
       ]);
 
       const result = await service.getTrekPopularity(30, 10);
 
-      expect(dataSource.query).toHaveBeenCalledWith(expect.any(String), [30, 10]);
+      expect(dataSource.query).toHaveBeenCalledWith(
+        expect.any(String),
+        [30, 10],
+      );
       expect(result).toHaveLength(1);
       expect(result[0].trekId).toBe('trek-1');
       expect(result[0].views).toBe(100);
       expect(result[0].bookmarks).toBe(20);
-      expect(redisService.set).toHaveBeenCalledWith(expect.any(String), expect.any(String), 600);
+      expect(redisService.set).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        600,
+      );
     });
   });
 
@@ -81,7 +102,11 @@ describe('AdminAnalyticsService', () => {
       expect(result.stages.paymentsInitiated).toBe(150);
       expect(result.stages.paymentsCompleted).toBe(130);
       expect(result.stages.bookingsConfirmed).toBe(120);
-      expect(redisService.set).toHaveBeenCalledWith(expect.any(String), expect.any(String), 900);
+      expect(redisService.set).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        900,
+      );
     });
 
     it('applies date filters when provided', async () => {
@@ -93,7 +118,10 @@ describe('AdminAnalyticsService', () => {
         .mockResolvedValueOnce([{ count: '70' }])
         .mockResolvedValueOnce([{ count: '60' }]);
 
-      const result = await service.getConversionFunnel('2026-01-01', '2026-06-30');
+      const result = await service.getConversionFunnel(
+        '2026-01-01',
+        '2026-06-30',
+      );
 
       expect(dataSource.query).toHaveBeenCalledTimes(5);
       expect(result.stages.views).toBe(500);
@@ -104,17 +132,36 @@ describe('AdminAnalyticsService', () => {
     it('queries payments grouped by date and provider', async () => {
       redisService.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([
-        { date: new Date('2026-07-01'), provider: 'STRIPE', transaction_count: '10', revenue: '50000', active_users: '8' },
-        { date: new Date('2026-07-01'), provider: 'RAZORPAY', transaction_count: '5', revenue: '25000', active_users: '4' },
+        {
+          date: new Date('2026-07-01'),
+          provider: 'STRIPE',
+          transaction_count: '10',
+          revenue: '50000',
+          active_users: '8',
+        },
+        {
+          date: new Date('2026-07-01'),
+          provider: 'RAZORPAY',
+          transaction_count: '5',
+          revenue: '25000',
+          active_users: '4',
+        },
       ]);
 
       const result = await service.getRevenueTrends('daily', 30);
 
-      expect(dataSource.query).toHaveBeenCalledWith(expect.any(String), ['day', 30]);
+      expect(dataSource.query).toHaveBeenCalledWith(expect.any(String), [
+        'day',
+        30,
+      ]);
       expect(result).toHaveLength(2);
       expect(result[0].provider).toBe('STRIPE');
       expect(result[0].revenue).toBe(50000);
-      expect(redisService.set).toHaveBeenCalledWith(expect.any(String), expect.any(String), 600);
+      expect(redisService.set).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        600,
+      );
     });
 
     it('maps weekly and monthly periods', async () => {
@@ -122,10 +169,16 @@ describe('AdminAnalyticsService', () => {
       dataSource.query.mockResolvedValue([]);
 
       await service.getRevenueTrends('monthly', 90);
-      expect(dataSource.query).toHaveBeenCalledWith(expect.any(String), ['month', 90]);
+      expect(dataSource.query).toHaveBeenCalledWith(expect.any(String), [
+        'month',
+        90,
+      ]);
 
       await service.getRevenueTrends('weekly', 90);
-      expect(dataSource.query).toHaveBeenCalledWith(expect.any(String), ['week', 90]);
+      expect(dataSource.query).toHaveBeenCalledWith(expect.any(String), [
+        'week',
+        90,
+      ]);
     });
   });
 

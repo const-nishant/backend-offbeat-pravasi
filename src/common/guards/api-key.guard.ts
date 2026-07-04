@@ -27,8 +27,9 @@ export class ApiKeyGuard implements CanActivate {
     const expectedKey = process.env.GLOBAL_API_KEY;
 
     if (!expectedKey) {
-      // Allow all requests when no key is configured (dev mode)
-      return true;
+      throw new UnauthorizedException(
+        'API key not configured on server. Set GLOBAL_API_KEY environment variable.',
+      );
     }
 
     const provided =

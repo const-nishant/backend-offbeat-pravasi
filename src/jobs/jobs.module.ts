@@ -24,7 +24,6 @@ import { ReferralsModule } from '../modules/referrals/referrals.module';
 import { ReferralRewardDeliveryWorkerService } from './processors/referral-reward-delivery.processor';
 import { RecommendationBuilderWorkerService } from './processors/recommendation-builder.processor';
 import { RecommendationBuilderScheduler } from './schedulers/recommendation-builder.scheduler';
-import { forwardRef } from '@nestjs/common';
 import { RecommendationsModule } from '../modules/recommendations/recommendations.module';
 import { PriceDropWorkerService } from './processors/price-drop.processor';
 import { PriceDropScheduler } from './schedulers/price-drop.scheduler';
@@ -61,7 +60,7 @@ const exportProviders = [TicketPdfWorkerService];
     SafetyModule,
     GroupsModule,
     ReferralsModule,
-    forwardRef(() => RecommendationsModule),
+    RecommendationsModule,
     TypeOrmModule.forFeature([NotificationCampaign]),
   ],
   providers: [

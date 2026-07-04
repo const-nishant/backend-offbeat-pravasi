@@ -314,7 +314,9 @@ export class AdminService {
       qb.andWhere('r.status = :status', { status: filters.status });
     }
     if (filters.referrerId) {
-      qb.andWhere('rc.userId = :referrerId', { referrerId: filters.referrerId });
+      qb.andWhere('rc.userId = :referrerId', {
+        referrerId: filters.referrerId,
+      });
     }
     if (filters.startDate) {
       qb.andWhere('r.createdAt >= :start', { start: filters.startDate });
@@ -323,9 +325,12 @@ export class AdminService {
       qb.andWhere('r.createdAt <= :end', { end: filters.endDate });
     }
     if (filters.query) {
-      qb.andWhere('(r.refereeEmail ILIKE :q OR u.email ILIKE :q OR u.fullName ILIKE :q)', {
-        q: `%${filters.query}%`,
-      });
+      qb.andWhere(
+        '(r.refereeEmail ILIKE :q OR u.email ILIKE :q OR u.fullName ILIKE :q)',
+        {
+          q: `%${filters.query}%`,
+        },
+      );
     }
 
     qb.select([
@@ -354,7 +359,12 @@ export class AdminService {
     filters: any,
     page = 1,
     limit = 20,
-  ): Promise<{ data: ReferralCode[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    data: ReferralCode[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const qb = this.referralCodeRepo
       .createQueryBuilder('rc')
       .leftJoinAndSelect(User, 'u', 'u.id = rc.userId');
@@ -363,9 +373,12 @@ export class AdminService {
       qb.andWhere('rc.tier = :tier', { tier: filters.tier });
     }
     if (filters.query) {
-      qb.andWhere('(rc.code ILIKE :q OR u.email ILIKE :q OR u.fullName ILIKE :q)', {
-        q: `%${filters.query}%`,
-      });
+      qb.andWhere(
+        '(rc.code ILIKE :q OR u.email ILIKE :q OR u.fullName ILIKE :q)',
+        {
+          q: `%${filters.query}%`,
+        },
+      );
     }
 
     qb.select([
@@ -394,7 +407,13 @@ export class AdminService {
     totalRewardedInr: number;
     byTier: { tier: string; count: number; totalEarnedInr: number }[];
     byStatus: Record<string, number>;
-    topReferrers: { userId: string; name: string; email: string; successfulReferrals: number; totalEarnedInr: number }[];
+    topReferrers: {
+      userId: string;
+      name: string;
+      email: string;
+      successfulReferrals: number;
+      totalEarnedInr: number;
+    }[];
   }> {
     const totalReferralCodes = await this.referralCodeRepo.count();
     const totalReferrals = await this.referralRepo.count();
@@ -445,7 +464,8 @@ export class AdminService {
     });
 
     const userIds = topCodes.map((c) => c.userId);
-    const users = userIds.length > 0 ? await this.userRepo.findByIds(userIds) : [];
+    const users =
+      userIds.length > 0 ? await this.userRepo.findByIds(userIds) : [];
     const userMap = new Map(users.map((u) => [u.id, u]));
 
     const topReferrers = topCodes.map((c) => {

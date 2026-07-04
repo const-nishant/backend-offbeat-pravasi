@@ -1,6 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import StripeLib from 'stripe';
-import type { PaymentGateway, RefundResult } from '../interfaces/payment-gateway.interface';
+import type {
+  PaymentGateway,
+  RefundResult,
+} from '../interfaces/payment-gateway.interface';
 
 @Injectable()
 export class StripeAdapter implements PaymentGateway {
@@ -14,7 +17,9 @@ export class StripeAdapter implements PaymentGateway {
       return;
     }
     try {
-      this.client = new StripeLib(key, { apiVersion: '2025-02-24.acacia' as any });
+      this.client = new StripeLib(key, {
+        apiVersion: '2025-02-24.acacia' as any,
+      });
     } catch {
       this.client = null;
     }

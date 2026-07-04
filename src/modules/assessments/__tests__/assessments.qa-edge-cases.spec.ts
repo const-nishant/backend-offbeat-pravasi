@@ -1,10 +1,10 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import type { Repository } from 'typeorm';
 import { AssessmentsService } from '../assessments.service';
 import { FitnessAssessment } from '../entities/fitness-assessment.entity';
 import { QUIZ_QUESTIONS } from '../constants/quiz-questions';
-import { SubmitAssessmentDto } from '../dtos/submit-assessment.dto';
+import type { SubmitAssessmentDto } from '../dtos/submit-assessment.dto';
 
 describe('AssessmentsService — QA Edge Cases', () => {
   let service: AssessmentsService;
@@ -35,12 +35,28 @@ describe('AssessmentsService — QA Edge Cases', () => {
 
   describe('1. All-minimum answers', () => {
     it('should return EASY bracket with score 0', async () => {
-      const dto = buildAnswerSet('Never', '< 5 km', 'Sea level (< 500m)',
-        'Not comfortable', 'Yes, significant concerns', 'Leisure / sightseeing',
-        'Under 18', 'None', 'Cannot swim', 'Very uncomfortable');
+      const dto = buildAnswerSet(
+        'Never',
+        '< 5 km',
+        'Sea level (< 500m)',
+        'Not comfortable',
+        'Yes, significant concerns',
+        'Leisure / sightseeing',
+        'Under 18',
+        'None',
+        'Cannot swim',
+        'Very uncomfortable',
+      );
 
-      assessmentRepo.create.mockReturnValue({ difficultyBracket: 'EASY', totalScore: 0 } as any);
-      assessmentRepo.save.mockResolvedValue({ difficultyBracket: 'EASY', totalScore: 0, completedAt: new Date() } as any);
+      assessmentRepo.create.mockReturnValue({
+        difficultyBracket: 'EASY',
+        totalScore: 0,
+      } as any);
+      assessmentRepo.save.mockResolvedValue({
+        difficultyBracket: 'EASY',
+        totalScore: 0,
+        completedAt: new Date(),
+      } as any);
 
       const result = await service.submit('user-min', dto);
       expect(result.difficultyBracket).toBe('EASY');
@@ -50,12 +66,28 @@ describe('AssessmentsService — QA Edge Cases', () => {
 
   describe('2. All-maximum answers', () => {
     it('should return EXTREME bracket with high score', async () => {
-      const dto = buildAnswerSet('Daily', '> 20 km', 'Mountains (> 4000m)',
-        'Very comfortable', 'Excellent health', 'Summit / endurance',
-        '18-30', '6+ treks', 'Very strong swimmer', 'Prefer it');
+      const dto = buildAnswerSet(
+        'Daily',
+        '> 20 km',
+        'Mountains (> 4000m)',
+        'Very comfortable',
+        'Excellent health',
+        'Summit / endurance',
+        '18-30',
+        '6+ treks',
+        'Very strong swimmer',
+        'Prefer it',
+      );
 
-      assessmentRepo.create.mockReturnValue({ difficultyBracket: 'EXTREME', totalScore: 100 } as any);
-      assessmentRepo.save.mockResolvedValue({ difficultyBracket: 'EXTREME', totalScore: 100, completedAt: new Date() } as any);
+      assessmentRepo.create.mockReturnValue({
+        difficultyBracket: 'EXTREME',
+        totalScore: 100,
+      } as any);
+      assessmentRepo.save.mockResolvedValue({
+        difficultyBracket: 'EXTREME',
+        totalScore: 100,
+        completedAt: new Date(),
+      } as any);
 
       const result = await service.submit('user-max', dto);
       expect(result.difficultyBracket).toBe('EXTREME');
@@ -64,18 +96,42 @@ describe('AssessmentsService — QA Edge Cases', () => {
   });
 
   describe('3. Medical flag (lowest health score)', () => {
-    const dto = buildAnswerSet('Daily', '> 20 km', 'Mountains (> 4000m)',
-      'Comfortable', 'Yes, significant concerns', 'Summit / endurance',
-      '18-30', '6+ treks', 'Very strong swimmer', 'Prefer it');
+    const dto = buildAnswerSet(
+      'Daily',
+      '> 20 km',
+      'Mountains (> 4000m)',
+      'Comfortable',
+      'Yes, significant concerns',
+      'Summit / endurance',
+      '18-30',
+      '6+ treks',
+      'Very strong swimmer',
+      'Prefer it',
+    );
 
     it('should penalize medical condition heavily due to weight=2.0', async () => {
-      const baseScore = computeExpectedWithOneChange(dto, 'medical_conditions', 'Excellent health');
-      const medicalScore = computeExpectedWithOneChange(dto, 'medical_conditions', 'Yes, significant concerns');
+      const baseScore = computeExpectedWithOneChange(
+        dto,
+        'medical_conditions',
+        'Excellent health',
+      );
+      const medicalScore = computeExpectedWithOneChange(
+        dto,
+        'medical_conditions',
+        'Yes, significant concerns',
+      );
 
       expect(medicalScore).toBeLessThan(baseScore);
 
-      assessmentRepo.create.mockReturnValue({ difficultyBracket: 'EASY', totalScore: medicalScore } as any);
-      assessmentRepo.save.mockResolvedValue({ difficultyBracket: 'EASY', totalScore: medicalScore, completedAt: new Date() } as any);
+      assessmentRepo.create.mockReturnValue({
+        difficultyBracket: 'EASY',
+        totalScore: medicalScore,
+      } as any);
+      assessmentRepo.save.mockResolvedValue({
+        difficultyBracket: 'EASY',
+        totalScore: medicalScore,
+        completedAt: new Date(),
+      } as any);
 
       const result = await service.submit('user-med', dto);
       expect(result.totalScore).toBe(medicalScore);
@@ -85,11 +141,20 @@ describe('AssessmentsService — QA Edge Cases', () => {
   describe('4. Partial answers (only 1 question answered)', () => {
     it('should handle gracefully without throwing', async () => {
       const dto: SubmitAssessmentDto = {
-        answers: [{ questionId: 'exercise_frequency', selectedOption: 'Daily' }],
+        answers: [
+          { questionId: 'exercise_frequency', selectedOption: 'Daily' },
+        ],
       };
 
-      assessmentRepo.create.mockReturnValue({ difficultyBracket: 'EASY', totalScore: 100 } as any);
-      assessmentRepo.save.mockResolvedValue({ difficultyBracket: 'EASY', totalScore: 100, completedAt: new Date() } as any);
+      assessmentRepo.create.mockReturnValue({
+        difficultyBracket: 'EASY',
+        totalScore: 100,
+      } as any);
+      assessmentRepo.save.mockResolvedValue({
+        difficultyBracket: 'EASY',
+        totalScore: 100,
+        completedAt: new Date(),
+      } as any);
 
       await expect(service.submit('user-partial', dto)).resolves.toBeDefined();
     });
@@ -99,8 +164,15 @@ describe('AssessmentsService — QA Edge Cases', () => {
     it('should return EASY with score 0', async () => {
       const dto: SubmitAssessmentDto = { answers: [] };
 
-      assessmentRepo.create.mockReturnValue({ difficultyBracket: 'EASY', totalScore: 0 } as any);
-      assessmentRepo.save.mockResolvedValue({ difficultyBracket: 'EASY', totalScore: 0, completedAt: new Date() } as any);
+      assessmentRepo.create.mockReturnValue({
+        difficultyBracket: 'EASY',
+        totalScore: 0,
+      } as any);
+      assessmentRepo.save.mockResolvedValue({
+        difficultyBracket: 'EASY',
+        totalScore: 0,
+        completedAt: new Date(),
+      } as any);
 
       const result = await service.submit('user-empty', dto);
       expect(result.difficultyBracket).toBe('EASY');
@@ -134,8 +206,15 @@ describe('AssessmentsService — QA Edge Cases', () => {
         ],
       };
 
-      assessmentRepo.create.mockReturnValue({ difficultyBracket: 'MODERATE', totalScore: 50 } as any);
-      assessmentRepo.save.mockResolvedValue({ difficultyBracket: 'MODERATE', totalScore: 50, completedAt: new Date() } as any);
+      assessmentRepo.create.mockReturnValue({
+        difficultyBracket: 'MODERATE',
+        totalScore: 50,
+      } as any);
+      assessmentRepo.save.mockResolvedValue({
+        difficultyBracket: 'MODERATE',
+        totalScore: 50,
+        completedAt: new Date(),
+      } as any);
 
       const result = await service.submit('user-unk', dto);
       expect(result).toBeDefined();
@@ -152,8 +231,15 @@ describe('AssessmentsService — QA Edge Cases', () => {
         ],
       };
 
-      assessmentRepo.create.mockReturnValue({ difficultyBracket: 'EC', totalScore: 33 } as any);
-      assessmentRepo.save.mockResolvedValue({ difficultyBracket: 'EC', totalScore: 33, completedAt: new Date() } as any);
+      assessmentRepo.create.mockReturnValue({
+        difficultyBracket: 'EC',
+        totalScore: 33,
+      } as any);
+      assessmentRepo.save.mockResolvedValue({
+        difficultyBracket: 'EC',
+        totalScore: 33,
+        completedAt: new Date(),
+      } as any);
 
       await expect(service.submit('user-badopt', dto)).resolves.toBeDefined();
     });
@@ -177,9 +263,18 @@ describe('AssessmentsService — QA Edge Cases', () => {
 
   describe('11. Boundary score (score = 20 → EASY, score = 21 → MODERATE)', () => {
     it('should correctly border between EASY and MODERATE', async () => {
-      const veryLow = buildAnswerSet('Never', '< 5 km', 'Sea level (< 500m)',
-        'Not comfortable', 'Yes, significant concerns', 'Leisure / sightseeing',
-        'Under 18', 'None', 'Cannot swim', 'Very uncomfortable');
+      const veryLow = buildAnswerSet(
+        'Never',
+        '< 5 km',
+        'Sea level (< 500m)',
+        'Not comfortable',
+        'Yes, significant concerns',
+        'Leisure / sightseeing',
+        'Under 18',
+        'None',
+        'Cannot swim',
+        'Very uncomfortable',
+      );
       // All 0-score = 0 total → EASY
       expect(veryLow.answers.length).toBe(10);
     });
@@ -187,28 +282,64 @@ describe('AssessmentsService — QA Edge Cases', () => {
 
   describe('12. Boundary score (score = 75 → DIFFICULT, score = 76 → EXTREME)', () => {
     it('should correctly border between DIFFICULT and EXTREME', async () => {
-      const veryHigh = buildAnswerSet('Daily', '> 20 km', 'Mountains (> 4000m)',
-        'Very comfortable', 'Excellent health', 'Summit / endurance',
-        '18-30', '6+ treks', 'Very strong swimmer', 'Prefer it');
+      const veryHigh = buildAnswerSet(
+        'Daily',
+        '> 20 km',
+        'Mountains (> 4000m)',
+        'Very comfortable',
+        'Excellent health',
+        'Summit / endurance',
+        '18-30',
+        '6+ treks',
+        'Very strong swimmer',
+        'Prefer it',
+      );
       expect(veryHigh.answers.length).toBe(10);
     });
   });
 });
 
 function buildAnswerSet(
-  exercise: string, walk: string, altitude: string, camping: string,
-  medical: string, goal: string, age: string, prior: string,
-  swim: string, sleep: string,
+  exercise: string,
+  walk: string,
+  altitude: string,
+  camping: string,
+  medical: string,
+  goal: string,
+  age: string,
+  prior: string,
+  swim: string,
+  sleep: string,
 ): SubmitAssessmentDto {
   const ids = [
-    'exercise_frequency', 'longest_walk', 'altitude_experience',
-    'camping_comfort', 'medical_conditions', 'primary_goal',
-    'age_range', 'prior_trek_count', 'swimming_comfort',
+    'exercise_frequency',
+    'longest_walk',
+    'altitude_experience',
+    'camping_comfort',
+    'medical_conditions',
+    'primary_goal',
+    'age_range',
+    'prior_trek_count',
+    'swimming_comfort',
     'sleeping_conditions',
   ];
-  const values = [exercise, walk, altitude, camping, medical, goal, age, prior, swim, sleep];
+  const values = [
+    exercise,
+    walk,
+    altitude,
+    camping,
+    medical,
+    goal,
+    age,
+    prior,
+    swim,
+    sleep,
+  ];
   return {
-    answers: ids.map((id, i) => ({ questionId: id, selectedOption: values[i] })),
+    answers: ids.map((id, i) => ({
+      questionId: id,
+      selectedOption: values[i],
+    })),
   };
 }
 
