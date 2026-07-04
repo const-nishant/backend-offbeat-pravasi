@@ -16,6 +16,7 @@ import {
 } from '../../common/decorators/current-user.decorator';
 import type { Request } from 'express';
 import { Public } from '../../common/decorators/public.decorator';
+import { AllowAnonymous } from '@thallesp/nestjs-better-auth';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
 interface RequestWithSession extends Request {
@@ -23,6 +24,7 @@ interface RequestWithSession extends Request {
 }
 
 @ApiTags('Auth')
+@AllowAnonymous()
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
