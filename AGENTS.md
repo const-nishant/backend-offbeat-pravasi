@@ -2,6 +2,76 @@
 
 Purpose: Formalize the set of contributor/automation agents used for code changes, automation, and reviews. This file follows the OpenCode agents guidance: https://opencode.ai/docs/agents/ and maps each agent to areas described in the project's NestJS blueprint.
 
+---
+
+# Repository Intelligence Workflow
+
+Before answering any coding question or modifying code, always follow this escalation order (it is the single source of truth for minimizing context usage):
+
+1. **Build or update the repository graph** (code-review-graph).
+2. **Query the repository graph** for affected files.
+3. **Use AST search** (ast-grep) to locate symbols, decorators, providers, repositories, DTOs, entities, queues, and services.
+4. **Use the TypeScript Language Server** for: Go to Definition, Find References, Rename Symbol, Call Hierarchy.
+5. **Use ripgrep** only for simple text searches, or as a fallback if graph/AST tools are unavailable.
+6. **Read only the files required for the task.**
+7. **Never scan the entire repository** unless explicitly requested.
+
+---
+
+# Backend Engineering Standards
+
+### TypeScript & NestJS
+- Use strict TypeScript; never introduce `any`.
+- Keep controllers thin; place business logic in services.
+- Keep processors lightweight.
+- Preserve module boundaries; avoid circular dependencies.
+- Use dependency injection correctly.
+- Optimize SQL queries; avoid N+1 queries.
+- Recommend indexes when appropriate.
+- Write idempotent BullMQ jobs.
+- Use DTOs for all API contracts.
+- Use transactions where necessary.
+- Preserve existing architecture.
+
+### Database schema changes
+- Never enable `synchronize: true` outside local development.
+- All schema changes go through TypeORM migrations — generate, review, and commit migration files; never rely on auto-sync in staging or production.
+- Call out migration reversibility and any data-backfill implications when proposing schema changes.
+
+### Code style and linting
+- Do not invent new style rules. Use the repository's existing ESLint and Prettier config as the definition of "consistent coding style."
+- If no lint/format config exists, flag this rather than silently picking a style.
+- Run lint/format checks on changed files before considering a change complete.
+
+### Secrets and environment configuration
+- Never hardcode credentials, connection strings, API keys, or tokens in source, migrations, or docs.
+- Use existing environment variable / config module patterns already present in the repo.
+- Never print, log, or commit `.env` file contents. Treat `.env*` files as read-only reference for variable *names*, not values.
+
+### Git conventions
+- Do not commit or push automatically. Prepare changes and let the user review and commit, unless explicitly asked to commit.
+- Follow the repository's existing commit message convention (e.g., Conventional Commits).
+- Do not create or switch branches without confirmation.
+
+---
+
+# Code Review Workflow
+
+Before editing code:
+1. Understand the architecture.
+2. Identify affected modules.
+3. Identify callers and callees.
+4. Analyze database impact (including whether a migration is required).
+5. Analyze queue impact.
+6. Analyze API impact.
+7. Recommend the smallest safe change.
+
+Never rewrite working code without a clear architectural reason.
+
+---
+
+# Agent Definitions
+
 Agent Template (follow for each agent)
 - Name: short `kebab-case` agent id (e.g., `bookings-payments-agent`)
 - Role: one-line summary of responsibilities
