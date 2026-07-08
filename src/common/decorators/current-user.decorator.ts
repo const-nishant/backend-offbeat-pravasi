@@ -1,10 +1,12 @@
 import type { ExecutionContext } from '@nestjs/common';
 import { createParamDecorator } from '@nestjs/common';
+import type { AdminRole } from '../../modules/users/enums/admin-role.enum';
 
 export interface AuthenticatedUser {
   id: string;
   email: string;
   isAdmin: boolean;
+  role?: AdminRole | null;
   organizerStatus?: string;
 }
 

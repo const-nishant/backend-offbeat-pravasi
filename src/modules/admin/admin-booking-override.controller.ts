@@ -9,7 +9,9 @@ import {
   Req,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { AdminGuard } from '../../common/guards/admin.guard';
+import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
+import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
+import { AdminRole } from '../../modules/users/enums/admin-role.enum';
 import { AdminBookingOverrideService } from './admin-booking-override.service';
 import { AdminBookingOverrideDto } from './dtos/admin-booking-override.dto';
 import { AdminForceCancelDto } from './dtos/admin-force-cancel.dto';
@@ -17,13 +19,14 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('Admin / Bookings')
 @Controller('admin/bookings')
-@UseGuards(JwtAuthGuard, AdminGuard)
+@UseGuards(JwtAuthGuard, AdminRolesGuard)
 export class AdminBookingOverrideController {
   constructor(
     private readonly adminBookingOverrideService: AdminBookingOverrideService,
   ) {}
 
   @Patch(':id/override')
+  @AdminRoles(AdminRole.SUPERADMIN, AdminRole.FINANCE)
   @ApiOperation({ summary: 'Override booking details (price, dates, notes)' })
   async overrideBooking(
     @Param('id') id: string,
@@ -39,6 +42,7 @@ export class AdminBookingOverrideController {
   }
 
   @Post(':id/cancel')
+  @AdminRoles(AdminRole.SUPERADMIN, AdminRole.FINANCE)
   @ApiOperation({ summary: 'Force-cancel a booking with refund override' })
   async forceCancel(
     @Param('id') id: string,
@@ -54,6 +58,7 @@ export class AdminBookingOverrideController {
   }
 
   @Get(':id/timeline')
+  @AdminRoles(AdminRole.SUPERADMIN, AdminRole.FINANCE, AdminRole.SUPPORT)
   @ApiOperation({ summary: 'Get chronological event log for a booking' })
   async getTimeline(@Param('id') id: string): Promise<any> {
     return this.adminBookingOverrideService.getTimeline(id);

@@ -2,11 +2,13 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt, StrategyOptions } from 'passport-jwt';
 import { AuthenticatedUser } from '../../../common/decorators/current-user.decorator';
+import { AdminRole } from '../../../modules/users/enums/admin-role.enum';
 
 interface JwtPayload {
   sub: string;
   email: string;
   isAdmin: boolean;
+  role?: AdminRole | null;
   organizerStatus?: string;
 }
 
@@ -34,6 +36,7 @@ export class JwtAccessStrategy extends PassportStrategy(Strategy, 'jwt') {
       id: payload.sub,
       email: payload.email,
       isAdmin: payload.isAdmin,
+      role: payload.role ?? null,
       organizerStatus: payload.organizerStatus,
     };
   }

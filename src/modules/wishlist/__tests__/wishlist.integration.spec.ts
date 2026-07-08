@@ -24,6 +24,7 @@ class SqliteUser {
   @PrimaryGeneratedColumn('uuid') id!: string;
   @Column({ type: 'varchar', length: 255 }) email!: string;
   @Column({ type: 'varchar', length: 255, nullable: true }) fullName?: string;
+  @Column({ type: 'varchar', nullable: true }) role!: string | null;
   @CreateDateColumn({ type: 'datetime' }) createdAt!: Date;
 }
 
