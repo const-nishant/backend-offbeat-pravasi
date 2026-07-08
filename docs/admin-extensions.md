@@ -385,7 +385,7 @@ async listUsers(@Query() query, @Res() res, @ExportContext() ctx) { ... }
 
 ---
 
-## 16. User Impersonation
+## 16. User Impersonation ✅
 
 **Problem:** Support needs to troubleshoot issues from the user's perspective. Requesting screenshots is slow and unreliable.
 
@@ -528,7 +528,7 @@ graph LR
 
 ---
 
-## 24. Revenue Sharing Breakdown
+## 24. Revenue Sharing Breakdown ✅
 
 **Problem:** Platform takes a cut of each booking. Organizers and admins have no per-trek or per-period view of revenue split.
 
@@ -554,7 +554,7 @@ graph LR
 
 ---
 
-## 26. Failed Login Attempts Log
+## 26. Failed Login Attempts Log ✅
 
 **Problem:** No way to detect brute-force patterns or credential stuffing.
 

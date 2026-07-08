@@ -1,5 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 import { AdminPaymentController } from './admin-payment.controller';
@@ -24,8 +25,15 @@ import { AdminSessionController } from './admin-session.controller';
 import { AdminSessionService } from './admin-session.service';
 import { AdminActivityController } from './admin-activity.controller';
 import { AdminActivityService } from './admin-activity.service';
+import { AdminImpersonationController } from './admin-impersonation.controller';
+import { AdminImpersonationService } from './admin-impersonation.service';
+import { AdminRevenueController } from './admin-revenue.controller';
+import { AdminRevenueService } from './admin-revenue.service';
+import { AdminSecurityController } from './admin-security.controller';
+import { AdminSecurityService } from './admin-security.service';
 import { WebhookLog } from './entities/webhook-log.entity';
 import { AuditLog } from './entities/audit-log.entity';
+import { FailedLoginAttempt } from './entities/failed-login-attempt.entity';
 import { PlatformSettingsModule } from './platform-settings.module';
 import { User } from '../users/entities/user.entity';
 import { Trek } from '../treks/entities/trek.entity';
@@ -57,7 +65,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
       Referral,
       NotificationCampaign,
       WebhookLog,
+      FailedLoginAttempt,
     ]),
+    JwtModule.register({}),
     PlatformSettingsModule,
     OrganizerModule,
     JobsModule,
@@ -78,6 +88,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminWebhookController,
     AdminSessionController,
     AdminActivityController,
+    AdminImpersonationController,
+    AdminRevenueController,
+    AdminSecurityController,
   ],
   providers: [
     AdminService,
@@ -92,6 +105,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminWebhookService,
     AdminSessionService,
     AdminActivityService,
+    AdminImpersonationService,
+    AdminRevenueService,
+    AdminSecurityService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
