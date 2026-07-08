@@ -643,7 +643,7 @@ graph TB
 
 ---
 
-## 32. Webhook Log Viewer
+## 32. Webhook Log Viewer ✅
 
 **Problem:** Stripe/Razorpay webhook failures are invisible to admins. Debugging requires provider dashboard access.
 
@@ -652,7 +652,7 @@ graph TB
 - `GET /admin/webhooks/:id` — Full detail including request body, response, error
 - `POST /admin/webhooks/:id/retry` — Replay webhook to the handler
 
-**Entity changes:** Add `webhook_logs` table or append to existing logging. Keep request body (truncated at 10KB). Retention: 30 days, then auto-purge.
+**Implementation:** New `WebhookLog` entity + migration `0029-CreateWebhookLogsTable`. `AdminWebhookService` lists logs with pagination/filtering, returns full detail, and retries by calling `PaymentsService.handleProviderSuccess/handleProviderFailure/handleProviderRefund` based on stored event type. Routes at `admin/webhooks`. Restricted to `superadmin`. Run migration 0029 to create the table.
 
 ---
 

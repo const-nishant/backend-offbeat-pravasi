@@ -18,6 +18,9 @@ import { AdminCronController } from './admin-cron.controller';
 import { AdminCronService } from './admin-cron.service';
 import { AdminDatabaseController } from './admin-database.controller';
 import { AdminDatabaseService } from './admin-database.service';
+import { AdminWebhookController } from './admin-webhook.controller';
+import { AdminWebhookService } from './admin-webhook.service';
+import { WebhookLog } from './entities/webhook-log.entity';
 import { AuditLog } from './entities/audit-log.entity';
 import { PlatformSettingsModule } from './platform-settings.module';
 import { User } from '../users/entities/user.entity';
@@ -49,6 +52,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
       ReferralCode,
       Referral,
       NotificationCampaign,
+      WebhookLog,
     ]),
     PlatformSettingsModule,
     OrganizerModule,
@@ -67,6 +71,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminCacheController,
     AdminCronController,
     AdminDatabaseController,
+    AdminWebhookController,
   ],
   providers: [
     AdminService,
@@ -78,6 +83,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminCacheService,
     AdminCronService,
     AdminDatabaseService,
+    AdminWebhookService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
