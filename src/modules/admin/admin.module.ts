@@ -12,6 +12,12 @@ import { AdminAnalyticsController } from './admin-analytics.controller';
 import { AdminAnalyticsService } from './admin-analytics.service';
 import { AdminQueueDashboardController } from './admin-queue-dashboard.controller';
 import { AdminQueueDashboardService } from './admin-queue-dashboard.service';
+import { AdminCacheController } from './admin-cache.controller';
+import { AdminCacheService } from './admin-cache.service';
+import { AdminCronController } from './admin-cron.controller';
+import { AdminCronService } from './admin-cron.service';
+import { AdminDatabaseController } from './admin-database.controller';
+import { AdminDatabaseService } from './admin-database.service';
 import { AuditLog } from './entities/audit-log.entity';
 import { PlatformSettingsModule } from './platform-settings.module';
 import { User } from '../users/entities/user.entity';
@@ -58,6 +64,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminBroadcastController,
     AdminAnalyticsController,
     AdminQueueDashboardController,
+    AdminCacheController,
+    AdminCronController,
+    AdminDatabaseController,
   ],
   providers: [
     AdminService,
@@ -66,6 +75,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminBroadcastService,
     AdminAnalyticsService,
     AdminQueueDashboardService,
+    AdminCacheService,
+    AdminCronService,
+    AdminDatabaseService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],

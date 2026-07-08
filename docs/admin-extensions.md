@@ -593,7 +593,7 @@ graph LR
 
 ---
 
-## 29. Cache Invalidation
+## 29. Cache Invalidation ✅
 
 **Problem:** Cache staleness during data updates. Currently Redis entries expire on TTL. Admins need immediate invalidation.
 
@@ -602,7 +602,7 @@ graph LR
 - `GET /admin/cache/stats` — Memory usage, key count by pattern, hit rate
 - `GET /admin/cache/keys` — List keys by pattern with TTL
 
-**Security:** This is a powerful operation. Restrict to `superadmin` only.
+**Implementation:** `AdminCacheService` wraps raw ioredis client with SCAN/DEL pipeline for invalidation, INFO for stats, and SCAN+TTL for key listing. All 3 endpoints at `admin/cache`. Restricted to `superadmin`. No DB changes.
 
 ---
 
@@ -629,17 +629,17 @@ graph TB
 
 ---
 
-## 31. Scheduled Cron Job Management
+## 31. Scheduled Cron Job Management ✅
 
 **Problem:** BullMQ repeatable jobs (story expiry, booking reminders) have no pause/resume mechanism.
 
 **Endpoints:**
 - `GET /admin/cron-jobs` — List repeatable jobs with: `{ queue, jobName, pattern, nextRun, enabled }`
-- `POST /admin/cron-jobs/:id/disable` — Remove repeatable job from the queue
-- `POST /admin/cron-jobs/:id/enable` — Re-add repeatable job
-- `POST /admin/cron-jobs/:id/trigger-now` — Manually enqueue an immediate run
+- `POST /admin/cron-jobs/:key/disable` — Remove repeatable job from the queue
+- `POST /admin/cron-jobs/:key/enable` — Re-add repeatable job
+- `POST /admin/cron-jobs/:key/trigger-now` — Manually enqueue an immediate run
 
-**Key decision:** "Disable" means calling `queue.removeRepeatable()`. "Enable" calls `queue.add()`. State is ephemeral — does not survive Redis flush. A startup script should ensure expected repeatable jobs exist.
+**Implementation:** `AdminCronService` wraps BullMQ `getRepeatableJobs()`, `removeRepeatableByKey()`, and `add()` with repeat. Job definitions hardcoded from `schedulers/` for enable/trigger-now. Routes at `admin/cron-jobs`. Restricted to `superadmin`. No DB changes.
 
 ---
 
@@ -794,7 +794,7 @@ stateDiagram-v2
 
 ---
 
-## 45. Database Health Dashboard
+## 45. Database Health Dashboard ✅
 
 **Problem:** Performance degradation often starts with DB issues (bloat, missing indexes, connection pool exhaustion) that admins detect only after users complain.
 
@@ -804,9 +804,7 @@ stateDiagram-v2
 - `GET /admin/database/tables` — Per-table: `{ rowCount, tableSize, indexSize, deadTuples, lastVacuum }`
 - `GET /admin/database/indexes` — Unused indexes, duplicate indexes, missing index recommendations
 
-**Implementation:** Run `SELECT` queries against PostgreSQL system catalogs (`pg_stat_activity`, `pg_stat_statements`, `pg_stat_user_tables`, `pg_stat_user_indexes`). Requires `pg_stat_statements` extension to be enabled.
-
-**Security:** Read-only. Dashboard data should be cached (60s TTL) — system catalog queries can be surprisingly expensive on large datasets.
+**Implementation:** `AdminDatabaseService` runs raw SQL against `pg_stat_activity`, `pg_stat_user_tables`, `pg_stat_user_indexes`, `pg_stat_statements` via `@InjectDataSource()`. All endpoints gracefully return empty data if PG catalogs unavailable. Routes at `admin/database`. Restricted to `superadmin`. No DB changes.
 
 ---
 
