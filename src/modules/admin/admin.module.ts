@@ -10,6 +10,8 @@ import { AdminBroadcastController } from './admin-broadcast.controller';
 import { AdminBroadcastService } from './admin-broadcast.service';
 import { AdminAnalyticsController } from './admin-analytics.controller';
 import { AdminAnalyticsService } from './admin-analytics.service';
+import { AdminQueueDashboardController } from './admin-queue-dashboard.controller';
+import { AdminQueueDashboardService } from './admin-queue-dashboard.service';
 import { AuditLog } from './entities/audit-log.entity';
 import { PlatformSettingsModule } from './platform-settings.module';
 import { User } from '../users/entities/user.entity';
@@ -55,6 +57,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminBookingOverrideController,
     AdminBroadcastController,
     AdminAnalyticsController,
+    AdminQueueDashboardController,
   ],
   providers: [
     AdminService,
@@ -62,6 +65,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminBookingOverrideService,
     AdminBroadcastService,
     AdminAnalyticsService,
+    AdminQueueDashboardService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
