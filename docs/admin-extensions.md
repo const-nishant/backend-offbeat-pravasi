@@ -606,7 +606,7 @@ graph LR
 
 ---
 
-## 30. BullMQ Queue Dashboard
+## 30. BullMQ Queue Dashboard ✅
 
 **Problem:** Queue backlogs or stuck jobs go unnoticed. No admin UI for queue operations.
 
@@ -625,7 +625,7 @@ graph TB
     end
 ```
 
-**Implementation:** BullMQ provides `Queue` class with `getJobCounts()`, `getJobs('failed')`, `retryJobs()`, `clean()`, `pause()`, `resume()` methods. Wrap these in service methods. No additional DB tables.
+**Implementation:** BullMQ `Queue` class methods wrapped in `AdminQueueDashboardService`. All 7 endpoints live at `admin/queues`. Service supports 15 registered queues (all from `queues.ts` + broadcast queue). Restricted to `superadmin` via RBAC. No DB changes required.
 
 ---
 
