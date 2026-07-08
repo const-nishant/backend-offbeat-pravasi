@@ -20,6 +20,10 @@ import { AdminDatabaseController } from './admin-database.controller';
 import { AdminDatabaseService } from './admin-database.service';
 import { AdminWebhookController } from './admin-webhook.controller';
 import { AdminWebhookService } from './admin-webhook.service';
+import { AdminSessionController } from './admin-session.controller';
+import { AdminSessionService } from './admin-session.service';
+import { AdminActivityController } from './admin-activity.controller';
+import { AdminActivityService } from './admin-activity.service';
 import { WebhookLog } from './entities/webhook-log.entity';
 import { AuditLog } from './entities/audit-log.entity';
 import { PlatformSettingsModule } from './platform-settings.module';
@@ -72,6 +76,8 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminCronController,
     AdminDatabaseController,
     AdminWebhookController,
+    AdminSessionController,
+    AdminActivityController,
   ],
   providers: [
     AdminService,
@@ -84,6 +90,8 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminCronService,
     AdminDatabaseService,
     AdminWebhookService,
+    AdminSessionService,
+    AdminActivityService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],

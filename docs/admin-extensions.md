@@ -421,7 +421,7 @@ sequenceDiagram
 
 ---
 
-## 17. Admin Activity Dashboard
+## 17. Admin Activity Dashboard ✅
 
 **Problem:** No visibility into which admins are doing what. Audit logs exist but no aggregation.
 
@@ -541,7 +541,7 @@ graph LR
 
 ---
 
-## 25. Active Session Management
+## 25. Active Session Management ✅
 
 **Problem:** No visibility into active JWTs. Can't force-logout a compromised account without waiting for token expiry (30 days for refresh tokens).
 
