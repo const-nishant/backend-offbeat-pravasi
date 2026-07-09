@@ -71,7 +71,15 @@ import { AdminWeatherAlertController } from './admin-weather-alert.controller';
 import { AdminWeatherAlertService } from './admin-weather-alert.service';
 import { AdminEmailTemplateController } from './admin-email-template.controller';
 import { AdminEmailTemplateService } from './admin-email-template.service';
+import { AdminPricingCampaignController } from './admin-pricing-campaign.controller';
+import { AdminPricingCampaignService } from './admin-pricing-campaign.service';
+import { AdminPayoutController } from './admin-payout.controller';
+import { AdminPayoutService } from './admin-payout.service';
+import { AdminTaxController } from './admin-tax.controller';
+import { AdminTaxService } from './admin-tax.service';
 import { WebhookLog } from './entities/webhook-log.entity';
+import { PricingCampaign } from './entities/pricing-campaign.entity';
+import { Payout } from './entities/payout.entity';
 import { WeatherAlert } from './entities/weather-alert.entity';
 import { EmailTemplate } from './entities/email-template.entity';
 import { AuditLog } from './entities/audit-log.entity';
@@ -126,6 +134,8 @@ import { AnalyticsModule } from '../analytics/analytics.module';
       TrekCategory,
       WeatherAlert,
       EmailTemplate,
+      PricingCampaign,
+      Payout,
     ]),
     JwtModule.register({}),
     PlatformSettingsModule,
@@ -171,6 +181,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminSafetyController,
     AdminWeatherAlertController,
     AdminEmailTemplateController,
+    AdminPricingCampaignController,
+    AdminPayoutController,
+    AdminTaxController,
   ],
   providers: [
     AdminService,
@@ -208,6 +221,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminSafetyService,
     AdminWeatherAlertService,
     AdminEmailTemplateService,
+    AdminPricingCampaignService,
+    AdminPayoutService,
+    AdminTaxService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],

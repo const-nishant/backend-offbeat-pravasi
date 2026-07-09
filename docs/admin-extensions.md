@@ -434,7 +434,7 @@ sequenceDiagram
 
 ---
 
-## 18. Pricing & Discount Engine
+## 18. Pricing & Discount Engine ✅
 
 **Problem:** Discounts are currently hard-coded or platform-settings based. Seasonal pricing requires code changes.
 
@@ -489,7 +489,7 @@ sequenceDiagram
 
 ---
 
-## 22. Organizer Payout Management
+## 22. Organizer Payout Management ✅
 
 **Problem:** Organizers earn revenue from bookings. Currently there's no payout system — admins manually calculate and transfer.
 
@@ -516,7 +516,7 @@ graph LR
 
 ---
 
-## 23. Tax / GST Reports
+## 23. Tax / GST Reports ✅
 
 **Problem:** Compliance requires periodic tax reports. Currently no way to generate GST-compliant invoices or returns.
 
