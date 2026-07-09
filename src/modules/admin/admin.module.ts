@@ -113,6 +113,10 @@ import { AdminAbTestController } from './admin-ab-test.controller';
 import { AdminAbTestService } from './admin-ab-test.service';
 import { AdminItineraryController } from './admin-itinerary.controller';
 import { AdminItineraryService } from './admin-itinerary.service';
+import { AdminGearController } from './admin-gear.controller';
+import { AdminGearService } from './admin-gear.service';
+import { AdminGroupController } from './admin-group.controller';
+import { AdminGroupService } from './admin-group.service';
 import { WebhookLog } from './entities/webhook-log.entity';
 import { ItineraryTemplate } from './entities/itinerary-template.entity';
 import { ItineraryTemplateDay } from './entities/itinerary-template-day.entity';
@@ -264,6 +268,8 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminAssessmentController,
     AdminAbTestController,
     AdminItineraryController,
+    AdminGearController,
+    AdminGroupController,
   ],
   providers: [
     AdminService,
@@ -322,6 +328,8 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminAssessmentService,
     AdminAbTestService,
     AdminItineraryService,
+    AdminGearService,
+    AdminGroupService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],

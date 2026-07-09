@@ -267,7 +267,7 @@ graph TB
 
 ---
 
-## 8. Gear Moderation
+## 8. Gear Moderation ✅
 
 **Problem:** Gear listings are created by organizers/vendors without review. Low-quality or unsafe gear listings reach users.
 
@@ -281,7 +281,7 @@ graph TB
 
 ---
 
-## 9. Group Moderation
+## 9. Group Moderation ✅
 
 **Problem:** User-created groups can have inappropriate names, descriptions, or content. No admin oversight.
 
