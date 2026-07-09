@@ -31,9 +31,16 @@ import { AdminRevenueController } from './admin-revenue.controller';
 import { AdminRevenueService } from './admin-revenue.service';
 import { AdminSecurityController } from './admin-security.controller';
 import { AdminSecurityService } from './admin-security.service';
+import { AdminIpFilterController } from './admin-ip-filter.controller';
+import { AdminIpFilterService } from './admin-ip-filter.service';
+import { AdminOtpController } from './admin-otp.controller';
+import { AdminOtpService } from './admin-otp.service';
+import { AdminAuditRetentionController } from './admin-audit-retention.controller';
+import { AdminAuditRetentionService } from './admin-audit-retention.service';
 import { WebhookLog } from './entities/webhook-log.entity';
 import { AuditLog } from './entities/audit-log.entity';
 import { FailedLoginAttempt } from './entities/failed-login-attempt.entity';
+import { IpAccessRule } from './entities/ip-access-rule.entity';
 import { PlatformSettingsModule } from './platform-settings.module';
 import { User } from '../users/entities/user.entity';
 import { Trek } from '../treks/entities/trek.entity';
@@ -66,6 +73,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
       NotificationCampaign,
       WebhookLog,
       FailedLoginAttempt,
+      IpAccessRule,
     ]),
     JwtModule.register({}),
     PlatformSettingsModule,
@@ -91,6 +99,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminImpersonationController,
     AdminRevenueController,
     AdminSecurityController,
+    AdminIpFilterController,
+    AdminOtpController,
+    AdminAuditRetentionController,
   ],
   providers: [
     AdminService,
@@ -108,6 +119,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminImpersonationService,
     AdminRevenueService,
     AdminSecurityService,
+    AdminIpFilterService,
+    AdminOtpService,
+    AdminAuditRetentionService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],

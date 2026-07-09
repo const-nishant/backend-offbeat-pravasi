@@ -566,7 +566,7 @@ graph LR
 
 ---
 
-## 27. IP Blocklist / Allowlist
+## 27. IP Blocklist / Allowlist ✅
 
 **Problem:** Need to block abusive IPs or whitelist internal networks for admin API access.
 
@@ -668,7 +668,7 @@ graph TB
 
 ---
 
-## 34. Manual OTP Generation
+## 34. Manual OTP Generation ✅
 
 **Problem:** Users locked out of their accounts (lost phone, email issues). Support has no recovery path.
 
@@ -764,7 +764,7 @@ stateDiagram-v2
 
 ---
 
-## 40. Audit Log Retention Policy
+## 40. Audit Log Retention Policy ✅
 
 **Problem:** `audit_logs` is the fastest-growing table (est. 150MB at 10K admin actions). No retention policy.
 
