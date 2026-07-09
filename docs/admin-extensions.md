@@ -476,7 +476,7 @@ sequenceDiagram
 
 ---
 
-## 21. Trek Category / Tag Management
+## 21. Trek Category / Tag Management ✅
 
 **Problem:** Difficulty levels, activity types, and tags are currently free-text or ENUMs defined in code. Admins cannot add/modify without deployment.
 
@@ -808,7 +808,7 @@ stateDiagram-v2
 
 ---
 
-## 46. S3/R2 Storage Dashboard
+## 46. S3/R2 Storage Dashboard ✅
 
 **Problem:** Storage costs grow silently. Orphaned files (uploaded but never referenced) accumulate with no cleanup.
 
@@ -822,7 +822,7 @@ stateDiagram-v2
 
 ---
 
-## 47. Migration Status
+## 47. Migration Status ✅
 
 **Problem:** After deployments, admins need to verify that all migrations ran successfully. Currently requires checking logs or DB directly.
 
@@ -847,7 +847,7 @@ stateDiagram-v2
 
 ---
 
-## 49. Environment Comparison
+## 49. Environment Comparison ✅
 
 **Problem:** Debugging environment-specific bugs requires manually checking env vars, settings, and feature flags across staging and production.
 
