@@ -931,7 +931,7 @@ stateDiagram-v2
 
 ---
 
-## 55. User Merge Tool
+## 55. User Merge Tool ✅
 
 **Problem:** Duplicate user accounts (same email, different provider; or same phone, different email) fragment booking history and support context.
 
@@ -960,7 +960,7 @@ graph TB
 
 ---
 
-## 56. Organizer Document Verification
+## 56. Organizer Document Verification ✅
 
 **Problem:** Organizer applications include KYC documents but there is no workflow to upload, verify, or track document status.
 
@@ -974,7 +974,7 @@ graph TB
 
 ---
 
-## 57. Duplicate Detection
+## 57. Duplicate Detection ✅
 
 **Problem:** Same trek listed by different organizers with near-identical names and locations. Same user registered multiple times. No automated flagging.
 

@@ -89,7 +89,15 @@ import { AdminCalendarController } from './admin-calendar.controller';
 import { AdminCalendarService } from './admin-calendar.service';
 import { AdminRefundAnalyticsController } from './admin-refund-analytics.controller';
 import { AdminRefundAnalyticsService } from './admin-refund-analytics.service';
+import { AdminOrganizerDocumentController } from './admin-organizer-document.controller';
+import { AdminOrganizerDocumentService } from './admin-organizer-document.service';
+import { AdminDetectionController } from './admin-detection.controller';
+import { AdminDetectionService } from './admin-detection.service';
+import { AdminUserMergeController } from './admin-user-merge.controller';
+import { AdminUserMergeService } from './admin-user-merge.service';
 import { WebhookLog } from './entities/webhook-log.entity';
+import { OrganizerDocument } from './entities/organizer-document.entity';
+import { DuplicateCandidate } from './entities/duplicate-candidate.entity';
 import { CohortExport } from './entities/cohort-export.entity';
 import { PricingCampaign } from './entities/pricing-campaign.entity';
 import { Payout } from './entities/payout.entity';
@@ -158,6 +166,8 @@ import { AnalyticsModule } from '../analytics/analytics.module';
       Badge,
       BadgeAward,
       CohortExport,
+      OrganizerDocument,
+      DuplicateCandidate,
     ]),
     JwtModule.register({}),
     PlatformSettingsModule,
@@ -212,6 +222,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminCohortController,
     AdminCalendarController,
     AdminRefundAnalyticsController,
+    AdminOrganizerDocumentController,
+    AdminDetectionController,
+    AdminUserMergeController,
   ],
   providers: [
     AdminService,
@@ -258,6 +271,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminCohortService,
     AdminCalendarService,
     AdminRefundAnalyticsService,
+    AdminOrganizerDocumentService,
+    AdminDetectionService,
+    AdminUserMergeService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
