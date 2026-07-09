@@ -95,7 +95,15 @@ import { AdminDetectionController } from './admin-detection.controller';
 import { AdminDetectionService } from './admin-detection.service';
 import { AdminUserMergeController } from './admin-user-merge.controller';
 import { AdminUserMergeService } from './admin-user-merge.service';
+import { AdminNotificationPreferenceController } from './admin-notification-preference.controller';
+import { AdminNotificationPreferenceService } from './admin-notification-preference.service';
+import { AdminTaskController } from './admin-task.controller';
+import { AdminTaskService } from './admin-task.service';
+import { AdminSlaController } from './admin-sla.controller';
+import { AdminSlaService } from './admin-sla.service';
 import { WebhookLog } from './entities/webhook-log.entity';
+import { AdminNotificationPreference } from './entities/admin-notification-preference.entity';
+import { AdminTask } from './entities/admin-task.entity';
 import { OrganizerDocument } from './entities/organizer-document.entity';
 import { DuplicateCandidate } from './entities/duplicate-candidate.entity';
 import { CohortExport } from './entities/cohort-export.entity';
@@ -168,6 +176,8 @@ import { AnalyticsModule } from '../analytics/analytics.module';
       CohortExport,
       OrganizerDocument,
       DuplicateCandidate,
+      AdminNotificationPreference,
+      AdminTask,
     ]),
     JwtModule.register({}),
     PlatformSettingsModule,
@@ -225,6 +235,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminOrganizerDocumentController,
     AdminDetectionController,
     AdminUserMergeController,
+    AdminNotificationPreferenceController,
+    AdminTaskController,
+    AdminSlaController,
   ],
   providers: [
     AdminService,
@@ -274,6 +287,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminOrganizerDocumentService,
     AdminDetectionService,
     AdminUserMergeService,
+    AdminNotificationPreferenceService,
+    AdminTaskService,
+    AdminSlaService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
