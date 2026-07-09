@@ -77,9 +77,19 @@ import { AdminPayoutController } from './admin-payout.controller';
 import { AdminPayoutService } from './admin-payout.service';
 import { AdminTaxController } from './admin-tax.controller';
 import { AdminTaxService } from './admin-tax.service';
+import { AdminCollectionController } from './admin-collection.controller';
+import { AdminCollectionService } from './admin-collection.service';
+import { AdminBannerController } from './admin-banner.controller';
+import { AdminBannerService } from './admin-banner.service';
+import { AdminBadgeController } from './admin-badge.controller';
+import { AdminBadgeService } from './admin-badge.service';
 import { WebhookLog } from './entities/webhook-log.entity';
 import { PricingCampaign } from './entities/pricing-campaign.entity';
 import { Payout } from './entities/payout.entity';
+import { TrekCollection } from './entities/trek-collection.entity';
+import { PromotionalBanner } from './entities/promotional-banner.entity';
+import { Badge } from './entities/badge.entity';
+import { BadgeAward } from './entities/badge-award.entity';
 import { WeatherAlert } from './entities/weather-alert.entity';
 import { EmailTemplate } from './entities/email-template.entity';
 import { AuditLog } from './entities/audit-log.entity';
@@ -136,6 +146,10 @@ import { AnalyticsModule } from '../analytics/analytics.module';
       EmailTemplate,
       PricingCampaign,
       Payout,
+      TrekCollection,
+      PromotionalBanner,
+      Badge,
+      BadgeAward,
     ]),
     JwtModule.register({}),
     PlatformSettingsModule,
@@ -184,6 +198,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminPricingCampaignController,
     AdminPayoutController,
     AdminTaxController,
+    AdminCollectionController,
+    AdminBannerController,
+    AdminBadgeController,
   ],
   providers: [
     AdminService,
@@ -224,6 +241,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminPricingCampaignService,
     AdminPayoutService,
     AdminTaxService,
+    AdminCollectionService,
+    AdminBannerService,
+    AdminBadgeService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],

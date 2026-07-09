@@ -448,7 +448,7 @@ sequenceDiagram
 
 ---
 
-## 19. Featured Collections / Curation
+## 19. Featured Collections / Curation ✅
 
 **Problem:** Homepage and category pages show all treks sorted by popularity. Marketing wants editorial control.
 
@@ -876,7 +876,7 @@ stateDiagram-v2
 
 ---
 
-## 51. Promotional Banner Manager
+## 51. Promotional Banner Manager ✅
 
 **Problem:** Homepage banners, interstitial promotions, and post-booking upsells are hard-coded. Marketing needs to schedule campaigns without engineering.
 
@@ -888,7 +888,7 @@ stateDiagram-v2
 
 ---
 
-## 52. Badge / Achievement Management
+## 52. Badge / Achievement Management ✅
 
 **Problem:** Badges exist in the rewards module but are hard-coded. Admins cannot create new badges or manually award them.
 
