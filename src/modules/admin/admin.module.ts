@@ -117,6 +117,8 @@ import { AdminGearController } from './admin-gear.controller';
 import { AdminGearService } from './admin-gear.service';
 import { AdminGroupController } from './admin-group.controller';
 import { AdminGroupService } from './admin-group.service';
+import { AdminWsGateway } from './admin-ws.gateway';
+import { AdminEventBusService } from './admin-event-bus.service';
 import { WebhookLog } from './entities/webhook-log.entity';
 import { ItineraryTemplate } from './entities/itinerary-template.entity';
 import { ItineraryTemplateDay } from './entities/itinerary-template-day.entity';
@@ -330,6 +332,8 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminItineraryService,
     AdminGearService,
     AdminGroupService,
+    AdminWsGateway,
+    AdminEventBusService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
