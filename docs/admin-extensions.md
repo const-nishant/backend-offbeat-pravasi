@@ -697,7 +697,7 @@ graph TB
 
 ---
 
-## 36. Coupon / Promo Code CRUD
+## 36. Coupon / Promo Code CRUD ✅
 
 **Problem:** Coupons currently require DB inserts. Marketing cannot create/expire codes independently.
 
@@ -710,7 +710,7 @@ graph TB
 
 ---
 
-## 37. Referral Tier Configurator
+## 37. Referral Tier Configurator ✅
 
 **Problem:** Referral reward tiers are hard-coded. Changing reward amounts, thresholds, or conversion rates requires code deploy.
 
@@ -779,7 +779,7 @@ stateDiagram-v2
 
 ---
 
-## 44. Search Index Management
+## 44. Search Index Management ✅
 
 **Problem:** Full-text search on treks (name, location, description) becomes stale when data changes. Reindexing requires DB operations or cache flushes with no admin visibility.
 

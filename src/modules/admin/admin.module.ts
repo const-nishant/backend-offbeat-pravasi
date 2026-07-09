@@ -43,12 +43,21 @@ import { AdminFeatureFlagController } from './admin-feature-flag.controller';
 import { FeatureFlagService } from './feature-flag.service';
 import { AdminUserTimelineController } from './admin-user-timeline.controller';
 import { AdminUserTimelineService } from './admin-user-timeline.service';
+import { AdminCouponController } from './admin-coupon.controller';
+import { AdminCouponService } from './admin-coupon.service';
+import { AdminReferralTierController } from './admin-referral-tier.controller';
+import { AdminReferralTierService } from './admin-referral-tier.service';
+import { AdminSearchController } from './admin-search.controller';
+import { AdminSearchService } from './admin-search.service';
 import { WebhookLog } from './entities/webhook-log.entity';
 import { AuditLog } from './entities/audit-log.entity';
 import { FailedLoginAttempt } from './entities/failed-login-attempt.entity';
 import { IpAccessRule } from './entities/ip-access-rule.entity';
 import { ApiKey } from './entities/api-key.entity';
 import { FeatureFlag } from './entities/feature-flag.entity';
+import { Coupon } from './entities/coupon.entity';
+import { CouponRedemption } from './entities/coupon-redemption.entity';
+import { ReferralTierConfig } from '../referrals/entities/referral-tier-config.entity';
 import { PlatformSettingsModule } from './platform-settings.module';
 import { User } from '../users/entities/user.entity';
 import { Trek } from '../treks/entities/trek.entity';
@@ -84,6 +93,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
       IpAccessRule,
       ApiKey,
       FeatureFlag,
+      Coupon,
+      CouponRedemption,
+      ReferralTierConfig,
     ]),
     JwtModule.register({}),
     PlatformSettingsModule,
@@ -115,6 +127,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminApiKeyController,
     AdminFeatureFlagController,
     AdminUserTimelineController,
+    AdminCouponController,
+    AdminReferralTierController,
+    AdminSearchController,
   ],
   providers: [
     AdminService,
@@ -138,6 +153,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminApiKeyService,
     FeatureFlagService,
     AdminUserTimelineService,
+    AdminCouponService,
+    AdminReferralTierService,
+    AdminSearchService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
