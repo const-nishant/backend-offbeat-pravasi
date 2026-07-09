@@ -223,7 +223,7 @@ sequenceDiagram
 
 ---
 
-## 7. RBAC / Admin Roles
+## 7. RBAC / Admin Roles ✅
 
 **Problem:** Currently binary `isAdmin: boolean`. Scaling to 5+ admin users with different responsibilities (finance vs. moderation vs. support) requires granular permissions.
 
