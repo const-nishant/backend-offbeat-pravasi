@@ -83,7 +83,14 @@ import { AdminBannerController } from './admin-banner.controller';
 import { AdminBannerService } from './admin-banner.service';
 import { AdminBadgeController } from './admin-badge.controller';
 import { AdminBadgeService } from './admin-badge.service';
+import { AdminCohortController } from './admin-cohort.controller';
+import { AdminCohortService } from './admin-cohort.service';
+import { AdminCalendarController } from './admin-calendar.controller';
+import { AdminCalendarService } from './admin-calendar.service';
+import { AdminRefundAnalyticsController } from './admin-refund-analytics.controller';
+import { AdminRefundAnalyticsService } from './admin-refund-analytics.service';
 import { WebhookLog } from './entities/webhook-log.entity';
+import { CohortExport } from './entities/cohort-export.entity';
 import { PricingCampaign } from './entities/pricing-campaign.entity';
 import { Payout } from './entities/payout.entity';
 import { TrekCollection } from './entities/trek-collection.entity';
@@ -150,6 +157,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
       PromotionalBanner,
       Badge,
       BadgeAward,
+      CohortExport,
     ]),
     JwtModule.register({}),
     PlatformSettingsModule,
@@ -201,6 +209,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminCollectionController,
     AdminBannerController,
     AdminBadgeController,
+    AdminCohortController,
+    AdminCalendarController,
+    AdminRefundAnalyticsController,
   ],
   providers: [
     AdminService,
@@ -244,6 +255,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminCollectionService,
     AdminBannerService,
     AdminBadgeService,
+    AdminCohortService,
+    AdminCalendarService,
+    AdminRefundAnalyticsService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],

@@ -902,7 +902,7 @@ stateDiagram-v2
 
 ---
 
-## 53. User Cohort Export
+## 53. User Cohort Export ✅
 
 **Problem:** Marketing runs targeted email/SMS campaigns but has no way to export user segments without writing SQL.
 
@@ -915,7 +915,7 @@ stateDiagram-v2
 
 ---
 
-## 54. Marketing Calendar
+## 54. Marketing Calendar ✅
 
 **Problem:** Coupons, banner campaigns, price changes, and broadcast notifications are scheduled independently with no centralized view.
 
@@ -988,7 +988,7 @@ graph TB
 
 ---
 
-## 58. Refund Analytics
+## 58. Refund Analytics ✅
 
 **Problem:** Refund rates, patterns, and abuse are invisible. No way to identify treks, organizers, or users with anomalous refund behaviour.
 
