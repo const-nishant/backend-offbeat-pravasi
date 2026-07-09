@@ -65,7 +65,15 @@ import { AdminMigrationController } from './admin-migration.controller';
 import { AdminMigrationService } from './admin-migration.service';
 import { AdminEnvironmentController } from './admin-environment.controller';
 import { AdminEnvironmentService } from './admin-environment.service';
+import { AdminSafetyController } from './admin-safety.controller';
+import { AdminSafetyService } from './admin-safety.service';
+import { AdminWeatherAlertController } from './admin-weather-alert.controller';
+import { AdminWeatherAlertService } from './admin-weather-alert.service';
+import { AdminEmailTemplateController } from './admin-email-template.controller';
+import { AdminEmailTemplateService } from './admin-email-template.service';
 import { WebhookLog } from './entities/webhook-log.entity';
+import { WeatherAlert } from './entities/weather-alert.entity';
+import { EmailTemplate } from './entities/email-template.entity';
 import { AuditLog } from './entities/audit-log.entity';
 import { FailedLoginAttempt } from './entities/failed-login-attempt.entity';
 import { IpAccessRule } from './entities/ip-access-rule.entity';
@@ -116,6 +124,8 @@ import { AnalyticsModule } from '../analytics/analytics.module';
       ReferralTierConfig,
       PlatformSettingsPreset,
       TrekCategory,
+      WeatherAlert,
+      EmailTemplate,
     ]),
     JwtModule.register({}),
     PlatformSettingsModule,
@@ -158,6 +168,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminStorageController,
     AdminMigrationController,
     AdminEnvironmentController,
+    AdminSafetyController,
+    AdminWeatherAlertController,
+    AdminEmailTemplateController,
   ],
   providers: [
     AdminService,
@@ -192,6 +205,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminStorageService,
     AdminMigrationService,
     AdminEnvironmentService,
+    AdminSafetyService,
+    AdminWeatherAlertService,
+    AdminEmailTemplateService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],

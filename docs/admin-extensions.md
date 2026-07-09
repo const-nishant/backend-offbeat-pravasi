@@ -295,7 +295,7 @@ graph TB
 
 ---
 
-## 10. Safety Incident Log
+## 10. Safety Incident Log ✅
 
 **Problem:** Safety check-in failures, SOS triggers, and emergency contact notifications leave no audit trail for admin review.
 
@@ -321,7 +321,7 @@ graph TB
 
 ---
 
-## 12. Weather Alerts (Admin-Triggered)
+## 12. Weather Alerts (Admin-Triggered) ✅
 
 **Problem:** Automated weather integration exists, but severe conditions sometimes need a human to broadcast an alert. Eg: IMD issues a flash flood warning for a region.
 
@@ -862,7 +862,7 @@ stateDiagram-v2
 
 ---
 
-## 50. Email Template Management
+## 50. Email Template Management ✅
 
 **Problem:** Transactional email copy is hard-coded. Marketing cannot update "Your booking is confirmed" text without a PR.
 
