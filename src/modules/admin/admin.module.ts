@@ -49,6 +49,14 @@ import { AdminReferralTierController } from './admin-referral-tier.controller';
 import { AdminReferralTierService } from './admin-referral-tier.service';
 import { AdminSearchController } from './admin-search.controller';
 import { AdminSearchService } from './admin-search.service';
+import { AdminBulkController } from './admin-bulk.controller';
+import { AdminBulkService } from './admin-bulk.service';
+import { AdminPresetController } from './admin-preset.controller';
+import { AdminPresetService } from './admin-preset.service';
+import { AdminRateLimitController } from './admin-rate-limit.controller';
+import { AdminRateLimitService } from './admin-rate-limit.service';
+import { AdminExportController } from './admin-export.controller';
+import { AdminExportService } from './admin-export.service';
 import { WebhookLog } from './entities/webhook-log.entity';
 import { AuditLog } from './entities/audit-log.entity';
 import { FailedLoginAttempt } from './entities/failed-login-attempt.entity';
@@ -58,6 +66,7 @@ import { FeatureFlag } from './entities/feature-flag.entity';
 import { Coupon } from './entities/coupon.entity';
 import { CouponRedemption } from './entities/coupon-redemption.entity';
 import { ReferralTierConfig } from '../referrals/entities/referral-tier-config.entity';
+import { PlatformSettingsPreset } from './entities/platform-settings-preset.entity';
 import { PlatformSettingsModule } from './platform-settings.module';
 import { User } from '../users/entities/user.entity';
 import { Trek } from '../treks/entities/trek.entity';
@@ -96,6 +105,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
       Coupon,
       CouponRedemption,
       ReferralTierConfig,
+      PlatformSettingsPreset,
     ]),
     JwtModule.register({}),
     PlatformSettingsModule,
@@ -130,6 +140,10 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminCouponController,
     AdminReferralTierController,
     AdminSearchController,
+    AdminBulkController,
+    AdminPresetController,
+    AdminRateLimitController,
+    AdminExportController,
   ],
   providers: [
     AdminService,
@@ -156,6 +170,10 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminCouponService,
     AdminReferralTierService,
     AdminSearchService,
+    AdminBulkService,
+    AdminPresetService,
+    AdminRateLimitService,
+    AdminExportService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],

@@ -334,7 +334,7 @@ graph TB
 
 ---
 
-## 13. CSV/Excel Export
+## 13. CSV/Excel Export ✅
 
 **Problem:** Every list endpoint (users, bookings, payments, audit logs) needs downloadable export. Currently only available via raw DB query.
 
@@ -353,7 +353,7 @@ async listUsers(@Query() query, @Res() res, @ExportContext() ctx) { ... }
 
 ---
 
-## 14. Bulk Actions
+## 14. Bulk Actions ✅
 
 **Problem:** Suspending 50 users individually is tedious. Approving 20 pending treks during peak season is manual.
 
@@ -366,7 +366,7 @@ async listUsers(@Query() query, @Res() res, @ExportContext() ctx) { ... }
 
 ---
 
-## 15. Platform Setting Presets
+## 15. Platform Setting Presets ✅
 
 **Problem:** Toggling "maintenance mode" requires editing 4 separate platform settings. Admins want named snapshots.
 
@@ -835,7 +835,7 @@ stateDiagram-v2
 
 ---
 
-## 48. Rate Limit Configuration
+## 48. Rate Limit Configuration ✅
 
 **Problem:** Rate limits are hard-coded or env-configured. When a bot attack or flash crowd hits a specific endpoint, admins cannot react without deploy.
 
