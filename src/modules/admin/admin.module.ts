@@ -101,7 +101,15 @@ import { AdminTaskController } from './admin-task.controller';
 import { AdminTaskService } from './admin-task.service';
 import { AdminSlaController } from './admin-sla.controller';
 import { AdminSlaService } from './admin-sla.service';
+import { AdminAuditDiffController } from './admin-audit-diff.controller';
+import { AdminAuditDiffService } from './admin-audit-diff.service';
+import { AdminDataDeletionController } from './admin-data-deletion.controller';
+import { AdminDataDeletionService } from './admin-data-deletion.service';
+import { AdminDataExportController } from './admin-data-export.controller';
+import { AdminDataExportService } from './admin-data-export.service';
 import { WebhookLog } from './entities/webhook-log.entity';
+import { DataDeletionRequest } from './entities/data-deletion-request.entity';
+import { DataExportRequest } from './entities/data-export-request.entity';
 import { AdminNotificationPreference } from './entities/admin-notification-preference.entity';
 import { AdminTask } from './entities/admin-task.entity';
 import { OrganizerDocument } from './entities/organizer-document.entity';
@@ -178,6 +186,8 @@ import { AnalyticsModule } from '../analytics/analytics.module';
       DuplicateCandidate,
       AdminNotificationPreference,
       AdminTask,
+      DataDeletionRequest,
+      DataExportRequest,
     ]),
     JwtModule.register({}),
     PlatformSettingsModule,
@@ -238,6 +248,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminNotificationPreferenceController,
     AdminTaskController,
     AdminSlaController,
+    AdminAuditDiffController,
+    AdminDataDeletionController,
+    AdminDataExportController,
   ],
   providers: [
     AdminService,
@@ -290,6 +303,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminNotificationPreferenceService,
     AdminTaskService,
     AdminSlaService,
+    AdminAuditDiffService,
+    AdminDataDeletionService,
+    AdminDataExportService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],

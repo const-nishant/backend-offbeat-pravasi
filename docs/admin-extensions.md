@@ -735,7 +735,7 @@ graph TB
 
 ---
 
-## 39. Data Deletion Request Queue
+## 39. Data Deletion Request Queue ✅
 
 **Problem:** GDPR mandates user data deletion on request. Currently a manual DB operation with no workflow or audit trail.
 
@@ -1003,7 +1003,7 @@ graph TB
 
 ---
 
-## 59. Data Export Request Queue (GDPR Article 20)
+## 59. Data Export Request Queue (GDPR Article 20) ✅
 
 **Problem:** GDPR grants users the right to receive their data in a portable format. Currently no mechanism to fulfil these requests.
 
@@ -1078,7 +1078,7 @@ graph TB
 
 ---
 
-## 63. Admin Audit Comparison
+## 63. Admin Audit Comparison ✅
 
 **Problem:** "Who changed the platform settings last night?" is answered by scrolling through raw audit logs. No diff view.
 
