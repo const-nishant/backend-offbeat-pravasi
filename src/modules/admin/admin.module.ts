@@ -37,10 +37,18 @@ import { AdminOtpController } from './admin-otp.controller';
 import { AdminOtpService } from './admin-otp.service';
 import { AdminAuditRetentionController } from './admin-audit-retention.controller';
 import { AdminAuditRetentionService } from './admin-audit-retention.service';
+import { AdminApiKeyController } from './admin-api-key.controller';
+import { AdminApiKeyService } from './admin-api-key.service';
+import { AdminFeatureFlagController } from './admin-feature-flag.controller';
+import { FeatureFlagService } from './feature-flag.service';
+import { AdminUserTimelineController } from './admin-user-timeline.controller';
+import { AdminUserTimelineService } from './admin-user-timeline.service';
 import { WebhookLog } from './entities/webhook-log.entity';
 import { AuditLog } from './entities/audit-log.entity';
 import { FailedLoginAttempt } from './entities/failed-login-attempt.entity';
 import { IpAccessRule } from './entities/ip-access-rule.entity';
+import { ApiKey } from './entities/api-key.entity';
+import { FeatureFlag } from './entities/feature-flag.entity';
 import { PlatformSettingsModule } from './platform-settings.module';
 import { User } from '../users/entities/user.entity';
 import { Trek } from '../treks/entities/trek.entity';
@@ -74,6 +82,8 @@ import { AnalyticsModule } from '../analytics/analytics.module';
       WebhookLog,
       FailedLoginAttempt,
       IpAccessRule,
+      ApiKey,
+      FeatureFlag,
     ]),
     JwtModule.register({}),
     PlatformSettingsModule,
@@ -102,6 +112,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminIpFilterController,
     AdminOtpController,
     AdminAuditRetentionController,
+    AdminApiKeyController,
+    AdminFeatureFlagController,
+    AdminUserTimelineController,
   ],
   providers: [
     AdminService,
@@ -122,9 +135,12 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminIpFilterService,
     AdminOtpService,
     AdminAuditRetentionService,
+    AdminApiKeyService,
+    FeatureFlagService,
+    AdminUserTimelineService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
-  exports: [AdminService, AuditLogService],
+  exports: [AdminService, AuditLogService, FeatureFlagService],
 })
 export class AdminModule {}

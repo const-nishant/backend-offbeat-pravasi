@@ -579,7 +579,7 @@ graph LR
 
 ---
 
-## 28. API Key Management
+## 28. API Key Management ✅
 
 **Problem:** Partner integrations need API keys that can be rotated and revoked independently of the global `GLOBAL_API_KEY`.
 
@@ -656,7 +656,7 @@ graph TB
 
 ---
 
-## 33. Feature Flags
+## 33. Feature Flags ✅
 
 **Problem:** Rolling out new features (new checkout flow, referral v2) requires deployment. Feature flags enable toggle without deploy.
 
@@ -680,7 +680,7 @@ graph TB
 
 ---
 
-## 35. User Activity Timeline
+## 35. User Activity Timeline ✅
 
 **Problem:** Support has to check 5+ tables to understand a user's history. One consolidated view speeds up resolution.
 
