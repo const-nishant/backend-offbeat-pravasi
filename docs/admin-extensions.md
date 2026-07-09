@@ -308,7 +308,7 @@ graph TB
 
 ---
 
-## 11. Assessment Oversight
+## 11. Assessment Oversight ✅
 
 **Problem:** Fitness assessment results can inform risk flags, but admins have no visibility.
 
@@ -463,7 +463,7 @@ sequenceDiagram
 
 ---
 
-## 20. Itinerary Templates
+## 20. Itinerary Templates ✅
 
 **Problem:** Organizers repeatedly create similar itineraries for treks in the same region. No reuse mechanism.
 
@@ -722,7 +722,7 @@ graph TB
 
 ---
 
-## 38. A/B Test Flag Manager
+## 38. A/B Test Flag Manager ✅
 
 **Problem:** Experimentation requires engineering to set up flag splits. No self-service for product team.
 

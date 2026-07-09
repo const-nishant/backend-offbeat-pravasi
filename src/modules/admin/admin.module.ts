@@ -107,7 +107,15 @@ import { AdminDataDeletionController } from './admin-data-deletion.controller';
 import { AdminDataDeletionService } from './admin-data-deletion.service';
 import { AdminDataExportController } from './admin-data-export.controller';
 import { AdminDataExportService } from './admin-data-export.service';
+import { AdminAssessmentController } from './admin-assessment.controller';
+import { AdminAssessmentService } from './admin-assessment.service';
+import { AdminAbTestController } from './admin-ab-test.controller';
+import { AdminAbTestService } from './admin-ab-test.service';
+import { AdminItineraryController } from './admin-itinerary.controller';
+import { AdminItineraryService } from './admin-itinerary.service';
 import { WebhookLog } from './entities/webhook-log.entity';
+import { ItineraryTemplate } from './entities/itinerary-template.entity';
+import { ItineraryTemplateDay } from './entities/itinerary-template-day.entity';
 import { DataDeletionRequest } from './entities/data-deletion-request.entity';
 import { DataExportRequest } from './entities/data-export-request.entity';
 import { AdminNotificationPreference } from './entities/admin-notification-preference.entity';
@@ -188,6 +196,8 @@ import { AnalyticsModule } from '../analytics/analytics.module';
       AdminTask,
       DataDeletionRequest,
       DataExportRequest,
+      ItineraryTemplate,
+      ItineraryTemplateDay,
     ]),
     JwtModule.register({}),
     PlatformSettingsModule,
@@ -251,6 +261,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminAuditDiffController,
     AdminDataDeletionController,
     AdminDataExportController,
+    AdminAssessmentController,
+    AdminAbTestController,
+    AdminItineraryController,
   ],
   providers: [
     AdminService,
@@ -306,6 +319,9 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     AdminAuditDiffService,
     AdminDataDeletionService,
     AdminDataExportService,
+    AdminAssessmentService,
+    AdminAbTestService,
+    AdminItineraryService,
     AuditLogService,
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
