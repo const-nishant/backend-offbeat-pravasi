@@ -1,24 +1,13 @@
-import {
-  Injectable,
-  Logger,
-  OnModuleInit,
-  OnModuleDestroy,
-} from '@nestjs/common';
-import { Queue } from 'bullmq';
-import { bullConnection } from '../config';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { recommendationQueue } from '../queues';
 
 @Injectable()
-export class RecommendationBuilderScheduler
-  implements OnModuleInit, OnModuleDestroy
-{
+export class RecommendationBuilderScheduler implements OnModuleInit {
   private readonly logger = new Logger(RecommendationBuilderScheduler.name);
-  private readonly queue = new Queue('recommendation-builder-queue', {
-    connection: bullConnection,
-  });
 
   async onModuleInit(): Promise<void> {
     try {
-      await this.queue.add(
+      await recommendationQueue.add(
         'build-candidates',
         {},
         {
@@ -34,9 +23,5 @@ export class RecommendationBuilderScheduler
         err instanceof Error ? err.message : String(err),
       );
     }
-  }
-
-  async onModuleDestroy(): Promise<void> {
-    await this.queue.close();
   }
 }

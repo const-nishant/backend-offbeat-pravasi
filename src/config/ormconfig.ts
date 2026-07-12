@@ -1,4 +1,5 @@
 import type { DataSourceOptions } from 'typeorm';
+import configuration from './configuration';
 import { User } from '../modules/users/entities/user.entity';
 import { Trek } from '../modules/treks/entities/trek.entity';
 import { TrekImage } from '../modules/treks/entities/trek-image.entity';
@@ -39,13 +40,16 @@ import { UserRecommendationPreference } from '../modules/recommendations/entitie
 import { RecommendationResult } from '../modules/recommendations/entities/recommendation-result.entity';
 import { RecommendationEvent } from '../modules/recommendations/entities/recommendation-event.entity';
 
+// ponytail: defaults from configuration.ts (single source)
+const { db } = configuration();
+
 export const ormConfig: DataSourceOptions = {
   type: 'postgres',
-  host: process.env.DB_HOST ?? 'localhost',
-  port: Number(process.env.DB_PORT ?? 5432),
-  username: process.env.DB_USER ?? 'postgres',
-  password: process.env.DB_PASSWORD ?? 'postgres',
-  database: process.env.DB_NAME ?? 'offbeat_pravasi',
+  host: db.host,
+  port: db.port,
+  username: db.user,
+  password: db.password,
+  database: db.name,
   uuidExtension: 'pgcrypto',
   synchronize: process.env.TYPEORM_SYNC === 'true',
 

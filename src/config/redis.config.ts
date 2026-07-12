@@ -1,3 +1,5 @@
+import configuration from './configuration';
+
 export interface RedisConfig {
   host: string;
   port: number;
@@ -5,9 +7,12 @@ export interface RedisConfig {
   db: number;
 }
 
+// ponytail: defaults from configuration.ts (single source)
+const { redis } = configuration();
+
 export const redisConfig: RedisConfig = {
-  host: process.env.REDIS_HOST ?? '127.0.0.1',
-  port: Number(process.env.REDIS_PORT ?? 6379),
-  password: process.env.REDIS_PASSWORD || undefined,
-  db: Number(process.env.REDIS_DB ?? 0),
+  host: redis.host,
+  port: redis.port,
+  password: redis.password,
+  db: redis.db,
 };

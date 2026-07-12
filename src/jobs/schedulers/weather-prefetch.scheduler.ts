@@ -1,25 +1,16 @@
-import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  Logger,
-} from '@nestjs/common';
-import { Queue } from 'bullmq';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { bullConnection } from '../config';
+import { weatherPrefetchQueue } from '../queues';
 
 @Injectable()
-export class WeatherPrefetchScheduler implements OnModuleInit, OnModuleDestroy {
+export class WeatherPrefetchScheduler implements OnModuleInit {
   private readonly logger = new Logger(WeatherPrefetchScheduler.name);
-  private readonly queue = new Queue('weather-prefetch-queue', {
-    connection: bullConnection,
-  });
 
   constructor(private readonly dataSource: DataSource) {}
 
   async onModuleInit(): Promise<void> {
     try {
-      await this.queue.add(
+      await weatherPrefetchQueue.add(
         'prefetch-weather',
         {},
         {
@@ -46,7 +37,7 @@ export class WeatherPrefetchScheduler implements OnModuleInit, OnModuleDestroy {
     let severeCount = 0;
 
     for (const trek of treks) {
-      await this.queue.add(
+      await weatherPrefetchQueue.add(
         'fetch-and-cache-weather',
         {
           trekId: trek.id,
@@ -70,9 +61,5 @@ export class WeatherPrefetchScheduler implements OnModuleInit, OnModuleDestroy {
 
   private isSevereExpected(_trek: any): boolean {
     return false;
-  }
-
-  async onModuleDestroy(): Promise<void> {
-    await this.queue.close();
   }
 }

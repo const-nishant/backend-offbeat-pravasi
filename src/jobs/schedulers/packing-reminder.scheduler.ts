@@ -1,25 +1,16 @@
-import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  Logger,
-} from '@nestjs/common';
-import { Queue } from 'bullmq';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { bullConnection } from '../config';
+import { packingReminderQueue } from '../queues';
 
 @Injectable()
-export class PackingReminderScheduler implements OnModuleInit, OnModuleDestroy {
+export class PackingReminderScheduler implements OnModuleInit {
   private readonly logger = new Logger(PackingReminderScheduler.name);
-  private readonly queue = new Queue('packing-reminder-queue', {
-    connection: bullConnection,
-  });
 
   constructor(private readonly dataSource: DataSource) {}
 
   async onModuleInit(): Promise<void> {
     try {
-      await this.queue.add(
+      await packingReminderQueue.add(
         'check-upcoming-treks',
         {},
         {
@@ -45,7 +36,7 @@ export class PackingReminderScheduler implements OnModuleInit, OnModuleDestroy {
     );
 
     for (const booking of upcoming) {
-      await this.queue.add(
+      await packingReminderQueue.add(
         'send-packing-reminder',
         { bookingId: booking.id },
         { removeOnComplete: true },
@@ -54,9 +45,5 @@ export class PackingReminderScheduler implements OnModuleInit, OnModuleDestroy {
 
     this.logger.log(`Enqueued ${upcoming.length} packing reminders`);
     return { reminded: upcoming.length };
-  }
-
-  async onModuleDestroy(): Promise<void> {
-    await this.queue.close();
   }
 }
