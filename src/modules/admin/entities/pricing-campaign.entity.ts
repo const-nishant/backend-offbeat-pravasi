@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-export type DiscountType = 'PERCENTAGE' | 'FLAT';
+type DiscountType = 'PERCENTAGE' | 'FLAT';
 
 @Entity({ name: 'pricing_campaigns' })
 @Index(['startDate', 'endDate'])

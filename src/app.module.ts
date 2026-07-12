@@ -9,7 +9,6 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ormConfig } from './config/ormconfig';
 import configuration from './config/configuration';
-import { validationSchema } from './config/validation';
 import { RedisModule } from './common/modules/redis.module';
 import { HealthModule } from './modules/health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -41,7 +40,6 @@ import { RecommendationsModule } from './modules/recommendations/recommendations
   imports: [
     ConfigModule.forRoot({
       load: [configuration],
-      validationSchema,
       isGlobal: true,
     }),
     ThrottlerModule.forRoot([

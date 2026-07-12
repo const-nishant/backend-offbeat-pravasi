@@ -67,7 +67,7 @@ export class Payment {
   updatedAt!: Date;
 }
 
-export interface RefundAuditEntry {
+interface RefundAuditEntry {
   refundId: string;
   amount: number;
   reason: string;

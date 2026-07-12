@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-export type BannerPlacement = 'homepage' | 'trek-page' | 'checkout';
+type BannerPlacement = 'homepage' | 'trek-page' | 'checkout';
 
 @Entity({ name: 'promotional_banners' })
 @Index(['placement', 'isActive'])

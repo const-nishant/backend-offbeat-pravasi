@@ -3,7 +3,7 @@ export interface WeatherOptions {
   date?: string;
 }
 
-export interface WeatherApiResponse {
+interface WeatherApiResponse {
   location: {
     lat: number;
     lng: number;

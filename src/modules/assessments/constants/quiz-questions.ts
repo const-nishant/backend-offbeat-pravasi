@@ -1,9 +1,9 @@
-export interface QuizOption {
+interface QuizOption {
   label: string;
   score: number;
 }
 
-export interface QuizQuestion {
+interface QuizQuestion {
   id: string;
   question: string;
   options: QuizOption[];
