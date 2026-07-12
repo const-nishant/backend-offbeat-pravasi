@@ -4,7 +4,7 @@ import {
   CurrentUser,
   type AuthenticatedUser,
 } from '../../common/decorators/current-user.decorator';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import {
   ApiOkResponse,
   ApiOperation,
@@ -14,7 +14,7 @@ import {
 
 @ApiTags('Leaderboard')
 @Controller('leaderboard')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard('jwt'))
 export class LeaderboardController {
   constructor(private readonly leaderboardService: LeaderboardService) {}
 

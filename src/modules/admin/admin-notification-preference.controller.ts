@@ -1,5 +1,5 @@
 import { Controller, Get, Patch, Post, Body, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
 import { AdminRole } from '../../modules/users/enums/admin-role.enum';
@@ -28,7 +28,7 @@ class UpdatePrefsDto {
 
 @ApiTags('Admin / Notification Preferences')
 @Controller('admin/notifications/preferences')
-@UseGuards(JwtAuthGuard, AdminRolesGuard)
+@UseGuards(AuthGuard('jwt'), AdminRolesGuard)
 export class AdminNotificationPreferenceController {
   constructor(
     private readonly adminNotificationPreferenceService: AdminNotificationPreferenceService,

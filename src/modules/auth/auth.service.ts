@@ -1,4 +1,5 @@
 import {
+  Inject,
   Injectable,
   Logger,
   ConflictException,
@@ -13,8 +14,8 @@ import {
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
+import type { RedisClient } from '../../common/utils/redis.client';
 import { AuthService as BetterAuthNestService } from '@thallesp/nestjs-better-auth';
-import { RedisService } from '../../common/utils/redis.service';
 import { generateOtp } from '../../common/utils/otp.util';
 import { hashPassword, verifyPassword } from '../../common/utils/hash.util';
 import { CacheKeys } from '../../common/constants/cache.keys';
@@ -67,7 +68,7 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
-    private readonly redisService: RedisService,
+    @Inject('REDIS_CLIENT') private readonly redis: RedisClient,
     private readonly mailerService: MailerService,
     // Better Auth API service (injected from @thallesp/nestjs-better-auth)
     private readonly betterAuthService: BetterAuthNestService,
@@ -129,7 +130,7 @@ export class AuthService {
       createdAt: new Date().toISOString(),
     };
 
-    await this.redisService.set(key, JSON.stringify(payload), ttl);
+    await this.redis.set(key, JSON.stringify(payload), 'EX', ttl);
 
     // Send OTP via email
     try {
@@ -229,7 +230,7 @@ export class AuthService {
 
   public async verifyOtp(dto: VerifyOtpDto): Promise<{ message: string }> {
     const key = this.otpKeyFor(dto.email);
-    const stored = await this.redisService.get(key);
+    const stored = await this.redis.get(key);
     if (!stored) {
       throw new UnauthorizedException('OTP expired or invalid');
     }
@@ -244,12 +245,12 @@ export class AuthService {
     try {
       parsed = JSON.parse(stored) as StoredOtp;
     } catch {
-      await this.redisService.del(key);
+      await this.redis.del(key);
       throw new UnauthorizedException('OTP invalid');
     }
 
     if (parsed.attempts >= Number(process.env.OTP_MAX_ATTEMPTS ?? '5')) {
-      await this.redisService.del(key);
+      await this.redis.del(key);
       throw new UnauthorizedException(
         'Too many failed attempts. Please request a new OTP.',
       );
@@ -257,9 +258,10 @@ export class AuthService {
 
     if (dto.otp !== parsed.otp) {
       parsed.attempts = parsed.attempts + 1;
-      await this.redisService.set(
+      await this.redis.set(
         key,
         JSON.stringify(parsed),
+        'EX',
         Number(process.env.OTP_EXPIRY_MINUTES ?? '10') * 60,
       );
       throw new UnauthorizedException('Invalid OTP');
@@ -271,7 +273,7 @@ export class AuthService {
     });
     if (!user) {
       // If registration wasn't completed yet, keep it as verified flag for future or just return success
-      await this.redisService.del(key);
+      await this.redis.del(key);
       throw new NotFoundException('User not found');
     }
 
@@ -279,7 +281,7 @@ export class AuthService {
     user.emailVerifiedAt = new Date();
     await this.userRepository.save(user);
 
-    await this.redisService.del(key);
+    await this.redis.del(key);
 
     try {
       await this.mailerService.sendWelcomeEmail(
@@ -309,7 +311,7 @@ export class AuthService {
 
     // Rate limit check: max 3 requests per 15 min
     const rateLimitKey = `otp:rate:${dto.email.toLowerCase()}`;
-    const attempts = await this.redisService.get(rateLimitKey);
+    const attempts = await this.redis.get(rateLimitKey);
     if (attempts && Number(attempts) >= 3) {
       throw new HttpException(
         'Too many OTP requests. Please wait.',
@@ -318,15 +320,16 @@ export class AuthService {
     }
 
     // Delete existing OTP
-    await this.redisService.del(this.otpKeyFor(dto.email));
+    await this.redis.del(this.otpKeyFor(dto.email));
 
     // Send new OTP
     const result = await this.sendOtp({ email: dto.email });
 
     // Increment rate limit
-    await this.redisService.set(
+    await this.redis.set(
       rateLimitKey,
       String(Number(attempts ?? 0) + 1),
+      'EX',
       900,
     );
 
@@ -357,7 +360,7 @@ export class AuthService {
       createdAt: new Date().toISOString(),
     };
 
-    await this.redisService.set(key, JSON.stringify(payload), ttl);
+    await this.redis.set(key, JSON.stringify(payload), 'EX', ttl);
 
     try {
       await this.mailerService.sendPasswordResetEmail(dto.email, otp);
@@ -377,7 +380,7 @@ export class AuthService {
     newPassword: string;
   }): Promise<{ message: string }> {
     const key = `otp:password:${dto.email.toLowerCase()}`;
-    const stored = await this.redisService.get(key);
+    const stored = await this.redis.get(key);
     if (!stored) {
       throw new BadRequestException('OTP expired or invalid');
     }
@@ -389,7 +392,7 @@ export class AuthService {
     };
 
     if (parsed.attempts >= Number(process.env.OTP_MAX_ATTEMPTS ?? '5')) {
-      await this.redisService.del(key);
+      await this.redis.del(key);
       throw new BadRequestException(
         'Too many failed attempts. Please request a new OTP.',
       );
@@ -397,9 +400,10 @@ export class AuthService {
 
     if (dto.otp !== parsed.otp) {
       parsed.attempts += 1;
-      await this.redisService.set(
+      await this.redis.set(
         key,
         JSON.stringify(parsed),
+        'EX',
         Number(process.env.OTP_EXPIRY_MINUTES ?? '10') * 60,
       );
       throw new BadRequestException('Invalid OTP');
@@ -415,7 +419,7 @@ export class AuthService {
     user.passwordHash = await hashPassword(dto.newPassword);
     await this.userRepository.save(user);
 
-    await this.redisService.del(key);
+    await this.redis.del(key);
 
     try {
       await this.mailerService.sendPasswordResetSuccessEmail(
@@ -532,7 +536,7 @@ export class AuthService {
     }
 
     const storedKey = CacheKeys.refreshSession(payload.sub, payload.sessionId);
-    const storedHash = await this.redisService.get(storedKey);
+    const storedHash = await this.redis.get(storedKey);
     if (!storedHash) {
       throw new UnauthorizedException('Refresh token not found');
     }
@@ -541,7 +545,7 @@ export class AuthService {
     const matched = await argon2.verify(storedHash, dto.refreshToken);
     if (!matched) {
       // delete if mismatch to be safe
-      await this.redisService.del(storedKey);
+      await this.redis.del(storedKey);
       throw new UnauthorizedException('Invalid refresh token');
     }
 
@@ -555,7 +559,7 @@ export class AuthService {
     });
 
     // delete old stored token
-    await this.redisService.del(storedKey);
+    await this.redis.del(storedKey);
 
     return tokens;
   }
@@ -568,7 +572,7 @@ export class AuthService {
     sessionId: string,
   ): Promise<{ message: string }> {
     const key = CacheKeys.refreshSession(userId, sessionId);
-    await this.redisService.del(key);
+    await this.redis.del(key);
     return { message: 'Logged out' };
   }
 
@@ -658,7 +662,7 @@ export class AuthService {
     }
 
     const hashed = await argon2.hash(token);
-    await this.redisService.set(redisKey, hashed, ttlSeconds);
+    await this.redis.set(redisKey, hashed, 'EX', ttlSeconds);
 
     return { token, sessionId };
   }

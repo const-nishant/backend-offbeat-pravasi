@@ -2,7 +2,7 @@ import { Controller, Get, Post, Param, Query, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ReferralService } from './referrals.service';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import {
   CurrentUser,
   type AuthenticatedUser,
@@ -30,7 +30,7 @@ export class ReferralController {
   }
 
   @Get('referrals/my-code')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Get own referral code + stats' })
   @ApiOkResponse({ type: ReferralCodeResponseDto })
   async getMyCode(@CurrentUser() user: AuthenticatedUser) {
@@ -46,7 +46,7 @@ export class ReferralController {
   }
 
   @Post('referrals/generate')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Generate or fetch existing referral code' })
   @ApiOkResponse({ type: ReferralCodeResponseDto })
   async generate(@CurrentUser() user: AuthenticatedUser) {
@@ -62,7 +62,7 @@ export class ReferralController {
   }
 
   @Get('referrals/my-referrals')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'List all referrals made (paginated)' })
   @ApiOkResponse({ type: [ReferralResponseDto] })
   async getMyReferrals(

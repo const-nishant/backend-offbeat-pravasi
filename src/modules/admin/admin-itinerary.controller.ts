@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
 import { AdminRole } from '../../modules/users/enums/admin-role.enum';
@@ -64,7 +64,7 @@ class ApplyDto {
 
 @ApiTags('Admin / Itinerary Templates')
 @Controller('admin/itinerary-templates')
-@UseGuards(JwtAuthGuard, AdminRolesGuard)
+@UseGuards(AuthGuard('jwt'), AdminRolesGuard)
 export class AdminItineraryController {
   constructor(private readonly adminItineraryService: AdminItineraryService) {}
 

@@ -14,7 +14,6 @@ import {
   Index,
 } from 'typeorm';
 import { TreksService } from './treks.service';
-import { RedisService } from '../../common/utils/redis.service';
 import {
   describe,
   it,
@@ -156,7 +155,7 @@ describe('TreksService Integration (sqlite)', () => {
   let userRepo: Repository<SqliteUser>;
   let tagRepo: Repository<SqliteTrekTag>;
   let imageRepo: Repository<SqliteTrekImage>;
-  let redisService: jest.Mocked<RedisService>;
+  let redis: jest.Mocked<any>;
 
   beforeAll(async () => {
     dataSource = new DataSource({
@@ -179,7 +178,7 @@ describe('TreksService Integration (sqlite)', () => {
     tagRepo = dataSource.getRepository(SqliteTrekTag);
     imageRepo = dataSource.getRepository(SqliteTrekImage);
 
-    redisService = {
+    redis = {
       get: jest.fn(),
       set: jest.fn(),
       del: jest.fn(),
@@ -203,7 +202,7 @@ describe('TreksService Integration (sqlite)', () => {
       dataSource.getRepository(SqliteTrekInteraction) as any,
       tagRepo as any,
       imageRepo as any,
-      redisService as any,
+      redis as any,
     );
   });
 

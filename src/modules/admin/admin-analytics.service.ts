@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { RedisService } from '../../common/utils/redis.service';
+import type { RedisClient } from '../../common/utils/redis.client';
 import { CacheKeys } from '../../common/constants/cache.keys';
 
 @Injectable()
@@ -10,11 +10,11 @@ export class AdminAnalyticsService {
 
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
-    private readonly redisService: RedisService,
+    @Inject('REDIS_CLIENT') private readonly redis: RedisClient,
   ) {}
 
   private async readCached<T>(key: string): Promise<T | null> {
-    const raw = await this.redisService.get(key);
+    const raw = await this.redis.get(key);
     if (!raw) return null;
     try {
       return JSON.parse(raw) as T;
@@ -47,7 +47,7 @@ export class AdminAnalyticsService {
       count: Number(r.count),
     }));
 
-    await this.redisService.set(cacheKey, JSON.stringify(result), 300);
+    await this.redis.set(cacheKey, JSON.stringify(result), 'EX', 300);
     return result;
   }
 
@@ -89,7 +89,7 @@ export class AdminAnalyticsService {
       totalUsers: Number(r.total_users),
     }));
 
-    await this.redisService.set(cacheKey, JSON.stringify(result), 600);
+    await this.redis.set(cacheKey, JSON.stringify(result), 'EX', 600);
     return result;
   }
 
@@ -99,7 +99,7 @@ export class AdminAnalyticsService {
     trekId?: string,
   ) {
     const cacheKey = CacheKeys.analyticsFunnel(startDate, endDate, trekId);
-    const cached = await this.redisService.get(cacheKey);
+    const cached = await this.redis.get(cacheKey);
     if (cached) return JSON.parse(cached);
 
     const conditions: string[] = [];
@@ -144,7 +144,7 @@ export class AdminAnalyticsService {
       },
     };
 
-    await this.redisService.set(cacheKey, JSON.stringify(result), 900);
+    await this.redis.set(cacheKey, JSON.stringify(result), 'EX', 900);
     return result;
   }
 
@@ -185,7 +185,7 @@ export class AdminAnalyticsService {
       activeUsers: Number(r.active_users),
     }));
 
-    await this.redisService.set(cacheKey, JSON.stringify(result), 600);
+    await this.redis.set(cacheKey, JSON.stringify(result), 'EX', 600);
     return result;
   }
 
@@ -251,7 +251,7 @@ export class AdminAnalyticsService {
           : 0,
     }));
 
-    await this.redisService.set(cacheKey, JSON.stringify(result), 900);
+    await this.redis.set(cacheKey, JSON.stringify(result), 'EX', 900);
     return result;
   }
 }

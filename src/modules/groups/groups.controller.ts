@@ -15,7 +15,7 @@ import { InviteMembersDto } from './dtos/invite-members.dto';
 import { UpdateGroupDto } from './dtos/update-group.dto';
 import { UpdateMemberStatusDto } from './dtos/update-member-status.dto';
 import { GroupDetailDto } from './dtos/group-response.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import {
   CurrentUser,
   type AuthenticatedUser,
@@ -23,7 +23,7 @@ import {
 
 @ApiTags('Groups')
 @Controller()
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard('jwt'))
 export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
 

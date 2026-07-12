@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -7,6 +8,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import type { RedisClient } from 'src/common/utils/redis.client';
 import { User } from 'src/modules/users/entities/user.entity';
 import { OrganizerStatus } from 'src/modules/users/enums/organizer-status.enums';
 import { FindOptionsWhere, LessThan, MoreThan, Repository } from 'typeorm';
@@ -28,7 +30,6 @@ import {
   getPagination,
   buildPaginationMeta,
 } from 'src/common/pagination/pagination.util';
-import { RedisService } from 'src/common/utils/redis.service';
 import { MailerService } from '../mailer/mailer.service';
 
 @Injectable()
@@ -49,7 +50,7 @@ export class OrganizerService {
     private readonly bookingRepo: Repository<Booking>,
     @InjectRepository(Payment)
     private readonly paymentRepo: Repository<Payment>,
-    private readonly redisService: RedisService,
+    @Inject('REDIS_CLIENT') private readonly redis: RedisClient,
   ) {}
 
   async createApplication(
@@ -179,7 +180,7 @@ export class OrganizerService {
   async getDashboard(userId: string) {
     const cacheKey = `organizer:dashboard:${userId}`;
     try {
-      const cached = await this.redisService.get(cacheKey);
+      const cached = await this.redis.get(cacheKey);
       if (cached) return JSON.parse(cached);
     } catch {
       // ignore cache miss
@@ -259,7 +260,7 @@ export class OrganizerService {
     };
 
     try {
-      await this.redisService.set(cacheKey, JSON.stringify(result), 300);
+      await this.redis.set(cacheKey, JSON.stringify(result), 'EX', 300);
     } catch {
       // ignore cache set failure
     }

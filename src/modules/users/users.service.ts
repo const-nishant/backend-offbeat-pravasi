@@ -1,4 +1,5 @@
 import {
+  Inject,
   Injectable,
   NotFoundException,
   ConflictException,
@@ -9,7 +10,7 @@ import { User } from './entities/user.entity';
 import { UpdateProfileDto } from './dtos/update-profile.dto';
 import { UpsertOnboardingDto } from './dtos/onboarding.dto';
 import { SearchUsersDto } from './dtos/search-users.dto';
-import { RedisService } from '../../common/utils/redis.service';
+import type { RedisClient } from '../../common/utils/redis.client';
 import {
   getPagination,
   buildPaginationMeta,
@@ -20,7 +21,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly redisService: RedisService,
+    @Inject('REDIS_CLIENT') private readonly redis: RedisClient,
   ) {}
 
   async getProfile(userId: string): Promise<User> {
@@ -64,9 +65,10 @@ export class UsersService {
   ): Promise<{ message: string }> {
     const user = await this.getProfile(userId);
     const key = `onboarding:${userId}`;
-    await this.redisService.set(
+    await this.redis.set(
       key,
       JSON.stringify(dto.answers),
+      'EX',
       30 * 24 * 3600,
     );
     return { message: 'Onboarding answers saved' };

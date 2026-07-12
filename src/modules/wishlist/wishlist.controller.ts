@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 import { WishlistService } from './wishlist.service';
@@ -24,7 +24,7 @@ import {
 } from './dtos/wishlist-collection-response.dto';
 
 @ApiTags('Wishlist')
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard('jwt'))
 @Controller()
 export class WishlistController {
   constructor(private readonly wishlistService: WishlistService) {}

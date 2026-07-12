@@ -16,7 +16,7 @@ import {
   CurrentUser,
   type AuthenticatedUser,
 } from '../../common/decorators/current-user.decorator';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('Notifications')
@@ -24,7 +24,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Post('device-tokens')
   @ApiOperation({ summary: 'Register a device token for push notifications' })
   async registerDeviceToken(
@@ -38,7 +38,7 @@ export class NotificationsController {
     return { data: { id: token.id, platform: token.platform } };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Delete('device-tokens/:token')
   @ApiOperation({ summary: 'Unregister a device token' })
   async unregisterDeviceToken(
@@ -49,7 +49,7 @@ export class NotificationsController {
     return { data: { message: 'Device token removed' } };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Get()
   @ApiOperation({ summary: 'Get paginated notification history' })
   async getNotifications(
@@ -59,7 +59,7 @@ export class NotificationsController {
     return this.notificationsService.getNotifications(user.id, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Patch(':id/read')
   @ApiOperation({ summary: 'Mark a notification as read' })
   async markAsRead(
@@ -70,7 +70,7 @@ export class NotificationsController {
     return { data: { message: 'Marked as read' } };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Patch('read-all')
   @ApiOperation({ summary: 'Mark all notifications as read' })
   async markAllAsRead(@CurrentUser() user: AuthenticatedUser) {

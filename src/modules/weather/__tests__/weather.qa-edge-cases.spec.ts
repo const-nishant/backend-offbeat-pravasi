@@ -3,7 +3,6 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import type { Repository } from 'typeorm';
 import { WeatherService } from '../weather.service';
 import { Trek } from '../../treks/entities/trek.entity';
-import { RedisService } from '../../../common/utils/redis.service';
 import {
   describe,
   it,
@@ -31,7 +30,7 @@ import {
 describe('WeatherService — QA Edge Cases (12y exp)', () => {
   let service: WeatherService;
   let trekRepo: jest.Mocked<Repository<Trek>>;
-  let redisService: jest.Mocked<RedisService>;
+  let redis: jest.Mocked<any>;
 
   const mockTrekValid = {
     id: 'trek-valid',
@@ -123,13 +122,13 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
     } as any);
 
     trekRepo = { findOne: jest.fn() } as any;
-    redisService = { get: jest.fn(), set: jest.fn() } as any;
+    redis = { get: jest.fn(), set: jest.fn() } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WeatherService,
         { provide: getRepositoryToken(Trek), useValue: trekRepo },
-        { provide: RedisService, useValue: redisService },
+        { provide: 'REDIS_CLIENT', useValue: redis },
       ],
     }).compile();
 
@@ -141,7 +140,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
   describe('BVA — coordinate boundaries', () => {
     it('should handle lat=0, lng=0 (Equator/Prime Meridian)', async () => {
       trekRepo.findOne.mockResolvedValue(mockTrekZeroCoord);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       const result = await service.getForTrek('trek-zero');
       expect(result.location.lat).toBe(27.9878);
@@ -150,7 +149,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
     it('should handle extreme positive latitude (90)', async () => {
       const mock = { ...mockTrekValid, latitude: 90, longitude: 45 } as Trek;
       trekRepo.findOne.mockResolvedValue(mock);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       const result = await service.getForTrek('trek-valid');
       expect(result.location.lat).toBe(27.9878);
@@ -159,7 +158,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
     it('should handle extreme negative latitude (-90)', async () => {
       const mock = { ...mockTrekValid, latitude: -90, longitude: 45 } as Trek;
       trekRepo.findOne.mockResolvedValue(mock);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await expect(service.getForTrek('trek-valid')).resolves.toBeDefined();
     });
@@ -167,7 +166,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
     it('should handle extreme longitude (180)', async () => {
       const mock = { ...mockTrekValid, latitude: 0, longitude: 180 } as Trek;
       trekRepo.findOne.mockResolvedValue(mock);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await expect(service.getForTrek('trek-valid')).resolves.toBeDefined();
     });
@@ -188,7 +187,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
           }),
       });
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       const result = await service.getForTrek('trek-valid');
       expect(result.current.temperatureC).toBe(-50);
@@ -209,7 +208,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
           }),
       });
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       const result = await service.getForTrek('trek-valid');
       expect(result.current.temperatureC).toBe(60);
@@ -230,7 +229,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
           }),
       });
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       const result = await service.getForTrek('trek-valid');
       expect(result.current.feelsLikeC).toBe(-15);
@@ -244,40 +243,40 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
     it('should use 30min TTL for dates within 3h of now', async () => {
       const nearFuture = new Date(Date.now() + 1 * 60 * 60 * 1000);
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await service.getForTrek('trek-valid', [nearFuture]);
 
-      const cacheKey = redisService.set.mock.calls[0][0];
+      const cacheKey = redis.set.mock.calls[0][0];
       expect(cacheKey).toContain('weather:coord:');
     });
 
     it('should use 6h TTL for dates far in the future', async () => {
       const farFuture = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await service.getForTrek('trek-valid', [farFuture]);
 
-      expect(redisService.set).toHaveBeenCalled();
+      expect(redis.set).toHaveBeenCalled();
     });
 
     it('should use 2h TTL when no dates specified (7-day forecast)', async () => {
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await service.getForTrek('trek-valid');
 
-      expect(redisService.set).toHaveBeenCalled();
+      expect(redis.set).toHaveBeenCalled();
     });
 
     it('should use 6h TTL for dates in the past', async () => {
       const past = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await service.getForTrek('trek-valid', [past]);
-      expect(redisService.set).toHaveBeenCalled();
+      expect(redis.set).toHaveBeenCalled();
     });
   });
 
@@ -334,7 +333,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
             }),
         });
         trekRepo.findOne.mockResolvedValue(mockTrekValid);
-        redisService.get.mockResolvedValue(null);
+        redis.get.mockResolvedValue(null);
 
         const result = await service.getForTrek('trek-valid');
         expect(result.current.condition).toBe(expected);
@@ -345,7 +344,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
   describe('EP — date categories', () => {
     it('should handle empty dates array', async () => {
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       const result = await service.getForTrek('trek-valid', []);
       expect(result.source).toBe('WeatherAPI.com');
@@ -354,7 +353,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
     it('should handle single date', async () => {
       const date = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       const result = await service.getForTrek('trek-valid', [date]);
       expect(result.source).toBe('WeatherAPI.com');
@@ -364,23 +363,23 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
       const d1 = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
       const d2 = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await service.getForTrek('trek-valid', [d1, d2]);
-      expect(redisService.set).toHaveBeenCalled();
+      expect(redis.set).toHaveBeenCalled();
     });
 
     it('should sort multiple dates and produce deterministic cache key', async () => {
       const d1 = new Date('2026-09-20');
       const d2 = new Date('2026-09-15');
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await service.getForTrek('trek-valid', [d1, d2]);
       await service.getForTrek('trek-valid', [d2, d1]);
 
-      const firstKey = redisService.set.mock.calls[0][0];
-      const secondKey = redisService.set.mock.calls[1][0];
+      const firstKey = redis.set.mock.calls[0][0];
+      const secondKey = redis.set.mock.calls[1][0];
       expect(firstKey).toBe(secondKey);
     });
   });
@@ -444,7 +443,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
         statusText: 'Internal Server Error',
       });
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await expect(service.getForTrek('trek-valid')).rejects.toThrow(
         'Weather API responded with 500',
@@ -458,7 +457,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
         statusText: 'Too Many Requests',
       });
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await expect(service.getForTrek('trek-valid')).rejects.toThrow(
         'Weather API responded with 429',
@@ -472,7 +471,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
         statusText: 'Unauthorized',
       });
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await expect(service.getForTrek('trek-valid')).rejects.toThrow(
         'Weather API responded with 401',
@@ -484,7 +483,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
         .fn()
         .mockRejectedValue(new Error('fetch: connect ECONNREFUSED'));
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await expect(service.getForTrek('trek-valid')).rejects.toThrow(
         'fetch: connect ECONNREFUSED',
@@ -498,7 +497,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
           new Error('getaddrinfo ENOTFOUND api.weatherapi.com'),
         );
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await expect(service.getForTrek('trek-valid')).rejects.toThrow(
         'ENOTFOUND',
@@ -512,7 +511,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
           new Error('The operation was aborted due to timeout'),
         );
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await expect(service.getForTrek('trek-valid')).rejects.toThrow('timeout');
     });
@@ -526,7 +525,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
           Promise.reject(new Error('Unexpected token < in JSON at position 0')),
       });
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await expect(service.getForTrek('trek-valid')).rejects.toThrow();
     });
@@ -541,7 +540,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
           }),
       });
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await expect(service.getForTrek('trek-valid')).rejects.toThrow();
     });
@@ -552,7 +551,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
         json: () => Promise.resolve(null),
       });
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await expect(service.getForTrek('trek-valid')).rejects.toThrow();
     });
@@ -564,7 +563,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
           Promise.reject(new Error('Unexpected token < in JSON at position 0')),
       });
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await expect(service.getForTrek('trek-valid')).rejects.toThrow();
     });
@@ -572,7 +571,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
 
   describe('NEGATIVE — Redis failures', () => {
     it('should gracefully handle corrupt JSON in cache', async () => {
-      redisService.get.mockResolvedValue('{this is not valid json!!!}');
+      redis.get.mockResolvedValue('{this is not valid json!!!}');
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
 
       const result = await service.getForTrek('trek-valid');
@@ -580,7 +579,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
     });
 
     it('should gracefully handle Redis connection timeout on read', async () => {
-      redisService.get.mockRejectedValue(new Error('Redis connection timeout'));
+      redis.get.mockRejectedValue(new Error('Redis connection timeout'));
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
 
       const result = await service.getForTrek('trek-valid');
@@ -588,8 +587,8 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
     });
 
     it('should gracefully handle Redis connection timeout on write', async () => {
-      redisService.get.mockResolvedValue(null);
-      redisService.set.mockRejectedValue(new Error('Redis connection timeout'));
+      redis.get.mockResolvedValue(null);
+      redis.set.mockRejectedValue(new Error('Redis connection timeout'));
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
 
       const result = await service.getForTrek('trek-valid');
@@ -597,8 +596,8 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
     });
 
     it('should gracefully handle Redis out-of-memory on write', async () => {
-      redisService.get.mockResolvedValue(null);
-      redisService.set.mockRejectedValue(
+      redis.get.mockResolvedValue(null);
+      redis.set.mockRejectedValue(
         new Error('OOM command not allowed when used memory > maxmemory'),
       );
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
@@ -608,8 +607,8 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
     });
 
     it('should return stale-but-valid cache when set fails after read miss', async () => {
-      redisService.get.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
-      redisService.set.mockRejectedValue(new Error('Redis write failed'));
+      redis.get.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+      redis.set.mockRejectedValue(new Error('Redis write failed'));
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
 
       const result = await service.getForTrek('trek-valid');
@@ -637,7 +636,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
         fetchedAt: new Date().toISOString(),
         source: 'WeatherAPI.com',
       });
-      redisService.get.mockResolvedValue(cached);
+      redis.get.mockResolvedValue(cached);
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
 
       const apiSpy = jest.fn();
@@ -649,7 +648,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
     });
 
     it('should call API when cache misses', async () => {
-      redisService.get.mockResolvedValueOnce(null);
+      redis.get.mockResolvedValueOnce(null);
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
 
       const apiSpy = jest.fn().mockResolvedValue({
@@ -663,35 +662,35 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
     });
 
     it('should return fresh data from API and update cache', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
 
       await service.getForTrek('trek-valid');
 
-      expect(redisService.set).toHaveBeenCalledTimes(1);
-      const setArg = JSON.parse(redisService.set.mock.calls[0][1]);
+      expect(redis.set).toHaveBeenCalledTimes(1);
+      const setArg = JSON.parse(redis.set.mock.calls[0][1]);
       expect(setArg.fetchedAt).toBeDefined();
     });
 
     it('should produce different cache keys for different coordinates', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
 
       await service.getForCoordinates(10, 20);
       await service.getForCoordinates(30, 40);
 
-      const keys = redisService.set.mock.calls.map((c: any) => c[0]);
+      const keys = redis.set.mock.calls.map((c: any) => c[0]);
       expect(keys[0]).not.toBe(keys[1]);
     });
 
     it('should produce different cache keys for different dates', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
 
       await service.getForCoordinates(10, 20, [new Date('2026-07-01')]);
       await service.getForCoordinates(10, 20, [new Date('2026-08-01')]);
 
-      const keys = redisService.set.mock.calls.map((c: any) => c[0]);
+      const keys = redis.set.mock.calls.map((c: any) => c[0]);
       expect(keys[0]).not.toBe(keys[1]);
     });
   });
@@ -701,7 +700,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
   describe('DATA INTEGRITY — trek data', () => {
     it('should preserve all required fields in response', async () => {
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       const result = await service.getForTrek('trek-valid');
 
@@ -715,7 +714,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
 
     it('should include location name from API response', async () => {
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       const result = await service.getForTrek('trek-valid');
       expect(result.location.name).toBe('Everest Base Camp');
@@ -723,7 +722,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
 
     it('should include fetchedAt timestamp in ISO format', async () => {
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       const result = await service.getForTrek('trek-valid');
       expect(new Date(result.fetchedAt).toISOString()).toBe(result.fetchedAt);
@@ -731,7 +730,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
 
     it('should set source from provider', async () => {
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       const result = await service.getForTrek('trek-valid');
       expect(result.source).toBe('WeatherAPI.com');
@@ -743,7 +742,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
   describe('PROVIDER — construction edge cases', () => {
     it('should create provider successfully with API key set', async () => {
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await expect(service.getForTrek('trek-valid')).resolves.toBeDefined();
     });
@@ -751,7 +750,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
     it('should reject when WEATHER_API_KEY is empty string', async () => {
       delete process.env.WEATHER_API_KEY;
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       await expect(service.getForTrek('trek-valid')).rejects.toThrow(
         'WEATHER_API_KEY is not configured',
@@ -766,7 +765,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
   describe('CONCURRENCY — parallel requests', () => {
     it('should handle multiple parallel requests for same trek', async () => {
       trekRepo.findOne.mockResolvedValue(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       const results = await Promise.all([
         service.getForTrek('trek-valid'),
@@ -789,7 +788,7 @@ describe('WeatherService — QA Edge Cases (12y exp)', () => {
         .mockResolvedValueOnce(mockTrekValid)
         .mockResolvedValueOnce(trek2)
         .mockResolvedValueOnce(mockTrekValid);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       const results = await Promise.all([
         service.getForTrek('trek-valid'),

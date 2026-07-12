@@ -6,7 +6,7 @@ import {
   AssessmentResultDto,
   PublicBracketDto,
 } from './dtos/assessment-result.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { Public } from '../../common/decorators/public.decorator';
 import {
   CurrentUser,
@@ -26,7 +26,7 @@ export class AssessmentsController {
     return this.assessmentsService.getQuestions();
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Post('assessments/submit')
   @ApiOperation({ summary: 'Submit quiz answers and get score + bracket' })
   @ApiOkResponse({ type: AssessmentResultDto })
@@ -37,7 +37,7 @@ export class AssessmentsController {
     return this.assessmentsService.submit(user.id, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Get('assessments/my-result')
   @ApiOperation({ summary: 'Get latest assessment result for current user' })
   @ApiOkResponse({ type: AssessmentResultDto, nullable: true })

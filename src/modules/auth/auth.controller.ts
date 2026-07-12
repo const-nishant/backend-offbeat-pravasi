@@ -9,7 +9,7 @@ import { ResendOtpDto } from './dtos/resend-otp.dto';
 import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { RefreshDto } from './dtos/refresh.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import {
   CurrentUser,
   type AuthenticatedUser,
@@ -125,7 +125,7 @@ export class AuthController {
   // -------------------------------
   // LOGOUT
   // -------------------------------
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Post('logout')
   @ApiOperation({ summary: 'Logout and invalidate session' })
   async logout(
@@ -154,7 +154,7 @@ export class AuthController {
   // -------------------------------
   // GET CURRENT USER
   // -------------------------------
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Get('me')
   @ApiOperation({ summary: 'Get current authenticated user' })
   me(@CurrentUser() user: AuthenticatedUser) {
