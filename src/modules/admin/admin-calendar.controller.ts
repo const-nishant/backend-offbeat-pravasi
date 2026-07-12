@@ -10,9 +10,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 @Controller('admin/marketing/calendar')
 @UseGuards(JwtAuthGuard, AdminRolesGuard)
 export class AdminCalendarController {
-  constructor(
-    private readonly adminCalendarService: AdminCalendarService,
-  ) {}
+  constructor(private readonly adminCalendarService: AdminCalendarService) {}
 
   @Get()
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)

@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Param,
-  Body,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
@@ -45,7 +38,10 @@ export class AdminOrganizerDocumentController {
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Approve a document' })
   async approve(@Param('docId') docId: string) {
-    return this.adminOrganizerDocumentService.approve(docId, '00000000-0000-0000-0000-000000000000');
+    return this.adminOrganizerDocumentService.approve(
+      docId,
+      '00000000-0000-0000-0000-000000000000',
+    );
   }
 
   @Post(':id/documents/:docId/reject')

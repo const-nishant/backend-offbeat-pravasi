@@ -26,10 +26,6 @@ import { OrganizerController } from './modules/organizer/organizer.controller';
 import { OrganizerService } from './modules/organizer/organizer.service';
 import { PaymentsController } from './modules/payments/payments.controller';
 import { PaymentsService } from './modules/payments/payments.service';
-import { PostsController } from './modules/posts/posts.controller';
-import { PostsService } from './modules/posts/posts.service';
-import { StoriesController } from './modules/stories/stories.controller';
-import { StoriesService } from './modules/stories/stories.service';
 import { TreksController } from './modules/treks/treks.controller';
 import { TreksService } from './modules/treks/treks.service';
 import { UsersController } from './modules/users/users.controller';
@@ -49,8 +45,6 @@ const controllers = [
   NotificationsController,
   OrganizerController,
   PaymentsController,
-  PostsController,
-  StoriesController,
   TreksController,
   UsersController,
   ReportsController,
@@ -68,26 +62,6 @@ const providers = [
   { provide: NotificationsService, useValue: {} },
   { provide: OrganizerService, useValue: {} },
   { provide: PaymentsService, useValue: {} },
-  {
-    provide: PostsService,
-    useValue: {
-      create: async () => ({}),
-      getFeed: async () => ({}),
-      toggleLike: async () => ({}),
-      addComment: async () => ({}),
-      getComments: async () => ({}),
-      delete: async () => {},
-    },
-  },
-  {
-    provide: StoriesService,
-    useValue: {
-      create: async () => ({}),
-      findActiveByFriends: async () => ({}),
-      delete: async () => {},
-      markAsViewed: async () => ({}),
-    },
-  },
   { provide: TreksService, useValue: {} },
   { provide: UsersService, useValue: {} },
   { provide: ReportsService, useValue: {} },

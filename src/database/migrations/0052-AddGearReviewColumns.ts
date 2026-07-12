@@ -21,7 +21,11 @@ export class AddGearReviewColumns0052 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP INDEX IF EXISTS idx_gear_review_status`);
-    await queryRunner.query(`ALTER TABLE gear_items DROP COLUMN IF EXISTS featured`);
-    await queryRunner.query(`ALTER TABLE gear_items DROP COLUMN IF EXISTS review_status`);
+    await queryRunner.query(
+      `ALTER TABLE gear_items DROP COLUMN IF EXISTS featured`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE gear_items DROP COLUMN IF EXISTS review_status`,
+    );
   }
 }

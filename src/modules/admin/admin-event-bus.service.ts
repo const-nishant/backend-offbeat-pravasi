@@ -4,15 +4,17 @@ import { AdminRole } from '../../modules/users/enums/admin-role.enum';
 
 @Injectable()
 export class AdminEventBusService {
-  constructor(
-    private readonly adminWsGateway: AdminWsGateway,
-  ) {}
+  constructor(private readonly adminWsGateway: AdminWsGateway) {}
 
   emit(event: string, data: unknown, requiredRole?: AdminRole) {
     this.adminWsGateway.broadcast(event, data, requiredRole);
   }
 
-  emitNewOrganizerApplication(data: { id: string; name: string; createdAt: Date }) {
+  emitNewOrganizerApplication(data: {
+    id: string;
+    name: string;
+    createdAt: Date;
+  }) {
     this.emit('organizer.new', data, AdminRole.SUPERADMIN);
   }
 

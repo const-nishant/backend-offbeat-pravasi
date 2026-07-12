@@ -14,7 +14,13 @@ import { AdminRole } from '../../modules/users/enums/admin-role.enum';
 import { AdminWeatherAlertService } from './admin-weather-alert.service';
 import { AlertSeverity } from './entities/weather-alert.entity';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { IsString, IsOptional, IsEnum, IsDateString, IsObject } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsDateString,
+  IsObject,
+} from 'class-validator';
 
 class CreateAlertDto {
   @IsString()

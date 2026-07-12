@@ -19,22 +19,26 @@ class MergeDto {
 @Controller('admin/users/merge')
 @UseGuards(JwtAuthGuard, AdminRolesGuard)
 export class AdminUserMergeController {
-  constructor(
-    private readonly adminUserMergeService: AdminUserMergeService,
-  ) {}
+  constructor(private readonly adminUserMergeService: AdminUserMergeService) {}
 
   @Post('dry-run')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Preview merge collisions' })
   async dryRun(@Body() dto: MergeDto) {
-    return this.adminUserMergeService.dryRun(dto.primaryUserId, dto.mergeUserId);
+    return this.adminUserMergeService.dryRun(
+      dto.primaryUserId,
+      dto.mergeUserId,
+    );
   }
 
   @Post('execute')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Execute user merge in a transaction' })
   async execute(@Body() dto: MergeDto) {
-    return this.adminUserMergeService.execute(dto.primaryUserId, dto.mergeUserId);
+    return this.adminUserMergeService.execute(
+      dto.primaryUserId,
+      dto.mergeUserId,
+    );
   }
 
   @Get('history')

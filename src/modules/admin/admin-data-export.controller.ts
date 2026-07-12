@@ -44,7 +44,10 @@ export class AdminDataExportController {
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Approve and start processing data export' })
   async approve(@Param('id') id: string) {
-    return this.adminDataExportService.approve(id, '00000000-0000-0000-0000-000000000000');
+    return this.adminDataExportService.approve(
+      id,
+      '00000000-0000-0000-0000-000000000000',
+    );
   }
 
   @Post(':id/reject')

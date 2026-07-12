@@ -4,9 +4,7 @@ import { DataSource } from 'typeorm';
 
 @Injectable()
 export class AdminAuditDiffService {
-  constructor(
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async diff(resourceType: string, resourceId: string) {
     const rows = await this.dataSource.query(
@@ -17,17 +15,25 @@ export class AdminAuditDiffService {
       [resourceType, resourceId],
     );
 
-    if (rows.length === 0) throw new NotFoundException('No audit logs found for this resource');
+    if (rows.length === 0)
+      throw new NotFoundException('No audit logs found for this resource');
 
     const entries = rows.map((r: any) => ({
       id: r.id,
       actorId: r.actor_id,
       action: r.action,
-      detail: typeof r.metadata === 'string' ? JSON.parse(r.metadata) : r.metadata,
+      detail:
+        typeof r.metadata === 'string' ? JSON.parse(r.metadata) : r.metadata,
       createdAt: r.created_at,
     }));
 
-    const diffs: Array<{ fromId: string; toId: string; from: Date; to: Date; change: Record<string, unknown> }> = [];
+    const diffs: Array<{
+      fromId: string;
+      toId: string;
+      from: Date;
+      to: Date;
+      change: Record<string, unknown>;
+    }> = [];
     for (let i = 1; i < entries.length; i++) {
       const prev = entries[i - 1];
       const curr = entries[i];
@@ -49,7 +55,14 @@ export class AdminAuditDiffService {
     };
   }
 
-  async timeline(filters: { actorId?: string; action?: string; from?: string; to?: string; page?: number; limit?: number }) {
+  async timeline(filters: {
+    actorId?: string;
+    action?: string;
+    from?: string;
+    to?: string;
+    page?: number;
+    limit?: number;
+  }) {
     const conditions = ['1=1'];
     const params: any[] = [];
     let idx = 1;
@@ -100,7 +113,10 @@ export class AdminAuditDiffService {
     };
   }
 
-  private computeDiff(prev: Record<string, unknown> | null, curr: Record<string, unknown> | null): Record<string, unknown> {
+  private computeDiff(
+    prev: Record<string, unknown> | null,
+    curr: Record<string, unknown> | null,
+  ): Record<string, unknown> {
     if (!prev && !curr) return {};
     if (!prev) return { added: curr };
     if (!curr) return { removed: prev };
@@ -139,7 +155,8 @@ export class AdminAuditDiffService {
 
     for (let i = 1; i < rows.length; i++) {
       const r = rows[i];
-      const timeDiff = new Date(r.created_at).getTime() - new Date(current.endTime).getTime();
+      const timeDiff =
+        new Date(r.created_at).getTime() - new Date(current.endTime).getTime();
       if (r.actor_id === current.actorId && timeDiff < 180000) {
         current.endTime = r.created_at;
         current.actionCount++;
@@ -162,7 +179,10 @@ export class AdminAuditDiffService {
       startTime: s.startTime,
       endTime: s.endTime,
       actionCount: s.actionCount,
-      durationSeconds: Math.round((new Date(s.endTime).getTime() - new Date(s.startTime).getTime()) / 1000),
+      durationSeconds: Math.round(
+        (new Date(s.endTime).getTime() - new Date(s.startTime).getTime()) /
+          1000,
+      ),
     }));
   }
 }

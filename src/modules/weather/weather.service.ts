@@ -4,25 +4,22 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Trek } from '../treks/entities/trek.entity';
 import {
-  WeatherProvider,
+  WeatherApiProvider,
   WeatherOptions,
-} from './interfaces/weather-provider.interface';
-import { createWeatherProvider } from './interfaces/weather-provider.factory';
+} from './interfaces/weather-api.provider';
 import { TrekWeather } from './interfaces/trek-weather.interface';
 import { CacheKeys } from '../../common/constants/cache.keys';
 
 @Injectable()
 export class WeatherService {
   private readonly logger = new Logger(WeatherService.name);
-  private readonly provider: WeatherProvider;
+  private readonly provider = new WeatherApiProvider();
 
   constructor(
     private readonly redisService: RedisService,
     @InjectRepository(Trek)
     private readonly trekRepository: Repository<Trek>,
-  ) {
-    this.provider = createWeatherProvider();
-  }
+  ) {}
 
   async getForTrek(trekId: string, dates?: Date[]): Promise<TrekWeather> {
     const trek = await this.trekRepository.findOne({

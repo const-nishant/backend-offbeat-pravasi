@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Patch,
-  Post,
-  Body,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Patch, Post, Body, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
@@ -45,20 +38,27 @@ export class AdminNotificationPreferenceController {
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
   @ApiOperation({ summary: 'Get current admin notification preferences' })
   async get() {
-    return this.adminNotificationPreferenceService.getPreferences('00000000-0000-0000-0000-000000000000');
+    return this.adminNotificationPreferenceService.getPreferences(
+      '00000000-0000-0000-0000-000000000000',
+    );
   }
 
   @Patch()
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
   @ApiOperation({ summary: 'Update notification preferences' })
   async update(@Body() dto: UpdatePrefsDto) {
-    return this.adminNotificationPreferenceService.update('00000000-0000-0000-0000-000000000000', dto.preferences);
+    return this.adminNotificationPreferenceService.update(
+      '00000000-0000-0000-0000-000000000000',
+      dto.preferences,
+    );
   }
 
   @Post('test')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
   @ApiOperation({ summary: 'Send test notification on configured channels' })
   async test() {
-    return this.adminNotificationPreferenceService.test('00000000-0000-0000-0000-000000000000');
+    return this.adminNotificationPreferenceService.test(
+      '00000000-0000-0000-0000-000000000000',
+    );
   }
 }

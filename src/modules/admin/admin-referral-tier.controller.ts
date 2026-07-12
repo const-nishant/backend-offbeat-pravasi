@@ -12,13 +12,14 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
 import { AdminRole } from '../../modules/users/enums/admin-role.enum';
+import { ReferralTier } from '../../modules/referrals/enums/referral-tier.enum';
 import { AdminReferralTierService } from './admin-referral-tier.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { IsString, IsOptional, IsInt, Min } from 'class-validator';
+import { IsEnum, IsOptional, IsInt, Min } from 'class-validator';
 
 class CreateTierDto {
-  @IsString()
-  tier!: string;
+  @IsEnum(ReferralTier)
+  tier!: ReferralTier;
 
   @IsInt()
   @Min(0)
@@ -35,8 +36,8 @@ class CreateTierDto {
 
 class UpdateTierDto {
   @IsOptional()
-  @IsString()
-  tier?: string;
+  @IsEnum(ReferralTier)
+  tier?: ReferralTier;
 
   @IsOptional()
   @IsInt()

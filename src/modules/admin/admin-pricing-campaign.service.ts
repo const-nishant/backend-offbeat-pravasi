@@ -17,7 +17,12 @@ export class AdminPricingCampaignService {
     const all = await this.repo.find({ order: { createdAt: 'DESC' } });
     return all.map((c) => ({
       ...c,
-      status: c.endDate < now ? 'expired' : c.startDate > now ? 'scheduled' : 'active',
+      status:
+        c.endDate < now
+          ? 'expired'
+          : c.startDate > now
+            ? 'scheduled'
+            : 'active',
     }));
   }
 

@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Param,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Param, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
@@ -19,9 +12,7 @@ import { IsOptional, IsEnum, IsString, IsInt } from 'class-validator';
 @Controller('admin/payouts')
 @UseGuards(JwtAuthGuard, AdminRolesGuard)
 export class AdminPayoutController {
-  constructor(
-    private readonly adminPayoutService: AdminPayoutService,
-  ) {}
+  constructor(private readonly adminPayoutService: AdminPayoutService) {}
 
   @Get()
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.FINANCE)

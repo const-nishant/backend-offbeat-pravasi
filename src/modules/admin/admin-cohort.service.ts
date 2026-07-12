@@ -14,7 +14,12 @@ export class AdminCohortService {
   ) {}
 
   private readonly allowedFields = [
-    'email', 'full_name', 'phone', 'id', 'total_treks', 'last_booking_date',
+    'email',
+    'full_name',
+    'phone',
+    'id',
+    'total_treks',
+    'last_booking_date',
   ];
 
   async build(filters: {
@@ -107,11 +112,15 @@ export class AdminCohortService {
   private toCsv(data: Record<string, unknown>[]): string {
     const headers = Object.keys(data[0] ?? {});
     const lines = data.map((row) =>
-      headers.map((h) => {
-        const v = row[h];
-        const s = v == null ? '' : String(v);
-        return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g, '""')}"` : s;
-      }).join(','),
+      headers
+        .map((h) => {
+          const v = row[h];
+          const s = v == null ? '' : String(v);
+          return s.includes(',') || s.includes('"')
+            ? `"${s.replace(/"/g, '""')}"`
+            : s;
+        })
+        .join(','),
     );
     return [headers.join(','), ...lines].join('\n');
   }

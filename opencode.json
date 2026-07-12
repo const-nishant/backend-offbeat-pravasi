@@ -12,6 +12,7 @@
       "enabled": true
     }
   },
+  "plugin": ["@dietrichgebert/ponytail"],
   "permission": {
     "skill": {
       "*": "allow"

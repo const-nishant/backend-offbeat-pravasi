@@ -56,9 +56,7 @@ class UpdateStatusDto {
 @Controller('admin/tasks')
 @UseGuards(JwtAuthGuard, AdminRolesGuard)
 export class AdminTaskController {
-  constructor(
-    private readonly adminTaskService: AdminTaskService,
-  ) {}
+  constructor(private readonly adminTaskService: AdminTaskService) {}
 
   @Get()
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)

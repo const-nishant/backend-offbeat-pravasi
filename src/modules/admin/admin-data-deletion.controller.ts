@@ -44,7 +44,10 @@ export class AdminDataDeletionController {
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Approve data deletion request' })
   async approve(@Param('id') id: string) {
-    return this.adminDataDeletionService.approve(id, '00000000-0000-0000-0000-000000000000');
+    return this.adminDataDeletionService.approve(
+      id,
+      '00000000-0000-0000-0000-000000000000',
+    );
   }
 
   @Post(':id/reject')

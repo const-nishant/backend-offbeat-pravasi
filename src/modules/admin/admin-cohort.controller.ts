@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
@@ -54,9 +48,7 @@ class BuildCohortDto {
 @Controller('admin/cohorts')
 @UseGuards(JwtAuthGuard, AdminRolesGuard)
 export class AdminCohortController {
-  constructor(
-    private readonly adminCohortService: AdminCohortService,
-  ) {}
+  constructor(private readonly adminCohortService: AdminCohortService) {}
 
   @Post('build')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)

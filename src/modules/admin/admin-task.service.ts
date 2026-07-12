@@ -1,7 +1,11 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AdminTask, TaskStatus, TaskPriority } from './entities/admin-task.entity';
+import {
+  AdminTask,
+  TaskStatus,
+  TaskPriority,
+} from './entities/admin-task.entity';
 
 @Injectable()
 export class AdminTaskService {
@@ -52,10 +56,15 @@ export class AdminTaskService {
     limit?: number;
   }) {
     const qb = this.repo.createQueryBuilder('t');
-    if (filters.assignedTo) qb.andWhere('t.assignedTo = :assignedTo', { assignedTo: filters.assignedTo });
-    if (filters.status) qb.andWhere('t.status = :status', { status: filters.status });
+    if (filters.assignedTo)
+      qb.andWhere('t.assignedTo = :assignedTo', {
+        assignedTo: filters.assignedTo,
+      });
+    if (filters.status)
+      qb.andWhere('t.status = :status', { status: filters.status });
     if (filters.type) qb.andWhere('t.type = :type', { type: filters.type });
-    if (filters.priority) qb.andWhere('t.priority = :priority', { priority: filters.priority });
+    if (filters.priority)
+      qb.andWhere('t.priority = :priority', { priority: filters.priority });
 
     const page = filters.page ?? 1;
     const limit = filters.limit ?? 20;

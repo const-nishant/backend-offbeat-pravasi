@@ -5,7 +5,6 @@ import { bullConnection } from '../../jobs/config';
 const QUEUE_NAMES = [
   'notification-queue',
   'notification-broadcast-queue',
-  'story-expiry-queue',
   'booking-reminder-queue',
   'packing-reminder-queue',
   'booking-release-queue',

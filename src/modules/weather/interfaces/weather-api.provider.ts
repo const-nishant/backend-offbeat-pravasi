@@ -1,30 +1,41 @@
-import type {
-  WeatherProvider,
-  WeatherOptions,
-  WeatherApiResponse,
-} from './weather-provider.interface';
-
-function mapCondition(code: number): string {
-  if (code >= 1000 && code <= 1003) return 'clear';
-  if (code >= 1004 && code <= 1009) return 'partly_cloudy';
-  if (code >= 1010 && code <= 1030) return 'cloudy';
-  if ((code >= 1063 && code <= 1072) || (code >= 1150 && code <= 1171))
-    return 'rain';
-  if (code >= 1180 && code <= 1201) return 'heavy_rain';
-  if (code >= 1204 && code <= 1237) return 'snow';
-  if (code >= 1240 && code <= 1282) return 'storm';
-  return 'partly_cloudy';
+export interface WeatherOptions {
+  days?: number;
+  date?: string;
 }
 
-function getConfig() {
-  return {
-    apiKey: process.env.WEATHER_API_KEY ?? '',
-    baseUrl:
-      process.env.WEATHER_API_BASE_URL ?? 'https://api.weatherapi.com/v1',
+export interface WeatherApiResponse {
+  location: {
+    lat: number;
+    lng: number;
+    name: string;
   };
+  current: {
+    temperatureC: number;
+    feelsLikeC: number;
+    condition: string;
+    windSpeedKmph: number;
+    humidityPercent: number;
+    sunrise: string;
+    sunset: string;
+  };
+  hourly: Array<{
+    time: string;
+    temperatureC: number;
+    condition: string;
+    precipitationPercent: number;
+  }>;
+  days: Array<{
+    date: string;
+    highC: number;
+    lowC: number;
+    condition: string;
+    precipitationPercent: number;
+  }>;
+  source: string;
 }
 
-export class WeatherApiComProvider implements WeatherProvider {
+// ponytail: single weather provider, no interface/factory indirection needed
+export class WeatherApiProvider {
   async fetch(
     lat: number,
     lng: number,
@@ -88,6 +99,22 @@ export class WeatherApiComProvider implements WeatherProvider {
   }
 }
 
-export function createWeatherProvider(): WeatherProvider {
-  return new WeatherApiComProvider();
+function mapCondition(code: number): string {
+  if (code >= 1000 && code <= 1003) return 'clear';
+  if (code >= 1004 && code <= 1009) return 'partly_cloudy';
+  if (code >= 1010 && code <= 1030) return 'cloudy';
+  if ((code >= 1063 && code <= 1072) || (code >= 1150 && code <= 1171))
+    return 'rain';
+  if (code >= 1180 && code <= 1201) return 'heavy_rain';
+  if (code >= 1204 && code <= 1237) return 'snow';
+  if (code >= 1240 && code <= 1282) return 'storm';
+  return 'partly_cloudy';
+}
+
+function getConfig() {
+  return {
+    apiKey: process.env.WEATHER_API_KEY ?? '',
+    baseUrl:
+      process.env.WEATHER_API_BASE_URL ?? 'https://api.weatherapi.com/v1',
+  };
 }

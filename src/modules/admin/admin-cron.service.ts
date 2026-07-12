@@ -7,7 +7,6 @@ const CRON_QUEUE_NAMES = [
   'booking-reminder-queue',
   'packing-reminder-queue',
   'weather-prefetch-queue',
-  'story-expiry-queue',
   'group-expiry-queue',
   'price-drop-queue',
   'recommendation-builder-queue',
@@ -162,11 +161,6 @@ export class AdminCronService {
         name: 'prefetch-weather',
         jobId: 'weather-prefetch-repeater',
         every: 3 * 60 * 60 * 1000,
-      },
-      'story-expiry-queue:story-expiry-repeater': {
-        name: 'expire-stories',
-        jobId: 'story-expiry-repeater',
-        every: 60 * 60 * 1000,
       },
       'group-expiry-queue:group-expiry-checker': {
         name: 'expire-stale-groups',

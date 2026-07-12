@@ -6,9 +6,7 @@ import { DataSource } from 'typeorm';
 export class AdminGearService {
   private readonly logger = new Logger(AdminGearService.name);
 
-  constructor(
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async listPending(page = 1, limit = 20) {
     const offset = (page - 1) * limit;

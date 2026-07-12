@@ -1,4 +1,7 @@
-export function toCsv(rows: Record<string, unknown>[], columns?: string[]): string {
+export function toCsv(
+  rows: Record<string, unknown>[],
+  columns?: string[],
+): string {
   if (rows.length === 0) return '';
 
   const headers = columns ?? Object.keys(rows[0]);

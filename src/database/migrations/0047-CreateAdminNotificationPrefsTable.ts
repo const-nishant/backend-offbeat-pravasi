@@ -1,6 +1,8 @@
 import type { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreateAdminNotificationPrefsTable0047 implements MigrationInterface {
+export class CreateAdminNotificationPrefsTable0047
+  implements MigrationInterface
+{
   name = 'CreateAdminNotificationPrefsTable0047';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -23,6 +25,8 @@ export class CreateAdminNotificationPrefsTable0047 implements MigrationInterface
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE IF EXISTS admin_notification_preferences`);
+    await queryRunner.query(
+      `DROP TABLE IF EXISTS admin_notification_preferences`,
+    );
   }
 }

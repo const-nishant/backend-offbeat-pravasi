@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Badge } from './entities/badge.entity';
@@ -29,7 +34,9 @@ export class AdminBadgeService {
     criteria?: Record<string, unknown>;
     isAutoAwardable?: boolean;
   }) {
-    const existing = await this.badgeRepo.findOne({ where: { slug: data.slug } });
+    const existing = await this.badgeRepo.findOne({
+      where: { slug: data.slug },
+    });
     if (existing) throw new ConflictException('Badge slug already exists');
 
     const badge = this.badgeRepo.create(data);
@@ -70,7 +77,12 @@ export class AdminBadgeService {
     return { success: true };
   }
 
-  async award(badgeId: string, userId: string, awardedBy: string, reason?: string) {
+  async award(
+    badgeId: string,
+    userId: string,
+    awardedBy: string,
+    reason?: string,
+  ) {
     const badge = await this.badgeRepo.findOne({ where: { id: badgeId } });
     if (!badge) throw new NotFoundException('Badge not found');
 

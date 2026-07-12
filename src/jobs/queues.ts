@@ -12,10 +12,6 @@ export const notificationQueue = new Queue('notification-queue', {
   connection,
 });
 
-export const storyExpiryQueue = new Queue('story-expiry-queue', {
-  connection,
-});
-
 export const bookingReminderQueue = new Queue('booking-reminder-queue', {
   connection,
 });

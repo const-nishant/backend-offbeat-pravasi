@@ -14,7 +14,11 @@ export interface MergeResult {
 export class AdminUserMergeService {
   private readonly logger = new Logger(AdminUserMergeService.name);
 
-  private readonly mergeTables: { table: string; fk: string; select?: string }[] = [
+  private readonly mergeTables: {
+    table: string;
+    fk: string;
+    select?: string;
+  }[] = [
     { table: 'bookings', fk: 'user_id' },
     { table: 'bookings', fk: 'organizer_id' },
     { table: 'payments', fk: 'user_id' },
@@ -30,14 +34,15 @@ export class AdminUserMergeService {
     { table: 'user_sessions', fk: 'user_id' },
   ];
 
-  constructor(
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async dryRun(primaryUserId: string, mergeUserId: string) {
     this.validateIds(primaryUserId, mergeUserId);
 
-    const conflicts: Record<string, { primaryCount: number; mergeCount: number; tables: string[] }> = {};
+    const conflicts: Record<
+      string,
+      { primaryCount: number; mergeCount: number; tables: string[] }
+    > = {};
     let totalUpdates = 0;
 
     for (const { table, fk } of this.mergeTables) {
@@ -72,7 +77,10 @@ export class AdminUserMergeService {
     };
   }
 
-  async execute(primaryUserId: string, mergeUserId: string): Promise<MergeResult> {
+  async execute(
+    primaryUserId: string,
+    mergeUserId: string,
+  ): Promise<MergeResult> {
     this.validateIds(primaryUserId, mergeUserId);
 
     if (primaryUserId === mergeUserId) {
@@ -114,7 +122,13 @@ export class AdminUserMergeService {
       await queryRunner.commitTransaction();
 
       this.logger.log(`Merged user ${mergeUserId} into ${primaryUserId}`);
-      return { success: true, primaryUserId, mergedUserId: mergeUserId, updates, deactivated: true };
+      return {
+        success: true,
+        primaryUserId,
+        mergedUserId: mergeUserId,
+        updates,
+        deactivated: true,
+      };
     } catch (err) {
       await queryRunner.rollbackTransaction();
       this.logger.error(`Merge failed: ${(err as Error).message}`);
@@ -136,7 +150,8 @@ export class AdminUserMergeService {
 
   private validateIds(...ids: string[]) {
     for (const id of ids) {
-      if (!id || id.length < 10) throw new BadRequestException('Invalid user ID');
+      if (!id || id.length < 10)
+        throw new BadRequestException('Invalid user ID');
     }
   }
 

@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ReferralTierConfig } from '../referrals/entities/referral-tier-config.entity';
+import { ReferralTier } from '../referrals/enums/referral-tier.enum';
 import { PlatformSettingsService } from './platform-settings.service';
 
 @Injectable()
@@ -19,7 +20,7 @@ export class AdminReferralTierService {
   }
 
   async createTier(data: {
-    tier: string;
+    tier: ReferralTier;
     minSuccessfulReferrals: number;
     rewardPerReferralInr: number;
     refereeDiscountInr: number;
@@ -33,7 +34,7 @@ export class AdminReferralTierService {
   async updateTier(
     id: string,
     data: {
-      tier?: string;
+      tier?: ReferralTier;
       minSuccessfulReferrals?: number;
       rewardPerReferralInr?: number;
       refereeDiscountInr?: number;
@@ -42,7 +43,7 @@ export class AdminReferralTierService {
     const tier = await this.repo.findOne({ where: { id } });
     if (!tier) throw new NotFoundException('Referral tier not found');
 
-    if (data.tier !== undefined) tier.tier = data.tier as any;
+    if (data.tier !== undefined) tier.tier = data.tier;
     if (data.minSuccessfulReferrals !== undefined)
       tier.minSuccessfulReferrals = data.minSuccessfulReferrals;
     if (data.rewardPerReferralInr !== undefined)

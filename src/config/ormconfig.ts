@@ -8,11 +8,6 @@ import { TrekInteraction } from '../modules/treks/entities/trek-interaction.enti
 import { FriendRequest } from '../modules/friendships/entities/friend-request.entity';
 import { Booking } from '../modules/bookings/entities/booking.entity';
 import { Payment } from '../modules/bookings/entities/payment.entity';
-import { Post } from '../modules/posts/entities/post.entity';
-import { Comment } from '../modules/posts/entities/comment.entity';
-import { PostLike } from '../modules/posts/entities/post-like.entity';
-import { Story } from '../modules/stories/entities/story.entity';
-import { StoryView } from '../modules/stories/entities/story-view.entity';
 import { OrganizerApplication } from '../modules/organizer/entities/organizer-application.entity';
 import { AuditLog } from '../modules/admin/entities/audit-log.entity';
 import { PlatformSettings } from '../modules/admin/entities/platform-settings.entity';
@@ -64,11 +59,6 @@ export const ormConfig: DataSourceOptions = {
     FriendRequest,
     Booking,
     Payment,
-    Post,
-    Comment,
-    PostLike,
-    Story,
-    StoryView,
     OrganizerApplication,
     AuditLog,
     PlatformSettings,

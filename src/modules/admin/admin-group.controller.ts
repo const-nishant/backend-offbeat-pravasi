@@ -31,9 +31,7 @@ class TransferOwnershipDto {
 @Controller('admin/groups')
 @UseGuards(JwtAuthGuard, AdminRolesGuard)
 export class AdminGroupController {
-  constructor(
-    private readonly adminGroupService: AdminGroupService,
-  ) {}
+  constructor(private readonly adminGroupService: AdminGroupService) {}
 
   @Get()
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
@@ -64,14 +62,20 @@ export class AdminGroupController {
   @Delete(':id/members/:memberId')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Remove a member from the group' })
-  async removeMember(@Param('id') id: string, @Param('memberId') memberId: string) {
+  async removeMember(
+    @Param('id') id: string,
+    @Param('memberId') memberId: string,
+  ) {
     return this.adminGroupService.removeMember(id, memberId);
   }
 
   @Post(':id/transfer-ownership')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Transfer group ownership' })
-  async transferOwnership(@Param('id') id: string, @Body() dto: TransferOwnershipDto) {
+  async transferOwnership(
+    @Param('id') id: string,
+    @Body() dto: TransferOwnershipDto,
+  ) {
     return this.adminGroupService.transferOwnership(id, dto.newOwnerUserId);
   }
 }

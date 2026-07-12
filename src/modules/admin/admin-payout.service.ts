@@ -21,10 +21,16 @@ export class AdminPayoutService {
     limit?: number;
   }) {
     const qb = this.repo.createQueryBuilder('p');
-    if (filters.status) qb.andWhere('p.status = :status', { status: filters.status });
-    if (filters.organizerId) qb.andWhere('p.organizerId = :organizerId', { organizerId: filters.organizerId });
-    if (filters.from) qb.andWhere('p.createdAt >= :from', { from: new Date(filters.from) });
-    if (filters.to) qb.andWhere('p.createdAt <= :to', { to: new Date(filters.to) });
+    if (filters.status)
+      qb.andWhere('p.status = :status', { status: filters.status });
+    if (filters.organizerId)
+      qb.andWhere('p.organizerId = :organizerId', {
+        organizerId: filters.organizerId,
+      });
+    if (filters.from)
+      qb.andWhere('p.createdAt >= :from', { from: new Date(filters.from) });
+    if (filters.to)
+      qb.andWhere('p.createdAt <= :to', { to: new Date(filters.to) });
 
     const page = filters.page ?? 1;
     const limit = filters.limit ?? 20;

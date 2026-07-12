@@ -62,13 +62,18 @@ export class AdminBannerService {
   }
 
   async stats() {
-    const rows = await this.repo.find({ select: ['id', 'title', 'impressions', 'clicks'] });
+    const rows = await this.repo.find({
+      select: ['id', 'title', 'impressions', 'clicks'],
+    });
     return rows.map((b) => ({
       id: b.id,
       title: b.title,
       impressions: b.impressions,
       clicks: b.clicks,
-      ctr: b.impressions > 0 ? ((b.clicks / b.impressions) * 100).toFixed(2) + '%' : '0%',
+      ctr:
+        b.impressions > 0
+          ? ((b.clicks / b.impressions) * 100).toFixed(2) + '%'
+          : '0%',
     }));
   }
 }

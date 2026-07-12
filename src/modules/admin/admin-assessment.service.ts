@@ -4,9 +4,7 @@ import { DataSource } from 'typeorm';
 
 @Injectable()
 export class AdminAssessmentService {
-  constructor(
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async list(page = 1, limit = 20) {
     const offset = (page - 1) * limit;
@@ -55,6 +53,11 @@ export class AdminAssessmentService {
       [userId],
     );
     if (user.length === 0) throw new NotFoundException('User not found');
-    return { success: true, userId, message: 'User flagged for re-assessment (notification dispatch placeholder)' };
+    return {
+      success: true,
+      userId,
+      message:
+        'User flagged for re-assessment (notification dispatch placeholder)',
+    };
   }
 }

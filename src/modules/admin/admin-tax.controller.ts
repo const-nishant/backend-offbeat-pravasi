@@ -11,19 +11,14 @@ import { IsDateString } from 'class-validator';
 @Controller('admin/tax')
 @UseGuards(JwtAuthGuard, AdminRolesGuard)
 export class AdminTaxController {
-  constructor(
-    private readonly adminTaxService: AdminTaxService,
-  ) {}
+  constructor(private readonly adminTaxService: AdminTaxService) {}
 
   @Get('report')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.FINANCE)
   @ApiOperation({ summary: 'Get tax/GST report for a period' })
   @ApiQuery({ name: 'from', required: true })
   @ApiQuery({ name: 'to', required: true })
-  async report(
-    @Query('from') from: string,
-    @Query('to') to: string,
-  ) {
+  async report(@Query('from') from: string, @Query('to') to: string) {
     return this.adminTaxService.report(from, to);
   }
 }

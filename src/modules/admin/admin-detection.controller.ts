@@ -10,13 +10,13 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 @Controller('admin/detection')
 @UseGuards(JwtAuthGuard, AdminRolesGuard)
 export class AdminDetectionController {
-  constructor(
-    private readonly adminDetectionService: AdminDetectionService,
-  ) {}
+  constructor(private readonly adminDetectionService: AdminDetectionService) {}
 
   @Get('trek-duplicates')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
-  @ApiOperation({ summary: 'Find potential trek duplicates by name similarity' })
+  @ApiOperation({
+    summary: 'Find potential trek duplicates by name similarity',
+  })
   async trekDuplicates() {
     return this.adminDetectionService.trekDuplicates();
   }

@@ -5,7 +5,7 @@ import {
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AdminRole } from '../../modules/users/enums/admin-role.enum';
 
@@ -14,16 +14,19 @@ import { AdminRole } from '../../modules/users/enums/admin-role.enum';
   namespace: '/admin/ws',
   cors: { origin: '*', credentials: true },
 })
-export class AdminWsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class AdminWsGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server!: Server;
 
   private readonly logger = new Logger(AdminWsGateway.name);
-  private readonly connectedAdmins = new Map<string, { socketId: string; role: string }>();
+  private readonly connectedAdmins = new Map<
+    string,
+    { socketId: string; role: string }
+  >();
 
-  constructor(
-    private readonly jwtService: JwtService,
-  ) {}
+  constructor(private readonly jwtService: JwtService) {}
 
   afterInit() {
     this.logger.log('Admin WebSocket gateway initialized');
@@ -31,7 +34,8 @@ export class AdminWsGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
   async handleConnection(client: Socket) {
     try {
-      const token = client.handshake.auth?.token ?? client.handshake.query?.token;
+      const token =
+        client.handshake.auth?.token ?? client.handshake.query?.token;
       if (!token) {
         client.emit('error', { message: 'Authentication required' });
         client.disconnect();
@@ -56,7 +60,7 @@ export class AdminWsGateway implements OnGatewayConnection, OnGatewayDisconnect 
       client.data.adminId = payload.sub;
       client.data.role = role;
 
-      client.join(`role:${role}`);
+      void client.join(`role:${role}`);
 
       this.logger.log(`Admin connected: ${payload.sub} (${role})`);
       client.emit('connected', { adminId: payload.sub, role });

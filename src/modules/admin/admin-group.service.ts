@@ -6,9 +6,7 @@ import { DataSource } from 'typeorm';
 export class AdminGroupService {
   private readonly logger = new Logger(AdminGroupService.name);
 
-  constructor(
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async list(page = 1, limit = 20) {
     const offset = (page - 1) * limit;
@@ -25,8 +23,15 @@ export class AdminGroupService {
        LIMIT $1 OFFSET $2`,
       [limit, offset],
     );
-    const countResult = await this.dataSource.query(`SELECT COUNT(*) AS total FROM trek_groups`);
-    return { data: rows, total: Number(countResult[0]?.total ?? 0), page, limit };
+    const countResult = await this.dataSource.query(
+      `SELECT COUNT(*) AS total FROM trek_groups`,
+    );
+    return {
+      data: rows,
+      total: Number(countResult[0]?.total ?? 0),
+      page,
+      limit,
+    };
   }
 
   async updateStatus(id: string, status: string) {
@@ -69,7 +74,9 @@ export class AdminGroupService {
       `UPDATE trek_groups SET lead_user_id = $1 WHERE id = $2`,
       [newOwnerUserId, groupId],
     );
-    this.logger.log(`Transferred group ${groupId} ownership to user ${newOwnerUserId}`);
+    this.logger.log(
+      `Transferred group ${groupId} ownership to user ${newOwnerUserId}`,
+    );
     return { success: true, groupId, newOwnerUserId };
   }
 }

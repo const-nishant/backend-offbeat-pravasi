@@ -101,9 +101,7 @@ class UpdateBannerDto {
 @Controller('admin/banners')
 @UseGuards(JwtAuthGuard, AdminRolesGuard)
 export class AdminBannerController {
-  constructor(
-    private readonly adminBannerService: AdminBannerService,
-  ) {}
+  constructor(private readonly adminBannerService: AdminBannerService) {}
 
   @Get()
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)

@@ -29,16 +29,17 @@ class DecisionDto {
 @Controller('admin/gear')
 @UseGuards(JwtAuthGuard, AdminRolesGuard)
 export class AdminGearController {
-  constructor(
-    private readonly adminGearService: AdminGearService,
-  ) {}
+  constructor(private readonly adminGearService: AdminGearService) {}
 
   @Get('pending')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
   @ApiOperation({ summary: 'List pending gear items' })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
-  async listPending(@Query('page') page?: string, @Query('limit') limit?: string) {
+  async listPending(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
     return this.adminGearService.listPending(
       page ? Number(page) : 1,
       limit ? Number(limit) : 20,

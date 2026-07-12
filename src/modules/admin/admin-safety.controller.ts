@@ -24,13 +24,13 @@ class ResolveIncidentDto {
 @Controller('admin/safety')
 @UseGuards(JwtAuthGuard, AdminRolesGuard)
 export class AdminSafetyController {
-  constructor(
-    private readonly adminSafetyService: AdminSafetyService,
-  ) {}
+  constructor(private readonly adminSafetyService: AdminSafetyService) {}
 
   @Get('incidents')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
-  @ApiOperation({ summary: 'List safety incidents (overdue check-ins, escalations)' })
+  @ApiOperation({
+    summary: 'List safety incidents (overdue check-ins, escalations)',
+  })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   async listIncidents(

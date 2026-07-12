@@ -1,4 +1,12 @@
-import { Controller, Get, Patch, Param, Query, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Param,
+  Query,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
@@ -11,9 +19,7 @@ import { IsOptional, IsInt } from 'class-validator';
 @Controller('admin/sla')
 @UseGuards(JwtAuthGuard, AdminRolesGuard)
 export class AdminSlaController {
-  constructor(
-    private readonly adminSlaService: AdminSlaService,
-  ) {}
+  constructor(private readonly adminSlaService: AdminSlaService) {}
 
   @Get('overview')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
@@ -34,6 +40,8 @@ export class AdminSlaController {
   @ApiOperation({ summary: 'Tasks breaching SLA threshold' })
   @ApiQuery({ name: 'thresholdHours', required: false })
   async breaches(@Query('thresholdHours') thresholdHours?: string) {
-    return this.adminSlaService.breaches(thresholdHours ? Number(thresholdHours) : undefined);
+    return this.adminSlaService.breaches(
+      thresholdHours ? Number(thresholdHours) : undefined,
+    );
   }
 }

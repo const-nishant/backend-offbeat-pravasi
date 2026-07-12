@@ -6,9 +6,7 @@ import { DataSource } from 'typeorm';
 export class AdminSafetyService {
   private readonly logger = new Logger(AdminSafetyService.name);
 
-  constructor(
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async listIncidents(page = 1, limit = 20) {
     const offset = (page - 1) * limit;
@@ -108,7 +106,8 @@ export class AdminSafetyService {
       [id],
     );
 
-    if (result.length === 0) throw new NotFoundException('Incident not found or already resolved');
+    if (result.length === 0)
+      throw new NotFoundException('Incident not found or already resolved');
     this.logger.log(`Resolved safety incident: ${id}`);
     return { success: true, id, note: resolutionNote };
   }
