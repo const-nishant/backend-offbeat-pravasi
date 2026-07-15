@@ -5,7 +5,7 @@ RUN npm install
 
 FROM base as dev
 COPY . .
-RUN npm run build
+RUN npm install && npm run build
 ENV NODE_ENV=development
 ENV PATH="/app/node_modules/.bin:$PATH"
 EXPOSE 4000

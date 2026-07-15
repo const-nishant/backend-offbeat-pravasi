@@ -19,6 +19,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
     UsersModule,
     AnalyticsModule,
     BetterAuthModule.forRoot({
+      disableGlobalAuthGuard: true,
       auth: betterAuth({
         baseURL: process.env.BETTER_AUTH_BASE_URL ?? process.env.APP_URL,
         providers: {
