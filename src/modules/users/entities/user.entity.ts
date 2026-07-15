@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Gender } from '../enums/gender.enum';
 import { OrganizerStatus } from '../enums/organizer-status.enums';
+import { AdminRole } from '../enums/admin-role.enum';
 import { DeviceToken } from '../../notifications/entities/device-token.entity';
 import { Notification as NotificationEntity } from '../../notifications/entities/notification.entity';
 
@@ -50,6 +51,14 @@ export class User {
 
   @Column({ type: 'boolean', default: false })
   isAdmin!: boolean;
+
+  @Column({
+    type: 'enum',
+    enum: AdminRole,
+    nullable: true,
+    default: null,
+  })
+  role!: AdminRole | null;
 
   @Column({
     type: 'enum',

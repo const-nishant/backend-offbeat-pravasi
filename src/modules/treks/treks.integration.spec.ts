@@ -46,6 +46,7 @@ class SqliteUser {
   @Column({ type: 'varchar', nullable: true }) profileImageUrl!: string | null;
   @Column({ type: 'varchar', nullable: true }) bannerImageUrl!: string | null;
   @Column({ type: 'boolean', default: false }) isAdmin!: boolean;
+  @Column({ type: 'varchar', nullable: true }) role!: string | null;
   @Column({ type: 'varchar', default: 'NONE' }) organizerStatus!: string;
   @Column({ type: 'boolean', default: false }) emailVerified!: boolean;
   @Column({ type: 'datetime', nullable: true }) emailVerifiedAt!: Date | null;

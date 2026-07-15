@@ -19,6 +19,7 @@ import { TrekDifficulty } from '../../treks/enums/trek-difficulty.enum';
 class SqliteUser {
   @PrimaryGeneratedColumn('uuid') id!: string;
   @Column({ type: 'varchar', length: 255 }) email!: string;
+  @Column({ type: 'varchar', nullable: true }) role!: string | null;
   @Column({ type: 'int', default: 0 }) userPoints!: number;
   @CreateDateColumn({ type: 'datetime' }) createdAt!: Date;
 }

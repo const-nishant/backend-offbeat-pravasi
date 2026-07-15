@@ -69,6 +69,7 @@ class SqliteUserPackingListItem {
 class SqliteUser {
   @PrimaryGeneratedColumn('uuid') id!: string;
   @Column({ type: 'varchar', length: 255, nullable: true }) fullName?: string;
+  @Column({ type: 'varchar', nullable: true }) role!: string | null;
 }
 
 @Entity({ name: 'treks' })

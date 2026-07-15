@@ -37,6 +37,7 @@ class SqliteUser {
     | string
     | null;
   @Column({ type: 'boolean', default: false }) isAdmin!: boolean;
+  @Column({ type: 'varchar', nullable: true }) role!: string | null;
   @Column({ type: 'varchar', default: 'NONE' }) organizerStatus!: string;
   @Column({ type: 'boolean', default: false }) isOrganizerActive!: boolean;
   @CreateDateColumn({ type: 'datetime' }) createdAt!: Date;

@@ -26,6 +26,7 @@ import { RefreshDto } from './dtos/refresh.dto';
 import { SendOtpDto } from './dtos/send-otp.dto';
 import { VerifyOtpDto } from './dtos/verify-otp.dto';
 import { User } from '../users/entities/user.entity';
+import { AdminRole } from '../users/enums/admin-role.enum';
 import { randomUUID } from 'crypto';
 import argon2 from 'argon2';
 import { fromNodeHeaders } from 'better-auth/node';
@@ -39,6 +40,7 @@ interface JwtAccessPayload {
   sub: string;
   email: string;
   isAdmin: boolean;
+  role?: AdminRole | null;
   organizerStatus?: string;
 }
 
@@ -47,6 +49,7 @@ interface JwtRefreshPayload {
   sessionId: string;
   email: string;
   isAdmin: boolean;
+  role?: AdminRole | null;
   organizerStatus?: string;
 }
 
@@ -213,6 +216,7 @@ export class AuthService {
       userId: user.id,
       email: user.email,
       isAdmin: user.isAdmin ?? false,
+      role: user.role ?? null,
       organizerStatus: user.organizerStatus ?? undefined,
     });
 
@@ -490,10 +494,14 @@ export class AuthService {
       }
     }
 
+    const adminRole: AdminRole | null =
+      isEnvAdmin || user.isAdmin ? (user.role ?? AdminRole.SUPERADMIN) : null;
+
     const tokens = await this.createTokenPair({
       userId: user.id,
       email: user.email,
       isAdmin: isEnvAdmin || (user.isAdmin ?? false),
+      role: adminRole,
       organizerStatus: user.organizerStatus ?? undefined,
     });
 
@@ -542,6 +550,7 @@ export class AuthService {
       userId: payload.sub,
       email: payload.email,
       isAdmin: payload.isAdmin ?? false,
+      role: payload.role ?? null,
       organizerStatus: payload.organizerStatus ?? undefined,
     });
 
@@ -570,12 +579,14 @@ export class AuthService {
     userId: string,
     email: string,
     isAdmin: boolean,
+    role?: AdminRole | null,
     organizerStatus?: string,
   ): string {
     const payload: JwtAccessPayload = {
       sub: userId,
       email,
       isAdmin,
+      role: role ?? null,
       organizerStatus,
     };
 
@@ -597,6 +608,7 @@ export class AuthService {
     userId: string,
     email: string,
     isAdmin: boolean,
+    role?: AdminRole | null,
     organizerStatus?: string,
   ): Promise<{ token: string; sessionId: string }> {
     const sessionId = randomUUID();
@@ -606,6 +618,7 @@ export class AuthService {
       sessionId,
       email,
       isAdmin,
+      role: role ?? null,
       organizerStatus,
     };
 
@@ -654,18 +667,21 @@ export class AuthService {
     userId: string;
     email: string;
     isAdmin: boolean;
+    role?: AdminRole | null;
     organizerStatus?: string;
   }): Promise<TokenPair> {
     const accessToken = this.getAccessToken(
       input.userId,
       input.email,
       input.isAdmin,
+      input.role,
       input.organizerStatus,
     );
     const refresh = await this.createRefreshToken(
       input.userId,
       input.email,
       input.isAdmin,
+      input.role,
       input.organizerStatus,
     );
 

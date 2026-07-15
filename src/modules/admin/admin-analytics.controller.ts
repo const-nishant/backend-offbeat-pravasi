@@ -1,6 +1,8 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { AdminGuard } from '../../common/guards/admin.guard';
+import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
+import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
+import { AdminRole } from '../../modules/users/enums/admin-role.enum';
 import { AdminAnalyticsService } from './admin-analytics.service';
 import {
   AdminAnalyticsDauQueryDto,
@@ -13,17 +15,19 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('Admin / Analytics')
 @Controller('admin/analytics')
-@UseGuards(JwtAuthGuard, AdminGuard)
+@UseGuards(JwtAuthGuard, AdminRolesGuard)
 export class AdminAnalyticsController {
   constructor(private readonly adminAnalyticsService: AdminAnalyticsService) {}
 
   @Get('dau')
+  @AdminRoles(AdminRole.SUPERADMIN, AdminRole.ANALYST, AdminRole.FINANCE)
   @ApiOperation({ summary: 'Daily active users (7/30/90 day windows)' })
   async getDau(@Query() q: AdminAnalyticsDauQueryDto) {
     return this.adminAnalyticsService.getDau(q.days ?? 7);
   }
 
   @Get('trek-popularity')
+  @AdminRoles(AdminRole.SUPERADMIN, AdminRole.ANALYST, AdminRole.FINANCE)
   @ApiOperation({
     summary: 'Treks ranked by views, bookmarks, bookings (rolling 30d)',
   })
@@ -35,6 +39,7 @@ export class AdminAnalyticsController {
   }
 
   @Get('conversion-funnel')
+  @AdminRoles(AdminRole.SUPERADMIN, AdminRole.ANALYST, AdminRole.FINANCE)
   @ApiOperation({ summary: 'Page views → add-to-cart → payment → completion' })
   async getConversionFunnel(@Query() q: AdminAnalyticsFunnelQueryDto) {
     return this.adminAnalyticsService.getConversionFunnel(
@@ -45,6 +50,7 @@ export class AdminAnalyticsController {
   }
 
   @Get('revenue-trends')
+  @AdminRoles(AdminRole.SUPERADMIN, AdminRole.ANALYST, AdminRole.FINANCE)
   @ApiOperation({ summary: 'Daily/weekly/monthly MRR, ARPU by provider' })
   async getRevenueTrends(@Query() q: AdminAnalyticsRevenueQueryDto) {
     return this.adminAnalyticsService.getRevenueTrends(
@@ -54,6 +60,7 @@ export class AdminAnalyticsController {
   }
 
   @Get('retention-cohort')
+  @AdminRoles(AdminRole.SUPERADMIN, AdminRole.ANALYST, AdminRole.FINANCE)
   @ApiOperation({ summary: 'D7/D30/D90 retention by signup month' })
   async getRetentionCohorts(@Query() q: AdminAnalyticsRetentionQueryDto) {
     return this.adminAnalyticsService.getRetentionCohorts(q.months ?? 12);

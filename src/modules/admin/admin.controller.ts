@@ -10,13 +10,15 @@ import {
   Req,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { AdminRolesGuard } from 'src/common/guards/admin-roles.guard';
+import { AdminRoles } from 'src/common/decorators/admin-roles.decorator';
+import { AdminRole } from 'src/modules/users/enums/admin-role.enum';
 import { AdminService } from './admin.service';
 import { AdminUserFiltersDto } from './dtos/admin-user-filters.dto';
 import { UpdateUserStatusDto } from './dtos/update-user-status.dto';
 import { OrganizerRequestDecisionDto } from './dtos/organizer-request-decision.dto';
 import { TrekDecisionDto } from './dtos/trek-decision.dto';
 import { AuditLogQueryDto } from './dtos/audit-log-query.dto';
-import { AdminGuard } from 'src/common/guards/admin.guard';
 import { AuditLogService } from './audit-log.service';
 import { UpdatePlatformSettingsDto } from './dtos/update-platform-settings.dto';
 import {
@@ -27,7 +29,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('Admin')
 @Controller('admin')
-@UseGuards(JwtAuthGuard, AdminGuard)
+@UseGuards(JwtAuthGuard, AdminRolesGuard)
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
@@ -41,6 +43,7 @@ export class AdminController {
   }
 
   @Patch('platform-settings')
+  @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Update platform settings' })
   async updatePlatformSettings(
     @Body() body: UpdatePlatformSettingsDto,
@@ -50,6 +53,7 @@ export class AdminController {
   }
 
   @Post('bookings/:id/generate-ticket-pdf')
+  @AdminRoles(AdminRole.SUPERADMIN, AdminRole.FINANCE, AdminRole.SUPPORT)
   @ApiOperation({ summary: 'Enqueue ticket PDF generation for a booking' })
   async generateBookingPdf(@Param('id') id: string, @Req() req: any) {
     return this.adminService.enqueueTicketPdfJob(id, req.user);
@@ -62,6 +66,7 @@ export class AdminController {
   }
 
   @Patch('users/:id/status')
+  @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR, AdminRole.SUPPORT)
   @ApiOperation({ summary: 'Update user status' })
   async updateUserStatus(
     @Param('id') id: string,
@@ -78,6 +83,7 @@ export class AdminController {
   }
 
   @Patch('organizer-requests/:id')
+  @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
   @ApiOperation({ summary: 'Approve or reject an organizer request' })
   async decideOrganizerRequest(
     @Param('id') id: string,
@@ -94,6 +100,7 @@ export class AdminController {
   }
 
   @Patch('treks/:id/decision')
+  @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
   @ApiOperation({ summary: 'Approve or reject a trek' })
   async decideTrek(
     @Param('id') id: string,
