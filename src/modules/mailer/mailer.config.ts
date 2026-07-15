@@ -8,20 +8,8 @@ export function getMailerTransporter(): Transporter | null {
     return transporter;
   }
 
-  const apiKey = process.env.SENDGRID_API_KEY;
   const smtpHost = process.env.SMTP_HOST;
-
-  if (apiKey) {
-    transporter = createTransport({
-      host: 'smtp.sendgrid.net',
-      port: 465,
-      secure: true,
-      auth: {
-        user: 'apikey',
-        pass: apiKey,
-      },
-    });
-  } else if (smtpHost) {
+  if (smtpHost) {
     transporter = createTransport({
       host: smtpHost,
       port: Number(process.env.SMTP_PORT ?? '587'),
