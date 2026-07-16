@@ -39,6 +39,7 @@ import { WishlistItem } from '../modules/wishlist/entities/wishlist-item.entity'
 import { UserRecommendationPreference } from '../modules/recommendations/entities/user-recommendation-preference.entity';
 import { RecommendationResult } from '../modules/recommendations/entities/recommendation-result.entity';
 import { RecommendationEvent } from '../modules/recommendations/entities/recommendation-event.entity';
+import { AnalyticsEvent } from '../modules/analytics/entities/analytics-event.entity';
 
 // ponytail: defaults from configuration.ts (single source)
 const { db } = configuration();
@@ -93,6 +94,7 @@ export const ormConfig: DataSourceOptions = {
     UserRecommendationPreference,
     RecommendationResult,
     RecommendationEvent,
+    AnalyticsEvent,
   ],
 
   migrations: ['dist/database/migrations/*.js', 'src/database/migrations/*.ts'],
