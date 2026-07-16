@@ -684,7 +684,7 @@
             "description": "Refresh JWT token pair",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"refreshToken\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -836,7 +836,7 @@
             "description": "Add emergency contact",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"name\": \"string\",\n  \"phone\": \"string\",\n  \"relationship\": \"string\",\n  \"isPrimary\": false\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -895,7 +895,7 @@
             "description": "Update emergency contact",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"name\": \"string\",\n  \"phone\": \"string\",\n  \"relationship\": \"string\",\n  \"isPrimary\": false\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1029,7 +1029,7 @@
             "description": "Update current user profile",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"username\": \"string\",\n  \"fullName\": \"string\",\n  \"phone\": \"string\",\n  \"location\": \"string\",\n  \"gender\": \"MALE\",\n  \"dateOfBirth\": \"string\",\n  \"profileImageUrl\": \"https://example.com\",\n  \"bannerImageUrl\": \"https://example.com\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1081,7 +1081,7 @@
             "description": "Save onboarding answers",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"answers\": [\n    {\n      \"questionId\": \"string\",\n      \"value\": \"string\"\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1775,7 +1775,7 @@
             "description": "Set gear list for a trek (organizer only)",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"items\": [\n    {\n      \"gearItemId\": \"00000000-0000-0000-0000-000000000000\",\n      \"requirementType\": \"REQUIRED\",\n      \"rentalPriceInr\": 0,\n      \"notes\": \"string\"\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1879,7 +1879,7 @@
             "description": "Bulk set/reorder all itinerary days",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "[\n  \"string\"\n]",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1939,7 +1939,7 @@
             "description": "Add a single itinerary day",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"dayNumber\": 1,\n  \"title\": \"string\",\n  \"description\": \"string\",\n  \"distanceKm\": 0,\n  \"altitudeGainM\": 0,\n  \"altitudeLossM\": 0,\n  \"maxAltitudeM\": 0,\n  \"mealPlan\": {\n    \"breakfast\": \"string\",\n    \"lunch\": \"string\",\n    \"dinner\": \"string\"\n  },\n  \"accommodationType\": \"TENT\",\n  \"activityType\": \"TREKKING\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2005,7 +2005,7 @@
             "description": "Update a single itinerary day",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"dayNumber\": 1,\n  \"title\": \"string\",\n  \"description\": \"string\",\n  \"distanceKm\": 0,\n  \"altitudeGainM\": 0,\n  \"altitudeLossM\": 0,\n  \"maxAltitudeM\": 0,\n  \"mealPlan\": {\n    \"breakfast\": \"string\",\n    \"lunch\": \"string\",\n    \"dinner\": \"string\"\n  },\n  \"accommodationType\": \"TENT\",\n  \"activityType\": \"TREKKING\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2117,7 +2117,7 @@
             "description": "Reorder itinerary days",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"dayIds\": [\n    \"00000000-0000-0000-0000-000000000000\"\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2221,7 +2221,7 @@
             "description": "Assign cancellation policy to a trek",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"policyId\": \"00000000-0000-0000-0000-000000000000\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2378,7 +2378,7 @@
             "description": "Upsert safety info for a trek",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"terrainRisks\": \"string\",\n  \"altitudeWarnings\": \"string\",\n  \"wildlifeAdvisories\": \"string\",\n  \"generalGuidelines\": \"string\",\n  \"baseCampContact\": \"string\",\n  \"localRescueContact\": \"string\",\n  \"nearestHospital\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2698,7 +2698,7 @@
             "description": "Check in to a trek",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"latitude\": 0,\n  \"longitude\": 0\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2802,7 +2802,7 @@
             "description": "Check out from a trek",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"latitude\": 0,\n  \"longitude\": 0\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2913,7 +2913,7 @@
             "description": "Toggle packing list item fields",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"hasItem\": false,\n  \"needsRental\": false,\n  \"checked\": false\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3162,7 +3162,7 @@
             "description": "Create a payment checkout session",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"bookingId\": \"00000000-0000-0000-0000-000000000000\",\n  \"provider\": \"STRIPE\",\n  \"idempotencyKey\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3277,7 +3277,7 @@
             "description": "Get presigned upload URL for any media category",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"filename\": \"string\",\n  \"mimeType\": \"string\",\n  \"category\": \"PROFILE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3329,7 +3329,7 @@
             "description": "Get presigned URL for banner image",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"filename\": \"string\",\n  \"mimeType\": \"string\",\n  \"category\": \"PROFILE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3381,7 +3381,7 @@
             "description": "Get presigned URL for post image",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"filename\": \"string\",\n  \"mimeType\": \"string\",\n  \"category\": \"PROFILE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3433,7 +3433,7 @@
             "description": "Get presigned URL for profile image",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"filename\": \"string\",\n  \"mimeType\": \"string\",\n  \"category\": \"PROFILE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3485,7 +3485,7 @@
             "description": "Get presigned URL for story media",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"filename\": \"string\",\n  \"mimeType\": \"string\",\n  \"category\": \"PROFILE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3537,7 +3537,7 @@
             "description": "Get presigned URL for trek image",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"filename\": \"string\",\n  \"mimeType\": \"string\",\n  \"category\": \"PROFILE\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -3592,7 +3592,7 @@
             "description": "Send a friend request",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"receiverId\": \"00000000-0000-0000-0000-000000000000\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4084,7 +4084,7 @@
             "description": "Update group name, maxSize, or expiresAt",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"name\": \"string\",\n  \"maxSize\": 1,\n  \"expiresAt\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4246,7 +4246,7 @@
             "description": "Invite members to the group",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"invites\": [\n    {\n      \"email\": \"user@example.com\"\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4363,7 +4363,7 @@
             "description": "Accept or decline invitation",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"status\": \"JOINED\",\n  \"fullName\": \"string\",\n  \"phone\": \"string\",\n  \"medicalConditions\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4681,7 +4681,7 @@
             "description": "Register a device token for push notifications",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"token\": \"string\",\n  \"platform\": \"ANDROID\",\n  \"appVersion\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -5030,7 +5030,7 @@
             "description": "Acknowledge safety and cancel escalation",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"message\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -5357,7 +5357,7 @@
             "description": "Create a wishlist collection",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"name\": \"string\",\n  \"description\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -5416,7 +5416,7 @@
             "description": "Update a wishlist collection",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"name\": \"string\",\n  \"description\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -5567,7 +5567,7 @@
             "description": "Add trek to a collection",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"trekId\": \"00000000-0000-0000-0000-000000000000\",\n  \"notes\": \"string\",\n  \"priority\": 0\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -5737,7 +5737,7 @@
             "description": "Update wishlist item notes/priority",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"notes\": \"string\",\n  \"priority\": 0\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -6105,7 +6105,7 @@
             "description": "Submit organizer application",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"organizationName\": \"string\",\n  \"contactPerson\": \"string\",\n  \"contactPhone\": \"string\",\n  \"website\": \"https://example.com\",\n  \"bio\": \"string\",\n  \"yearsOfExperience\": 0,\n  \"documentUrls\": {},\n  \"certificateUrls\": {}\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -6247,7 +6247,7 @@
             "description": "Update organizer application (admin)",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"organizationName\": \"string\",\n  \"contactPerson\": \"string\",\n  \"contactPhone\": \"string\",\n  \"website\": \"https://example.com\",\n  \"bio\": \"string\",\n  \"yearsOfExperience\": 0,\n  \"documentUrls\": {},\n  \"certificateUrls\": {},\n  \"status\": \"NONE\",\n  \"adminNotes\": \"string\",\n  \"reviewedAt\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -9079,7 +9079,7 @@
             "description": "Force-cancel a booking with refund override",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"refundOverride\": \"FULL\",\n  \"refundNote\": \"string\",\n  \"reason\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -9199,7 +9199,7 @@
             "description": "Override booking details (price, dates, notes)",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"priceDelta\": 0,\n  \"newStartDate\": \"string\",\n  \"notes\": \"string\",\n  \"reason\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -9935,7 +9935,7 @@
             "description": "Create a featured collection",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"name\": \"string\",\n  \"description\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -12897,7 +12897,7 @@
             "description": "Review a report (admin)",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"status\": \"REVIEWED\",\n  \"adminNotes\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -12954,7 +12954,7 @@
             "description": "Compose and send a broadcast push notification",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"title\": \"string\",\n  \"body\": \"string\",\n  \"imageUrl\": \"string\",\n  \"deepLink\": \"string\",\n  \"segment\": \"all\",\n  \"trekTagIds\": [\n    \"string\"\n  ],\n  \"states\": [\n    \"string\"\n  ],\n  \"cities\": [\n    \"string\"\n  ],\n  \"inactiveDays\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -13289,7 +13289,7 @@
             "description": "Approve or reject an organizer request",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"decision\": \"APPROVE\",\n  \"note\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -13760,7 +13760,7 @@
             "description": "Full or partial refund with reason",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"amount\": 1,\n  \"reason\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -13820,7 +13820,7 @@
             "description": "Retry failed payment on a different provider",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"provider\": \"STRIPE\",\n  \"idempotencyKey\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -14151,7 +14151,7 @@
             "description": "Update platform settings",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"settings\": {},\n  \"message\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -14441,7 +14441,7 @@
             "description": "Create a cancellation policy with tiers",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"name\": \"string\",\n  \"description\": \"string\",\n  \"isDefault\": false,\n  \"tiers\": [\n    {\n      \"fromHoursBeforeStart\": 0,\n      \"toHoursBeforeStart\": 0,\n      \"refundPercentage\": 0,\n      \"sortOrder\": 0\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -17718,7 +17718,7 @@
             "description": "Approve or reject a trek",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"decision\": \"APPROVE\",\n  \"note\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -18057,7 +18057,7 @@
             "description": "Update user status",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"isSuspended\": false,\n  \"organizerStatus\": \"string\",\n  \"note\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -18531,7 +18531,7 @@
             "description": "Set recommendation preferences",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"preferredDifficulty\": [\n    \"EASY\"\n  ],\n  \"preferredStates\": [\n    \"string\"\n  ],\n  \"maxBudget\": 0,\n  \"preferredDurationDays\": [\n    0\n  ],\n  \"interests\": [\n    \"string\"\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -18660,7 +18660,7 @@
             "description": "Report inappropriate content",
             "body": {
               "mode": "raw",
-              "raw": "{}",
+              "raw": "{\n  \"targetType\": \"POST\",\n  \"targetId\": \"00000000-0000-0000-0000-000000000000\",\n  \"reason\": \"SPAM\",\n  \"description\": \"string\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
