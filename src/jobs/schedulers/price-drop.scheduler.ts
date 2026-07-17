@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { priceDropQueue } from '../queues';
+import { CRON_TZ } from '../config';
 
 @Injectable()
 export class PriceDropScheduler implements OnModuleInit {
@@ -13,10 +14,10 @@ export class PriceDropScheduler implements OnModuleInit {
         {
           jobId: 'price-drop-checker',
           removeOnComplete: true,
-          repeat: { every: 24 * 60 * 60 * 1000 },
+          repeat: { pattern: '0 0 * * *', tz: CRON_TZ },
         },
       );
-      this.logger.log('Price-drop scheduler registered (every 24h)');
+      this.logger.log('Price-drop scheduler registered (daily 00:00 IST)');
     } catch (error) {
       this.logger.error('Failed to register price-drop scheduler', error);
     }

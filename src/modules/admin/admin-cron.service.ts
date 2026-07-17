@@ -1,6 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Queue } from 'bullmq';
-import { bullConnection } from '../../jobs/config';
+import { bullConnection, CRON_TZ } from '../../jobs/config';
 
 const CRON_QUEUE_NAMES = [
   'booking-release-queue',
@@ -86,9 +86,9 @@ export class AdminCronService {
         removeOnComplete: true,
       };
       if (jobDef.pattern) {
-        repeatOptions.repeat = { pattern: jobDef.pattern };
+        repeatOptions.repeat = { pattern: jobDef.pattern, tz: CRON_TZ };
       } else if (jobDef.every) {
-        repeatOptions.repeat = { every: jobDef.every };
+        repeatOptions.repeat = { every: jobDef.every, tz: CRON_TZ };
       }
 
       await queue.add(jobDef.name, {}, repeatOptions);
@@ -170,7 +170,7 @@ export class AdminCronService {
       'price-drop-queue:price-drop-checker': {
         name: 'check-price-drops',
         jobId: 'price-drop-checker',
-        every: 24 * 60 * 60 * 1000,
+        pattern: '0 0 * * *',
       },
       'recommendation-builder-queue:recommendation-build': {
         name: 'build-candidates',

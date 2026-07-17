@@ -1,6 +1,8 @@
 import configuration from 'src/config/configuration';
 import type { ConnectionOptions } from 'bullmq';
 
+export const CRON_TZ = configuration().cron.timezone;
+
 export const bullConnection: ConnectionOptions = {
   host: configuration().redis.host,
   port: configuration().redis.port,

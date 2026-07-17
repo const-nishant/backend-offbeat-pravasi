@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { bookingReleaseQueue } from '../queues';
+import { CRON_TZ } from '../config';
 
 @Injectable()
 export class BookingReleaseScheduler implements OnModuleInit {
@@ -13,7 +14,7 @@ export class BookingReleaseScheduler implements OnModuleInit {
         {
           jobId: 'booking-release-repeater',
           removeOnComplete: true,
-          repeat: { every: 60 * 1000 },
+          repeat: { every: 60 * 1000, tz: CRON_TZ },
         },
       );
 

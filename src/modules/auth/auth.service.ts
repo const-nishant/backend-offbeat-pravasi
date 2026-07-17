@@ -28,6 +28,7 @@ import { SendOtpDto } from './dtos/send-otp.dto';
 import { VerifyOtpDto } from './dtos/verify-otp.dto';
 import { User } from '../users/entities/user.entity';
 import { AdminRole } from '../users/enums/admin-role.enum';
+import { OrganizerStatus } from '../users/enums/organizer-status.enums';
 import { randomUUID } from 'crypto';
 import argon2 from 'argon2';
 import { fromNodeHeaders } from 'better-auth/node';
@@ -437,7 +438,7 @@ export class AuthService {
   // Login + token creation
   // -----------------
   public async login(dto: LoginDto): Promise<TokenPair> {
-    const user = await this.userRepository.findOne({
+    let user = await this.userRepository.findOne({
       where: { email: dto.email },
       select: [
         'id',
@@ -449,19 +450,16 @@ export class AuthService {
       ] as (keyof User)[],
     } as unknown as any); // TypeORM typing: select array typing is verbose; cast is just for ts compile
 
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
     // Check if this email is an env-defined admin
     const adminEmails = (process.env.ADMIN_EMAILS || '')
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean);
-    const adminHashes = (process.env.ADMIN_PASSWORD_HASHES || '')
+    const adminHashes = (process.env.ADMIN_PASSWORD_HASHES_B64 || '')
       .split(',')
       .map((s) => s.trim())
-      .filter(Boolean);
+      .filter(Boolean)
+      .map((b64) => Buffer.from(b64, 'base64').toString('utf8').trim());
 
     let isEnvAdmin = false;
 
@@ -484,7 +482,24 @@ export class AuthService {
           e instanceof Error ? e.message : undefined,
         );
       }
+
+      // Provision the admin user on first login if it does not exist yet.
+      if (!user) {
+        user = await this.userRepository.save(
+          this.userRepository.create({
+            email: dto.email,
+            isAdmin: true,
+            role: AdminRole.SUPERADMIN,
+            emailVerified: true,
+            emailVerifiedAt: new Date(),
+            organizerStatus: OrganizerStatus.NONE,
+          }),
+        );
+      }
     } else {
+      if (!user) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
       // regular user password verification
       if (!user.passwordHash) {
         throw new UnauthorizedException('Invalid credentials');

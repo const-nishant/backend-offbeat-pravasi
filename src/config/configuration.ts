@@ -73,10 +73,7 @@ export default () => ({
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean),
-    passwordHashes: (process.env.ADMIN_PASSWORD_HASHES ?? '')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean),
+    passwordHashes: decodeAdminHashes(process.env.ADMIN_PASSWORD_HASHES_B64),
   },
 
   otp: {
@@ -87,6 +84,10 @@ export default () => ({
 
   apiKey: process.env.GLOBAL_API_KEY,
   apiKeyHeader: process.env.API_KEY_HEADER ?? 'x-api-key',
+
+  cron: {
+    timezone: process.env.CRON_TZ ?? 'Asia/Kolkata',
+  },
 
   expo: {
     accessToken: process.env.EXPO_ACCESS_TOKEN,
@@ -109,3 +110,14 @@ export default () => ({
       process.env.REFERRAL_SHARE_BASE_URL ?? 'https://offbeatpravasi.com/r',
   },
 });
+
+function decodeAdminHashes(b64?: string): string[] {
+  const raw = (b64 ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (raw.length === 0) return [];
+  return raw.map((entry) =>
+    Buffer.from(entry, 'base64').toString('utf8').trim(),
+  );
+}

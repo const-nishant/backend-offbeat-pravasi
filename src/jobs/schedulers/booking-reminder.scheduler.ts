@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { bookingReminderQueue } from '../queues';
+import { CRON_TZ } from '../config';
 
 @Injectable()
 export class BookingReminderScheduler implements OnModuleInit {
@@ -16,7 +17,7 @@ export class BookingReminderScheduler implements OnModuleInit {
         {
           jobId: 'booking-reminder-checker',
           removeOnComplete: true,
-          repeat: { every: 6 * 60 * 60 * 1000 },
+          repeat: { every: 6 * 60 * 60 * 1000, tz: CRON_TZ },
         },
       );
 

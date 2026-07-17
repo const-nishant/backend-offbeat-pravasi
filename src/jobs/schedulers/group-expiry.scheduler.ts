@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { groupExpiryQueue } from '../queues';
+import { CRON_TZ } from '../config';
 
 @Injectable()
 export class GroupExpiryScheduler implements OnModuleInit {
@@ -13,7 +14,7 @@ export class GroupExpiryScheduler implements OnModuleInit {
         {
           jobId: 'group-expiry-checker',
           removeOnComplete: true,
-          repeat: { every: 60 * 60 * 1000 },
+          repeat: { every: 60 * 60 * 1000, tz: CRON_TZ },
         },
       );
       this.logger.log('Group expiry scheduler registered (every 1h)');

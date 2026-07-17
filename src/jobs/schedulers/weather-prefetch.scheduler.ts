@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { weatherPrefetchQueue } from '../queues';
+import { CRON_TZ } from '../config';
 
 @Injectable()
 export class WeatherPrefetchScheduler implements OnModuleInit {
@@ -16,7 +17,7 @@ export class WeatherPrefetchScheduler implements OnModuleInit {
         {
           jobId: 'weather-prefetch-repeater',
           removeOnComplete: true,
-          repeat: { every: 3 * 60 * 60 * 1000 },
+          repeat: { every: 3 * 60 * 60 * 1000, tz: CRON_TZ },
         },
       );
       this.logger.log('Weather prefetch scheduler registered (every 3h)');
