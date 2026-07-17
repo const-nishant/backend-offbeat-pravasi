@@ -4,9 +4,7 @@ import { DataSource } from 'typeorm';
 
 @Injectable()
 export class AdminRefundAnalyticsService {
-  constructor(
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async overview() {
     const rows = await this.dataSource.query(`
@@ -24,10 +22,14 @@ export class AdminRefundAnalyticsService {
       totalRefundedCount: totalRefunded,
       totalRefundedAmount: Number(r.total_refunded_amount),
       totalSucceeded,
-      refundRate: totalSucceeded > 0 ? ((totalRefunded / totalSucceeded) * 100).toFixed(2) + '%' : '0%',
-      avgRefundAmount: totalRefunded > 0
-        ? Math.round(Number(r.total_refunded_amount) / totalRefunded)
-        : 0,
+      refundRate:
+        totalSucceeded > 0
+          ? ((totalRefunded / totalSucceeded) * 100).toFixed(2) + '%'
+          : '0%',
+      avgRefundAmount:
+        totalRefunded > 0
+          ? Math.round(Number(r.total_refunded_amount) / totalRefunded)
+          : 0,
     };
   }
 

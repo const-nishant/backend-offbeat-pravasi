@@ -3,8 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BookingReleaseScheduler } from './schedulers/booking-release.scheduler';
 import { BookingReleaseWorkerService } from './processors/booking-release.processor';
 import { TicketPdfWorkerService } from './processors/ticket-pdf.processor';
-import { StoryExpiryWorkerService } from './processors/stories.processor';
-import { StoryExpiryScheduler } from './schedulers/story-expiry.scheduler';
 import { BookingReminderWorkerService } from './processors/booking-reminder.processor';
 import { BookingReminderScheduler } from './schedulers/booking-reminder.scheduler';
 import { NotificationWorkerService } from './processors/notifications.processor';
@@ -35,7 +33,6 @@ const workerProviders =
     ? [
         BookingReleaseWorkerService,
         TicketPdfWorkerService,
-        StoryExpiryWorkerService,
         BookingReminderWorkerService,
         NotificationWorkerService,
         PackingReminderWorkerService,
@@ -67,7 +64,6 @@ const exportProviders = [TicketPdfWorkerService];
     BookingReleaseScheduler,
     GroupExpiryScheduler,
     RecommendationBuilderScheduler,
-    StoryExpiryScheduler,
     BookingReminderScheduler,
     PackingReminderScheduler,
     WeatherPrefetchScheduler,

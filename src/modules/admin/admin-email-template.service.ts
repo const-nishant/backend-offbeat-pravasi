@@ -81,7 +81,8 @@ export class AdminEmailTemplateService {
 
   async remove(id: string) {
     const result = await this.repo.delete(id);
-    if (result.affected === 0) throw new NotFoundException('Email template not found');
+    if (result.affected === 0)
+      throw new NotFoundException('Email template not found');
     this.logger.log(`Deleted email template: ${id}`);
     return { success: true };
   }

@@ -14,7 +14,7 @@ import { ItinerariesService } from './itineraries.service';
 import { CreateItineraryDayDto } from './dtos/create-itinerary-day.dto';
 import { UpdateItineraryDayDto } from './dtos/update-itinerary-day.dto';
 import { ReorderItineraryDto } from './dtos/reorder-itinerary.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { OrganizerGuard } from '../../common/guards/organizer.guard';
 import { Public } from '../../common/decorators/public.decorator';
 import {
@@ -35,7 +35,7 @@ export class ItinerariesController {
     return this.itinerariesService.getByTrek(trekId);
   }
 
-  @UseGuards(JwtAuthGuard, OrganizerGuard)
+  @UseGuards(AuthGuard('jwt'), OrganizerGuard)
   @Put()
   @ApiOperation({ summary: 'Bulk set/reorder all itinerary days' })
   @ApiOkResponse({ description: 'Updated itinerary days' })
@@ -47,7 +47,7 @@ export class ItinerariesController {
     return this.itinerariesService.upsertDays(trekId, user.id, dto);
   }
 
-  @UseGuards(JwtAuthGuard, OrganizerGuard)
+  @UseGuards(AuthGuard('jwt'), OrganizerGuard)
   @Post('days')
   @ApiOperation({ summary: 'Add a single itinerary day' })
   @ApiOkResponse({ description: 'Created itinerary day' })
@@ -59,7 +59,7 @@ export class ItinerariesController {
     return this.itinerariesService.addDay(trekId, user.id, dto);
   }
 
-  @UseGuards(JwtAuthGuard, OrganizerGuard)
+  @UseGuards(AuthGuard('jwt'), OrganizerGuard)
   @Patch('days/:dayId')
   @ApiOperation({ summary: 'Update a single itinerary day' })
   @ApiOkResponse({ description: 'Updated itinerary day' })
@@ -71,7 +71,7 @@ export class ItinerariesController {
     return this.itinerariesService.updateDay(dayId, user.id, dto);
   }
 
-  @UseGuards(JwtAuthGuard, OrganizerGuard)
+  @UseGuards(AuthGuard('jwt'), OrganizerGuard)
   @Delete('days/:dayId')
   @ApiOperation({ summary: 'Remove an itinerary day' })
   @ApiOkResponse({ description: 'Day removed' })
@@ -82,7 +82,7 @@ export class ItinerariesController {
     return this.itinerariesService.deleteDay(dayId, user.id);
   }
 
-  @UseGuards(JwtAuthGuard, OrganizerGuard)
+  @UseGuards(AuthGuard('jwt'), OrganizerGuard)
   @Patch('reorder')
   @ApiOperation({ summary: 'Reorder itinerary days' })
   @ApiOkResponse({ description: 'Reordered itinerary days' })

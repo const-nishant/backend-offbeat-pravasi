@@ -1,5 +1,5 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
 import { AdminRole } from '../../modules/users/enums/admin-role.enum';
@@ -8,11 +8,9 @@ import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 
 @ApiTags('Admin / Audit Diff')
 @Controller('admin/audit-logs')
-@UseGuards(JwtAuthGuard, AdminRolesGuard)
+@UseGuards(AuthGuard('jwt'), AdminRolesGuard)
 export class AdminAuditDiffController {
-  constructor(
-    private readonly adminAuditDiffService: AdminAuditDiffService,
-  ) {}
+  constructor(private readonly adminAuditDiffService: AdminAuditDiffService) {}
 
   @Get(':resourceType/:resourceId/diff')
   @AdminRoles(AdminRole.SUPERADMIN)
@@ -42,7 +40,10 @@ export class AdminAuditDiffController {
     @Query('limit') limit?: string,
   ) {
     return this.adminAuditDiffService.timeline({
-      actorId, action, from, to,
+      actorId,
+      action,
+      from,
+      to,
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 50,
     });

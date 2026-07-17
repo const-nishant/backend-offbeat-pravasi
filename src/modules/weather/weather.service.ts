@@ -1,28 +1,25 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { RedisService } from '../../common/utils/redis.service';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Trek } from '../treks/entities/trek.entity';
 import {
-  WeatherProvider,
+  WeatherApiProvider,
   WeatherOptions,
-} from './interfaces/weather-provider.interface';
-import { createWeatherProvider } from './interfaces/weather-provider.factory';
+} from './interfaces/weather-api.provider';
 import { TrekWeather } from './interfaces/trek-weather.interface';
+import type { RedisClient } from '../../common/utils/redis.client';
 import { CacheKeys } from '../../common/constants/cache.keys';
 
 @Injectable()
 export class WeatherService {
   private readonly logger = new Logger(WeatherService.name);
-  private readonly provider: WeatherProvider;
+  private readonly provider = new WeatherApiProvider();
 
   constructor(
-    private readonly redisService: RedisService,
+    @Inject('REDIS_CLIENT') private readonly redis: RedisClient,
     @InjectRepository(Trek)
     private readonly trekRepository: Repository<Trek>,
-  ) {
-    this.provider = createWeatherProvider();
-  }
+  ) {}
 
   async getForTrek(trekId: string, dates?: Date[]): Promise<TrekWeather> {
     const trek = await this.trekRepository.findOne({
@@ -113,7 +110,7 @@ export class WeatherService {
 
   private async getCached(key: string): Promise<TrekWeather | null> {
     try {
-      const raw = await this.redisService.get(key);
+      const raw = await this.redis.get(key);
       if (raw) return JSON.parse(raw) as TrekWeather;
     } catch (e) {
       this.logger.warn(
@@ -129,7 +126,7 @@ export class WeatherService {
     ttlSeconds: number,
   ): Promise<void> {
     try {
-      await this.redisService.set(key, JSON.stringify(data), ttlSeconds);
+      await this.redis.set(key, JSON.stringify(data), 'EX', ttlSeconds);
     } catch (e) {
       this.logger.warn(
         `Redis cache write failed for key ${key}: ${(e as Error).message}`,

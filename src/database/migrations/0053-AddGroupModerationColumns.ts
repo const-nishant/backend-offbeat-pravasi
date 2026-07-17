@@ -22,7 +22,11 @@ export class AddGroupModerationColumns0053 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP INDEX IF EXISTS idx_trek_groups_moderation`);
-    await queryRunner.query(`ALTER TABLE trek_groups DROP COLUMN IF EXISTS ban_reason`);
-    await queryRunner.query(`ALTER TABLE trek_groups DROP COLUMN IF EXISTS moderation_status`);
+    await queryRunner.query(
+      `ALTER TABLE trek_groups DROP COLUMN IF EXISTS ban_reason`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE trek_groups DROP COLUMN IF EXISTS moderation_status`,
+    );
   }
 }

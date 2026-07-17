@@ -1,6 +1,6 @@
 import type { Job } from 'bullmq';
 import { Worker } from 'bullmq';
-import { redisConfig } from '../../config/redis.config';
+import configuration from '../../config/configuration';
 import { Redis } from 'ioredis';
 
 interface CleanupJobPayload {
@@ -10,11 +10,13 @@ interface CleanupJobPayload {
     | 'clear-expired-stories';
 }
 
+const { host, port, password, db } = configuration().redis;
+
 const redis = new Redis({
-  host: redisConfig.host,
-  port: redisConfig.port,
-  password: redisConfig.password,
-  db: redisConfig.db,
+  host,
+  port,
+  password,
+  db,
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
 });
@@ -54,10 +56,10 @@ export const cleanupWorker = new Worker(
   },
   {
     connection: {
-      host: redisConfig.host,
-      port: redisConfig.port,
-      password: redisConfig.password,
-      db: redisConfig.db,
+      host,
+      port,
+      password,
+      db,
     },
   },
 );

@@ -16,6 +16,8 @@ export class AddGroupStatusColumn0053 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP INDEX IF EXISTS idx_trek_groups_status`);
-    await queryRunner.query(`ALTER TABLE trek_groups DROP COLUMN IF EXISTS status`);
+    await queryRunner.query(
+      `ALTER TABLE trek_groups DROP COLUMN IF EXISTS status`,
+    );
   }
 }

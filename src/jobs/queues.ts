@@ -1,61 +1,56 @@
 import { Queue } from 'bullmq';
-import { redisConfig } from '../config/redis.config';
-
-const connection = {
-  host: redisConfig.host,
-  port: redisConfig.port,
-  password: redisConfig.password,
-  db: redisConfig.db,
-};
+import { bullConnection } from './config';
 
 export const notificationQueue = new Queue('notification-queue', {
-  connection,
-});
-
-export const storyExpiryQueue = new Queue('story-expiry-queue', {
-  connection,
+  connection: bullConnection,
 });
 
 export const bookingReminderQueue = new Queue('booking-reminder-queue', {
-  connection,
+  connection: bullConnection,
 });
 
 export const cleanupQueue = new Queue('cleanup-queue', {
-  connection,
+  connection: bullConnection,
 });
 
 export const recommendationQueue = new Queue('recommendation-builder-queue', {
-  connection,
+  connection: bullConnection,
 });
 
 export const bookingReleaseQueue = new Queue('booking-release-queue', {
-  connection,
+  connection: bullConnection,
 });
 
 export const ticketPdfQueue = new Queue('ticket-pdf-queue', {
-  connection,
+  connection: bullConnection,
 });
 
 export const weatherPrefetchQueue = new Queue('weather-prefetch-queue', {
-  connection,
+  connection: bullConnection,
 });
 
 export const checkInFirstWarningQueue = new Queue(
   'checkin-first-warning-queue',
-  { connection },
+  { connection: bullConnection },
 );
 
 export const checkInEmergencyQueue = new Queue('checkin-emergency-queue', {
-  connection,
+  connection: bullConnection,
 });
 
 export const groupExpiryQueue = new Queue('group-expiry-queue', {
-  connection,
+  connection: bullConnection,
 });
 
 export const referralRewardDeliveryQueue = new Queue(
   'referral-reward-delivery-queue',
-  { connection },
+  { connection: bullConnection },
 );
 
-export const priceDropQueue = new Queue('price-drop-queue', { connection });
+export const priceDropQueue = new Queue('price-drop-queue', {
+  connection: bullConnection,
+});
+
+export const packingReminderQueue = new Queue('packing-reminder-queue', {
+  connection: bullConnection,
+});

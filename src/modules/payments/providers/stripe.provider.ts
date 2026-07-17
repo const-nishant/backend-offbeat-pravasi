@@ -1,7 +1,7 @@
 import StripeConstructor from 'stripe';
 type StripeInstance = StripeConstructor.Stripe;
 
-export type StripeClient = StripeInstance | null;
+type StripeClient = StripeInstance | null;
 
 export function createStripeClient(): StripeInstance | null {
   const key = process.env.STRIPE_SECRET_KEY;

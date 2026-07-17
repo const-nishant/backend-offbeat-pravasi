@@ -8,7 +8,7 @@ import {
   Body,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
 import { AdminRole } from '../../modules/users/enums/admin-role.enum';
@@ -47,7 +47,7 @@ class UpdateApiKeyDto {
 
 @ApiTags('Admin / API Keys')
 @Controller('admin/api-keys')
-@UseGuards(JwtAuthGuard, AdminRolesGuard)
+@UseGuards(AuthGuard('jwt'), AdminRolesGuard)
 export class AdminApiKeyController {
   constructor(private readonly adminApiKeyService: AdminApiKeyService) {}
 

@@ -29,7 +29,7 @@ import { plainToInstance } from 'class-transformer';
 describe('AdminAnalyticsService — Senior QA Review', () => {
   let service: AdminAnalyticsService;
   let dataSource: any;
-  let redisService: any;
+  let: any;
 
   const defaultDauRow = { date: new Date('2026-07-01'), count: '42' };
   const defaultTrekRow = {
@@ -48,9 +48,9 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     dataSource = { query: jest.fn<any>() };
-    redisService = { get: jest.fn<any>(), set: jest.fn<any>() };
+    redis = { get: jest.fn<any>(), set: jest.fn<any>() };
 
-    service = new AdminAnalyticsService(dataSource as any, redisService as any);
+    service = new AdminAnalyticsService(dataSource as any, redis as any);
   });
 
   // ─── DTO BOUNDARY ANALYSIS ───────────────────────────────────────
@@ -180,7 +180,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
 
   describe('Cache layer — read-through behaviour', () => {
     it('returns cached DAU without touching DB', async () => {
-      redisService.get.mockResolvedValue(
+      redis.get.mockResolvedValue(
         JSON.stringify([{ date: '2026-07-01', count: 42 }]),
       );
 
@@ -191,12 +191,12 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('sets cache after DB fetch with correct TTL', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([defaultDauRow]);
 
       await service.getDau(7);
 
-      expect(redisService.set).toHaveBeenCalledWith(
+      expect(redis.set).toHaveBeenCalledWith(
         expect.stringContaining('analytics:dau:7'),
         expect.any(String),
         300,
@@ -204,12 +204,12 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('sets trek-popularity cache with 600s TTL', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([defaultTrekRow]);
 
       await service.getTrekPopularity(30, 50);
 
-      expect(redisService.set).toHaveBeenCalledWith(
+      expect(redis.set).toHaveBeenCalledWith(
         expect.any(String),
         expect.any(String),
         600,
@@ -217,7 +217,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('sets funnel cache with 900s TTL', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([{ count: '100' }]);
       dataSource.query.mockResolvedValue([{ count: '50' }]);
       dataSource.query.mockResolvedValue([{ count: '30' }]);
@@ -226,7 +226,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
 
       await service.getConversionFunnel();
 
-      expect(redisService.set).toHaveBeenCalledWith(
+      expect(redis.set).toHaveBeenCalledWith(
         expect.any(String),
         expect.any(String),
         900,
@@ -234,7 +234,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('handles corrupted cache JSON gracefully', async () => {
-      redisService.get.mockResolvedValue('{invalid json!!!}');
+      redis.get.mockResolvedValue('{invalid json!!!}');
       dataSource.query.mockResolvedValue([defaultDauRow]);
 
       const result = await service.getDau(7);
@@ -244,13 +244,13 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('uses distinct cache keys for different days param', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([defaultDauRow]);
 
       await service.getDau(7);
       await service.getDau(30);
 
-      const setCalls = (redisService.set as jest.Mock).mock.calls;
+      const setCalls = (redis.set as jest.Mock).mock.calls;
       const keys = setCalls.map((c: any[]) => c[0]);
       expect(keys[0]).toContain(':7');
       expect(keys[1]).toContain(':30');
@@ -262,7 +262,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
 
   describe('Empty state handling', () => {
     it('returns empty array when no DAU data exists', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([]);
 
       const result = await service.getDau(7);
@@ -271,7 +271,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('returns empty array when no trek interactions exist', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([]);
 
       const result = await service.getTrekPopularity(30, 50);
@@ -280,7 +280,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('returns zeroed funnel when no data in range', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query
         .mockResolvedValueOnce([{ count: '0' }])
         .mockResolvedValueOnce([{ count: '0' }])
@@ -298,7 +298,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('returns empty array when no revenue data exists', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([]);
 
       const result = await service.getRevenueTrends('daily', 30);
@@ -307,7 +307,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('returns empty array when no retention data exists', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([]);
 
       const result = await service.getRetentionCohorts(12);
@@ -320,7 +320,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
 
   describe('Data integrity', () => {
     it('trek popularity returns correct numeric types', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([defaultTrekRow]);
 
       const result = await service.getTrekPopularity(30, 50);
@@ -335,7 +335,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('conversion funnel stages are non-decreasing in counts', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query
         .mockResolvedValueOnce([{ count: '1000' }])
         .mockResolvedValueOnce([{ count: '200' }])
@@ -360,7 +360,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('retention rates are between 0 and 100 percent', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([
         {
           cohort_month: new Date('2026-01-01'),
@@ -382,7 +382,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('retention rates handle division by zero when totalUsers is 0', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([
         {
           cohort_month: new Date('2026-01-01'),
@@ -400,7 +400,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('revenue trends returns provider names correctly', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([
         {
           date: new Date('2026-07-01'),
@@ -430,7 +430,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
 
   describe('SQL injection resistance', () => {
     it('passes days as parameterized integer, not inline', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([]);
 
       await service.getDau(7);
@@ -441,7 +441,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('passes limit as parameterized integer', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([]);
 
       await service.getTrekPopularity(30, 50);
@@ -451,7 +451,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('passes period as parameterized string', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([]);
 
       await service.getRevenueTrends('daily', 30);
@@ -465,7 +465,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
 
   describe('Error propagation', () => {
     it('throws when DB query fails', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockRejectedValue(
         new Error('Connection pool exhausted'),
       );
@@ -476,7 +476,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('throws on DB failure for trek popularity', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockRejectedValue(new Error('Deadlock detected'));
 
       await expect(service.getTrekPopularity(30, 10)).rejects.toThrow(
@@ -485,7 +485,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('propagates error when one of 5 funnel queries fails', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query
         .mockResolvedValueOnce([{ count: '100' }])
         .mockRejectedValueOnce(new Error('relation "bookings" does not exist'));
@@ -494,7 +494,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('wraps raw DB error types from pg driver', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       const pgError = new Error('deadlock detected');
       (pgError as any).code = '40P01';
       (pgError as any).schema = 'public';
@@ -510,7 +510,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
 
   describe('Boundary values', () => {
     it('DAU with 1 day returns data for single day', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([{ date: new Date(), count: '5' }]);
 
       const result = await service.getDau(1);
@@ -520,7 +520,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('DAU with 365 days returns year of data', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       const rows = Array.from({ length: 365 }, (_, i) => ({
         date: new Date(2026, 0, i + 1),
         count: String(Math.floor(Math.random() * 100)),
@@ -533,7 +533,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('trek popularity limit=1 returns single result', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([defaultTrekRow]);
 
       const result = await service.getTrekPopularity(30, 1);
@@ -546,7 +546,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('trek popularity limit=200 returns up to 200', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       const rows = Array.from({ length: 200 }, (_, i) => ({
         ...defaultTrekRow,
         id: `trek-${i}`,
@@ -560,7 +560,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('revenue maps month/quarter to correct date_trunc', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([]);
 
       await service.getRevenueTrends('monthly', 365);
@@ -577,7 +577,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('revenue with no period specified defaults to daily', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([]);
 
       await service.getRevenueTrends(undefined as any, 30);
@@ -592,7 +592,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
 
   describe('Concurrent request behaviour', () => {
     it('parallel calls to same endpoint result in single DB query (cache reuse)', async () => {
-      redisService.get.mockResolvedValue(
+      redis.get.mockResolvedValue(
         JSON.stringify([{ date: '2026-07-01', count: 42 }]),
       );
 
@@ -606,7 +606,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('concurrent calls with different params use different cache keys', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([defaultDauRow]);
 
       await Promise.all([service.getDau(7), service.getDau(30)]);
@@ -619,7 +619,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
 
   describe('Performance considerations', () => {
     it('funnel endpoint makes exactly 5 queries', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query
         .mockResolvedValueOnce([{ count: '100' }])
         .mockResolvedValueOnce([{ count: '50' }])
@@ -633,7 +633,7 @@ describe('AdminAnalyticsService — Senior QA Review', () => {
     });
 
     it('retention cohort query handles single-row result efficiently', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([
         {
           cohort_month: new Date('2026-06-01'),

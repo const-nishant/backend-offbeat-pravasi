@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 import { RecommendationsService } from './recommendations.service';
@@ -25,7 +25,7 @@ export class RecommendationsController {
     private readonly recommendationsService: RecommendationsService,
   ) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Get('recommendations')
   @ApiOperation({ summary: 'Get personalized trek recommendations' })
   @ApiOkResponse({ type: [RecommendationResultDto] })
@@ -44,7 +44,7 @@ export class RecommendationsController {
     }));
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Get('recommendations/refresh')
   @ApiOperation({ summary: 'Force refresh recommendations' })
   @ApiOkResponse({ type: [RecommendationResultDto] })
@@ -72,7 +72,7 @@ export class RecommendationsController {
     );
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Put('recommendations/preferences')
   @ApiOperation({ summary: 'Set recommendation preferences' })
   async setPreferences(
@@ -82,7 +82,7 @@ export class RecommendationsController {
     return this.recommendationsService.updatePreferences(user.id, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Get('recommendations/preferences')
   @ApiOperation({ summary: 'Get recommendation preferences' })
   async getPreferences(

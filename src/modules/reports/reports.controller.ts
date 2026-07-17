@@ -15,7 +15,7 @@ import {
   CurrentUser,
   type AuthenticatedUser,
 } from '../../common/decorators/current-user.decorator';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { AdminGuard } from '../../common/guards/admin.guard';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
@@ -24,7 +24,7 @@ import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Post('reports')
   @ApiOperation({ summary: 'Report inappropriate content' })
   @ApiOkResponse({ description: 'Report created' })
@@ -35,7 +35,7 @@ export class ReportsController {
     return this.reportsService.create(user.id, dto);
   }
 
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
   @Get('admin/moderation/pending')
   @ApiOperation({ summary: 'List pending reports (admin)' })
   @ApiOkResponse({ description: 'Pending reports' })
@@ -49,7 +49,7 @@ export class ReportsController {
     );
   }
 
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
   @Patch('admin/moderation/reports/:id')
   @ApiOperation({ summary: 'Review a report (admin)' })
   @ApiOkResponse({ description: 'Report reviewed' })

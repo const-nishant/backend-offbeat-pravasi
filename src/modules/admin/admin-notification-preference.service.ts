@@ -15,7 +15,10 @@ export class AdminNotificationPreferenceService {
     return prefs;
   }
 
-  async update(adminId: string, entries: { eventType: string; channel: string; enabled: boolean }[]) {
+  async update(
+    adminId: string,
+    entries: { eventType: string; channel: string; enabled: boolean }[],
+  ) {
     const results: AdminNotificationPreference[] = [];
 
     for (const entry of entries) {

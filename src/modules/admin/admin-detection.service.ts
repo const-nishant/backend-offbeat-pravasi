@@ -67,10 +67,18 @@ export class AdminDetectionService {
   }
 
   async resolveTrekDuplicate(id: string) {
-    const candidate = await this.repo.findOne({ where: { id, entityType: 'trek' } });
+    const candidate = await this.repo.findOne({
+      where: { id, entityType: 'trek' },
+    });
     if (!candidate) {
       return this.repo.save(
-        this.repo.create({ id, entityType: 'trek', primaryId: id, candidateId: id, status: 'resolved' }),
+        this.repo.create({
+          id,
+          entityType: 'trek',
+          primaryId: id,
+          candidateId: id,
+          status: 'resolved',
+        }),
       );
     }
     candidate.status = 'resolved';

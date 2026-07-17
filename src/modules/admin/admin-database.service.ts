@@ -80,9 +80,9 @@ export class AdminDatabaseService {
     try {
       const rows = await this.dataSource.query(
         `SELECT schemaname,
-                tablename,
-                indexname,
-                indexdef,
+                relname AS tablename,
+                indexrelname AS indexname,
+                pg_get_indexdef(indexrelid) AS indexdef,
                 pg_size_pretty(pg_relation_size(indexrelid)) AS index_size,
                 idx_scan AS index_scans,
                 idx_tup_read,
@@ -136,8 +136,16 @@ export class AdminDatabaseService {
         cacheHits: Number(r.shared_blks_hit),
         cacheReads: Number(r.shared_blks_read),
       }));
-    } catch {
-      return [];
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (/pg_stat_statements/.test(msg)) {
+        return {
+          available: false,
+          reason:
+            'pg_stat_statements extension is not enabled. Enable it with: CREATE EXTENSION pg_stat_statements; (requires shared_preload_libraries=pg_stat_statements).',
+        };
+      }
+      return { available: false, reason: msg };
     }
   }
 }

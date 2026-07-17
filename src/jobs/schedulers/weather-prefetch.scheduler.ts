@@ -1,31 +1,23 @@
-import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  Logger,
-} from '@nestjs/common';
-import { Queue } from 'bullmq';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { bullConnection } from '../config';
+import { weatherPrefetchQueue } from '../queues';
+import { CRON_TZ } from '../config';
 
 @Injectable()
-export class WeatherPrefetchScheduler implements OnModuleInit, OnModuleDestroy {
+export class WeatherPrefetchScheduler implements OnModuleInit {
   private readonly logger = new Logger(WeatherPrefetchScheduler.name);
-  private readonly queue = new Queue('weather-prefetch-queue', {
-    connection: bullConnection,
-  });
 
   constructor(private readonly dataSource: DataSource) {}
 
   async onModuleInit(): Promise<void> {
     try {
-      await this.queue.add(
+      await weatherPrefetchQueue.add(
         'prefetch-weather',
         {},
         {
           jobId: 'weather-prefetch-repeater',
           removeOnComplete: true,
-          repeat: { every: 3 * 60 * 60 * 1000 },
+          repeat: { every: 3 * 60 * 60 * 1000, tz: CRON_TZ },
         },
       );
       this.logger.log('Weather prefetch scheduler registered (every 3h)');
@@ -46,7 +38,7 @@ export class WeatherPrefetchScheduler implements OnModuleInit, OnModuleDestroy {
     let severeCount = 0;
 
     for (const trek of treks) {
-      await this.queue.add(
+      await weatherPrefetchQueue.add(
         'fetch-and-cache-weather',
         {
           trekId: trek.id,
@@ -70,9 +62,5 @@ export class WeatherPrefetchScheduler implements OnModuleInit, OnModuleDestroy {
 
   private isSevereExpected(_trek: any): boolean {
     return false;
-  }
-
-  async onModuleDestroy(): Promise<void> {
-    await this.queue.close();
   }
 }

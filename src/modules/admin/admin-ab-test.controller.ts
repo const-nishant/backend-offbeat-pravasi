@@ -1,18 +1,18 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Param,
-  Body,
-  UseGuards,
-} from '@nestjs/common';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
 import { AdminRole } from '../../modules/users/enums/admin-role.enum';
 import { AdminAbTestService } from './admin-ab-test.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { IsString, IsOptional, IsArray, IsNumber, IsDateString, ValidateNested, IsObject } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsArray,
+  IsNumber,
+  IsDateString,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 class VariantDto {
@@ -56,11 +56,9 @@ class ConcludeDto {
 
 @ApiTags('Admin / A/B Tests')
 @Controller('admin/ab-tests')
-@UseGuards(JwtAuthGuard, AdminRolesGuard)
+@UseGuards(AuthGuard('jwt'), AdminRolesGuard)
 export class AdminAbTestController {
-  constructor(
-    private readonly adminAbTestService: AdminAbTestService,
-  ) {}
+  constructor(private readonly adminAbTestService: AdminAbTestService) {}
 
   @Get()
   @AdminRoles(AdminRole.SUPERADMIN)

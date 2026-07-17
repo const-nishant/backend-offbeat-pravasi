@@ -8,7 +8,7 @@ import {
   Body,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
 import { AdminRole } from '../../modules/users/enums/admin-role.enum';
@@ -27,18 +27,19 @@ class DecisionDto {
 
 @ApiTags('Admin / Gear')
 @Controller('admin/gear')
-@UseGuards(JwtAuthGuard, AdminRolesGuard)
+@UseGuards(AuthGuard('jwt'), AdminRolesGuard)
 export class AdminGearController {
-  constructor(
-    private readonly adminGearService: AdminGearService,
-  ) {}
+  constructor(private readonly adminGearService: AdminGearService) {}
 
   @Get('pending')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
   @ApiOperation({ summary: 'List pending gear items' })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
-  async listPending(@Query('page') page?: string, @Query('limit') limit?: string) {
+  async listPending(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
     return this.adminGearService.listPending(
       page ? Number(page) : 1,
       limit ? Number(limit) : 20,

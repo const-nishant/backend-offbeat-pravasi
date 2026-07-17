@@ -7,7 +7,7 @@ import {
   Body,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
 import { AdminRole } from '../../modules/users/enums/admin-role.enum';
@@ -30,7 +30,7 @@ class UpdateRateLimitDto {
 
 @ApiTags('Admin / Security')
 @Controller('admin/security/rate-limits')
-@UseGuards(JwtAuthGuard, AdminRolesGuard)
+@UseGuards(AuthGuard('jwt'), AdminRolesGuard)
 export class AdminRateLimitController {
   constructor(private readonly adminRateLimitService: AdminRateLimitService) {}
 

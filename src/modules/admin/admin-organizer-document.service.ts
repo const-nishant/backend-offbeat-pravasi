@@ -44,7 +44,10 @@ export class AdminOrganizerDocumentService {
     const threshold = new Date();
     threshold.setDate(threshold.getDate() + days);
     return this.repo.find({
-      where: { status: 'verified', expiresAt: threshold > new Date() ? undefined : undefined },
+      where: {
+        status: 'verified',
+        expiresAt: threshold > new Date() ? undefined : undefined,
+      },
     });
   }
 
@@ -61,8 +64,12 @@ export class AdminOrganizerDocumentService {
 
     return {
       within30Days: all.filter((d) => d.expiresAt && d.expiresAt <= in30),
-      within60Days: all.filter((d) => d.expiresAt && d.expiresAt > in30 && d.expiresAt <= in60),
-      within90Days: all.filter((d) => d.expiresAt && d.expiresAt > in60 && d.expiresAt <= in90),
+      within60Days: all.filter(
+        (d) => d.expiresAt && d.expiresAt > in30 && d.expiresAt <= in60,
+      ),
+      within90Days: all.filter(
+        (d) => d.expiresAt && d.expiresAt > in60 && d.expiresAt <= in90,
+      ),
     };
   }
 }

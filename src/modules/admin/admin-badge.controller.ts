@@ -8,18 +8,13 @@ import {
   Body,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
 import { AdminRole } from '../../modules/users/enums/admin-role.enum';
 import { AdminBadgeService } from './admin-badge.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import {
-  IsString,
-  IsOptional,
-  IsBoolean,
-  IsObject,
-} from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsObject } from 'class-validator';
 
 class CreateBadgeDto {
   @IsString()
@@ -94,11 +89,9 @@ class AwardBadgeDto {
 
 @ApiTags('Admin / Badges')
 @Controller('admin/badges')
-@UseGuards(JwtAuthGuard, AdminRolesGuard)
+@UseGuards(AuthGuard('jwt'), AdminRolesGuard)
 export class AdminBadgeController {
-  constructor(
-    private readonly adminBadgeService: AdminBadgeService,
-  ) {}
+  constructor(private readonly adminBadgeService: AdminBadgeService) {}
 
   @Get()
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
@@ -136,16 +129,18 @@ export class AdminBadgeController {
     @Body() dto: AwardBadgeDto,
     // TODO: Inject current admin user for awardedBy
   ) {
-    return this.adminBadgeService.award(id, dto.userId, '00000000-0000-0000-0000-000000000000', dto.reason);
+    return this.adminBadgeService.award(
+      id,
+      dto.userId,
+      '00000000-0000-0000-0000-000000000000',
+      dto.reason,
+    );
   }
 
   @Post(':id/revoke')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Revoke badge from a user' })
-  async revoke(
-    @Param('id') id: string,
-    @Body() dto: AwardBadgeDto,
-  ) {
+  async revoke(@Param('id') id: string, @Body() dto: AwardBadgeDto) {
     return this.adminBadgeService.revoke(id, dto.userId);
   }
 

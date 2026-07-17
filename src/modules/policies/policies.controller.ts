@@ -14,7 +14,7 @@ import {
 import { PoliciesService } from './policies.service';
 import { CreatePolicyDto } from './dtos/create-policy.dto';
 import { AssignPolicyDto } from './dtos/assign-policy.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { AdminGuard } from '../../common/guards/admin.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
@@ -33,28 +33,28 @@ export class PoliciesController {
   ) {}
 
   @Get('admin/policies')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
   @ApiOperation({ summary: 'List all cancellation policies' })
   async findAll() {
     return this.policiesService.findAll();
   }
 
   @Post('admin/policies')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
   @ApiOperation({ summary: 'Create a cancellation policy with tiers' })
   async create(@Body() dto: CreatePolicyDto) {
     return this.policiesService.create(dto);
   }
 
   @Patch('admin/policies/:id')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
   @ApiOperation({ summary: 'Update a cancellation policy' })
   async update(@Param('id') id: string, @Body() dto: Partial<CreatePolicyDto>) {
     return this.policiesService.update(id, dto);
   }
 
   @Delete('admin/policies/:id')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
   @ApiOperation({ summary: 'Delete a cancellation policy' })
   async delete(@Param('id') id: string) {
     await this.policiesService.delete(id);
@@ -68,7 +68,7 @@ export class PoliciesController {
   }
 
   @Put('treks/:trekId/policy')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
   @ApiOperation({ summary: 'Assign cancellation policy to a trek' })
   async assignToTrek(
     @Param('trekId') trekId: string,
@@ -79,7 +79,7 @@ export class PoliciesController {
   }
 
   @Get('bookings/:bookingId/refund-estimate')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Get real-time refund estimate for a booking' })
   async refundEstimate(
     @Param('bookingId') bookingId: string,

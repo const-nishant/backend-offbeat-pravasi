@@ -4,9 +4,7 @@ import { DataSource } from 'typeorm';
 
 @Injectable()
 export class AdminTaxService {
-  constructor(
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async report(from: string, to: string) {
     const rows = await this.dataSource.query(
@@ -28,7 +26,10 @@ export class AdminTaxService {
       [from, to],
     );
 
-    const totalRevenue = rows.reduce((s: number, r: any) => s + Number(r.amount_inr), 0);
+    const totalRevenue = rows.reduce(
+      (s: number, r: any) => s + Number(r.amount_inr),
+      0,
+    );
     const assumedTaxRate = 0.05;
     const taxCollected = Math.round(totalRevenue * assumedTaxRate);
 

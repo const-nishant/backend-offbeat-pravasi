@@ -18,7 +18,6 @@ import {
 } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
-import { RedisService } from '../../common/utils/redis.service';
 import { MailerService } from '../mailer/mailer.service';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
@@ -67,7 +66,7 @@ describe('AuthService Integration (sqlite)', () => {
   let dataSource: DataSource;
   let userRepo: Repository<SqliteUser>;
   let service: AuthService;
-  let redisService: jest.Mocked<RedisService>;
+  let redis: jest.Mocked<any>;
   let mailerService: jest.Mocked<MailerService>;
   let jwtService: jest.Mocked<JwtService>;
 
@@ -88,7 +87,7 @@ describe('AuthService Integration (sqlite)', () => {
     process.env.OTP_EXPIRY_MINUTES = '10';
     process.env.OTP_MAX_ATTEMPTS = '5';
 
-    redisService = {
+    redis = {
       get: jest.fn(),
       set: jest.fn(),
       del: jest.fn(),
@@ -123,7 +122,7 @@ describe('AuthService Integration (sqlite)', () => {
     service = new AuthService(
       userRepo,
       jwtService as any,
-      redisService as any,
+      redis as any,
       mailerService as any,
       {} as any, // betterAuthService
       mockAnalytics,
@@ -135,7 +134,7 @@ describe('AuthService Integration (sqlite)', () => {
 
     it('should register a user and persist to database', async () => {
       // Use real password hashing (argon2 is real, hash.util is not mocked)
-      redisService.set.mockResolvedValue(undefined);
+      redis.set.mockResolvedValue(undefined);
       mailerService.sendOtpEmail.mockResolvedValue(undefined);
 
       const dto: RegisterDto = { email, password: 'StrongPass1' };
@@ -176,7 +175,7 @@ describe('AuthService Integration (sqlite)', () => {
         createdAt: new Date().toISOString(),
       });
 
-      redisService.set.mockResolvedValue(undefined);
+      redis.set.mockResolvedValue(undefined);
       mailerService.sendOtpEmail.mockResolvedValue(undefined);
 
       // Send OTP
@@ -185,8 +184,8 @@ describe('AuthService Integration (sqlite)', () => {
       expect(sendResult.message).toContain('OTP sent');
 
       // Verify OTP - mock redis get to return the stored OTP
-      redisService.get.mockResolvedValue(storedOtp);
-      redisService.del.mockResolvedValue(undefined);
+      redis.get.mockResolvedValue(storedOtp);
+      redis.del.mockResolvedValue(undefined);
 
       // User must exist for verifyOtp
       const user = userRepo.create({
@@ -211,8 +210,8 @@ describe('AuthService Integration (sqlite)', () => {
         attempts: 0,
         createdAt: new Date().toISOString(),
       });
-      redisService.get.mockResolvedValue(storedOtp);
-      redisService.set.mockResolvedValue(undefined);
+      redis.get.mockResolvedValue(storedOtp);
+      redis.set.mockResolvedValue(undefined);
 
       const verifyDto: VerifyOtpDto = { email, otp: '999999' };
       await expect(service.verifyOtp(verifyDto)).rejects.toThrow('Invalid OTP');

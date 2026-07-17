@@ -1,15 +1,15 @@
 import { Logger } from '@nestjs/common';
 import { Redis } from 'ioredis';
-import { redisConfig } from '../../config/redis.config';
+import configuration from '../../config/configuration';
 
 const redisLogger = new Logger('Redis');
 
 export const createRedisClient = (): Redis => {
   const client = new Redis({
-    host: redisConfig.host,
-    port: redisConfig.port,
-    password: redisConfig.password,
-    db: redisConfig.db,
+    host: configuration().redis.host,
+    port: configuration().redis.port,
+    password: configuration().redis.password,
+    db: configuration().redis.db,
     maxRetriesPerRequest: null,
     enableReadyCheck: false,
     retryStrategy: (times) => {

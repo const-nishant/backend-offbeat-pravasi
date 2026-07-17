@@ -1,28 +1,20 @@
-import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  Logger,
-} from '@nestjs/common';
-import { Queue } from 'bullmq';
-import { bullConnection } from '../config';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import { bookingReleaseQueue } from '../queues';
+import { CRON_TZ } from '../config';
 
 @Injectable()
-export class BookingReleaseScheduler implements OnModuleInit, OnModuleDestroy {
+export class BookingReleaseScheduler implements OnModuleInit {
   private readonly logger = new Logger(BookingReleaseScheduler.name);
-  private readonly queue = new Queue('booking-release-queue', {
-    connection: bullConnection,
-  });
 
   async onModuleInit(): Promise<void> {
     try {
-      await this.queue.add(
+      await bookingReleaseQueue.add(
         'release-expired',
         {},
         {
           jobId: 'booking-release-repeater',
           removeOnComplete: true,
-          repeat: { every: 60 * 1000 },
+          repeat: { every: 60 * 1000, tz: CRON_TZ },
         },
       );
 
@@ -30,9 +22,5 @@ export class BookingReleaseScheduler implements OnModuleInit, OnModuleDestroy {
     } catch (error) {
       this.logger.error('Failed to register booking release scheduler', error);
     }
-  }
-
-  async onModuleDestroy(): Promise<void> {
-    await this.queue.close();
   }
 }

@@ -14,12 +14,12 @@ import {
   CurrentUser,
   type AuthenticatedUser,
 } from '../../common/decorators/current-user.decorator';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Friendships')
 @Controller()
-@UseGuards(JwtAuthGuard)
+@UseGuards(AuthGuard('jwt'))
 export class FriendshipsController {
   constructor(private readonly friendshipsService: FriendshipsService) {}
 

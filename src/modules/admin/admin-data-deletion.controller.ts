@@ -7,7 +7,7 @@ import {
   Body,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
 import { AdminRole } from '../../modules/users/enums/admin-role.enum';
@@ -22,7 +22,7 @@ class RejectDto {
 
 @ApiTags('Admin / Data Deletion')
 @Controller('admin/data-deletion')
-@UseGuards(JwtAuthGuard, AdminRolesGuard)
+@UseGuards(AuthGuard('jwt'), AdminRolesGuard)
 export class AdminDataDeletionController {
   constructor(
     private readonly adminDataDeletionService: AdminDataDeletionService,
@@ -44,7 +44,10 @@ export class AdminDataDeletionController {
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Approve data deletion request' })
   async approve(@Param('id') id: string) {
-    return this.adminDataDeletionService.approve(id, '00000000-0000-0000-0000-000000000000');
+    return this.adminDataDeletionService.approve(
+      id,
+      '00000000-0000-0000-0000-000000000000',
+    );
   }
 
   @Post(':id/reject')

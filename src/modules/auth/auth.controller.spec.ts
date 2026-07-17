@@ -15,7 +15,7 @@ import type { LoginDto } from './dtos/login.dto';
 import type { SendOtpDto } from './dtos/send-otp.dto';
 import type { VerifyOtpDto } from './dtos/verify-otp.dto';
 import type { RefreshDto } from './dtos/refresh.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
@@ -53,7 +53,7 @@ describe('AuthController', () => {
         },
       ],
     })
-      .overrideGuard(JwtAuthGuard)
+      .overrideGuard(AuthGuard('jwt'))
       .useValue({ canActivate: jest.fn(() => true) })
       .compile();
 

@@ -10,8 +10,22 @@
       "type": "local",
       "command": ["npx", "ast-grep-mcp"],
       "enabled": true
+    },
+    "apidog": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "apidog-mcp-server@latest",
+        "--project-id=1312214"
+      ],
+      "environment": {
+        "APIDOG_ACCESS_TOKEN": "{env:APIDOG_ACCESS_TOKEN}"
+      },
+      "enabled": true
     }
   },
+  "plugin": ["@dietrichgebert/ponytail"],
   "permission": {
     "skill": {
       "*": "allow"

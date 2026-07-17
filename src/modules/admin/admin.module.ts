@@ -150,6 +150,7 @@ import { TrekCategory } from './entities/trek-category.entity';
 import { PlatformSettingsModule } from './platform-settings.module';
 import { User } from '../users/entities/user.entity';
 import { Trek } from '../treks/entities/trek.entity';
+import { TrekTag } from '../treks/entities/trek-tag.entity';
 import { Booking } from '../bookings/entities/booking.entity';
 import { Payment } from '../bookings/entities/payment.entity';
 import { OrganizerApplication } from '../organizer/entities/organizer-application.entity';
@@ -187,6 +188,7 @@ import { AnalyticsModule } from '../analytics/analytics.module';
       ReferralTierConfig,
       PlatformSettingsPreset,
       TrekCategory,
+      TrekTag,
       WeatherAlert,
       EmailTemplate,
       PricingCampaign,

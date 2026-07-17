@@ -1,4 +1,5 @@
 import {
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -7,9 +8,9 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { generateOtp } from '../../common/utils/otp.util';
-import { RedisService } from '../../common/utils/redis.service';
 import { AuditLog } from './entities/audit-log.entity';
 import { User } from '../users/entities/user.entity';
+import type { RedisClient } from '../../common/utils/redis.client';
 import { CacheKeys } from '../../common/constants/cache.keys';
 
 const MAX_DAILY_GENERATIONS = 3;
@@ -24,7 +25,7 @@ export class AdminOtpService {
     private readonly userRepo: Repository<User>,
     @InjectRepository(AuditLog)
     private readonly auditLogRepo: Repository<AuditLog>,
-    private readonly redisService: RedisService,
+    @Inject('REDIS_CLIENT') private readonly redis: RedisClient,
   ) {}
 
   async generate(userId: string, adminId: string, reason: string) {
@@ -62,7 +63,7 @@ export class AdminOtpService {
       generatedBy: adminId,
     };
 
-    await this.redisService.set(key, JSON.stringify(payload), OTP_TTL_SECONDS);
+    await this.redis.set(key, JSON.stringify(payload), 'EX', OTP_TTL_SECONDS);
 
     await this.auditLogRepo.save({
       actorId: adminId,

@@ -1,6 +1,5 @@
 import { In, type Repository } from 'typeorm';
 import { TreksService } from './treks.service';
-import type { RedisService } from '../../common/utils/redis.service';
 import type { Trek } from './entities/trek.entity';
 import type { TrekReview } from './entities/trek-review.entity';
 import type { TrekInteraction } from './entities/trek-interaction.entity';
@@ -35,11 +34,11 @@ describe('TreksService', () => {
     create: jest.fn(),
     save: jest.fn(),
   };
-  const redisService = {
+  const redis = {
     get: jest.fn(),
     set: jest.fn(),
     del: jest.fn(),
-  } as unknown as RedisService;
+  } as unknown as any;
 
   const buildQueryBuilder = () => {
     const qb = {
@@ -69,7 +68,6 @@ describe('TreksService', () => {
       interactionRepo as unknown as Repository<TrekInteraction>,
       tagRepo as unknown as Repository<TrekTag>,
       imageRepo as unknown as Repository<TrekImage>,
-      redisService,
     );
   });
 
@@ -147,7 +145,7 @@ describe('TreksService', () => {
   });
 
   it('builds personalized recommendations from cached similarities', async () => {
-    redisService.get = jest
+    redis.get = jest
       .fn()
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(JSON.stringify([{ id: 'trek-2', score: 0.9 }]));
@@ -167,7 +165,7 @@ describe('TreksService', () => {
       service.getRecommendations('user-1', undefined, undefined, 5),
     ).resolves.toEqual([{ id: 'trek-2' }]);
 
-    expect(redisService.set).toHaveBeenCalledWith(
+    expect(redis.set).toHaveBeenCalledWith(
       'user:recs:user-1',
       JSON.stringify([{ id: 'trek-2' }]),
       8 * 3600,

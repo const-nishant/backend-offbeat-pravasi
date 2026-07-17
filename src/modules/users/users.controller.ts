@@ -16,7 +16,7 @@ import {
   CurrentUser,
   type AuthenticatedUser,
 } from '../../common/decorators/current-user.decorator';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('Users')
@@ -24,7 +24,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile' })
   async getProfile(@CurrentUser() user: AuthenticatedUser) {
@@ -32,7 +32,7 @@ export class UsersController {
     return { data: profile };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Patch('me')
   @ApiOperation({ summary: 'Update current user profile' })
   async updateProfile(
@@ -43,7 +43,7 @@ export class UsersController {
     return { data: profile };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Post('me/onboarding')
   @ApiOperation({ summary: 'Save onboarding answers' })
   async saveOnboarding(
@@ -53,14 +53,14 @@ export class UsersController {
     return this.usersService.saveOnboarding(user.id, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Get('search')
   @ApiOperation({ summary: 'Search users by username or name' })
   async search(@Query() dto: SearchUsersDto) {
     return this.usersService.search(dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
   @ApiOperation({ summary: 'Get user by ID' })
   async findById(@Param('id') id: string) {

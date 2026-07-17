@@ -14,7 +14,7 @@ import {
   type AuthenticatedUser,
 } from 'src/common/decorators/current-user.decorator';
 import { AdminGuard } from 'src/common/guards/admin.guard';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { OrganizerGuard } from 'src/common/guards/organizer.guard';
 import { CreateOrganizerRequestDto } from './dtos/create-organizer-request.dto';
 import { UpdateOrganizerRequestDto } from './dtos/update-organizer-request.dto';
@@ -29,7 +29,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 export class OrganizerController {
   constructor(private readonly organizerService: OrganizerService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Post('applications')
   @ApiOperation({ summary: 'Submit organizer application' })
   async createApplication(
@@ -44,7 +44,7 @@ export class OrganizerController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Get('applications/me')
   @ApiOperation({ summary: 'Get my organizer application status' })
   async myApplication(@CurrentUser() user: AuthenticatedUser) {
@@ -56,7 +56,7 @@ export class OrganizerController {
     };
   }
 
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
   @Get('applications/:id')
   @ApiOperation({ summary: 'Get organizer application detail (admin)' })
   async getApplication(@Param('id') id: string) {
@@ -71,7 +71,7 @@ export class OrganizerController {
     };
   }
 
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
   @Patch('applications/:id')
   @ApiOperation({ summary: 'Update organizer application (admin)' })
   async updateApplication(
@@ -86,14 +86,14 @@ export class OrganizerController {
     };
   }
 
-  @UseGuards(JwtAuthGuard, OrganizerGuard)
+  @UseGuards(AuthGuard('jwt'), OrganizerGuard)
   @Get('dashboard')
   @ApiOperation({ summary: 'Get organizer dashboard' })
   async getDashboard(@CurrentUser() user: AuthenticatedUser) {
     return this.organizerService.getDashboard(user.id);
   }
 
-  @UseGuards(JwtAuthGuard, OrganizerGuard)
+  @UseGuards(AuthGuard('jwt'), OrganizerGuard)
   @Get('treks')
   @ApiOperation({ summary: "List organizer's treks" })
   async listTreks(
@@ -103,7 +103,7 @@ export class OrganizerController {
     return this.organizerService.listTreks(user.id, filters);
   }
 
-  @UseGuards(JwtAuthGuard, OrganizerGuard)
+  @UseGuards(AuthGuard('jwt'), OrganizerGuard)
   @Get('treks/:id')
   @ApiOperation({ summary: 'Get organizer trek detail' })
   async getTrekDetail(
@@ -113,7 +113,7 @@ export class OrganizerController {
     return this.organizerService.getTrekDetail(id, user.id);
   }
 
-  @UseGuards(JwtAuthGuard, OrganizerGuard)
+  @UseGuards(AuthGuard('jwt'), OrganizerGuard)
   @Patch('treks/:id/status')
   @ApiOperation({ summary: 'Update trek status' })
   async updateTrekStatus(
@@ -124,7 +124,7 @@ export class OrganizerController {
     return this.organizerService.updateTrekStatus(id, status, user.id);
   }
 
-  @UseGuards(JwtAuthGuard, OrganizerGuard)
+  @UseGuards(AuthGuard('jwt'), OrganizerGuard)
   @Get('treks/:id/bookings')
   @ApiOperation({ summary: 'Get bookings for a trek' })
   async getTrekBookings(
@@ -135,7 +135,7 @@ export class OrganizerController {
     return this.organizerService.getTrekBookings(id, user.id, query);
   }
 
-  @UseGuards(JwtAuthGuard, OrganizerGuard)
+  @UseGuards(AuthGuard('jwt'), OrganizerGuard)
   @Get('treks/:id/reviews')
   @ApiOperation({ summary: 'Get reviews for a trek' })
   async getTrekReviews(
@@ -145,7 +145,7 @@ export class OrganizerController {
     return this.organizerService.getTrekReviews(id, user.id);
   }
 
-  @UseGuards(JwtAuthGuard, OrganizerGuard)
+  @UseGuards(AuthGuard('jwt'), OrganizerGuard)
   @Get('bookings')
   @ApiOperation({ summary: 'List organizer bookings across treks' })
   async listBookings(
@@ -155,7 +155,7 @@ export class OrganizerController {
     return this.organizerService.listBookings(user.id, filters);
   }
 
-  @UseGuards(JwtAuthGuard, OrganizerGuard)
+  @UseGuards(AuthGuard('jwt'), OrganizerGuard)
   @Get('analytics')
   @ApiOperation({ summary: 'Get organizer analytics' })
   async getAnalytics(
@@ -165,7 +165,7 @@ export class OrganizerController {
     return this.organizerService.getAnalytics(user.id, filters);
   }
 
-  @UseGuards(JwtAuthGuard, OrganizerGuard)
+  @UseGuards(AuthGuard('jwt'), OrganizerGuard)
   @Get('revenue')
   @ApiOperation({ summary: 'Get organizer revenue data' })
   async getRevenue(
@@ -175,7 +175,7 @@ export class OrganizerController {
     return this.organizerService.getRevenue(user.id, filters);
   }
 
-  @UseGuards(JwtAuthGuard, OrganizerGuard)
+  @UseGuards(AuthGuard('jwt'), OrganizerGuard)
   @Get('participants')
   @ApiOperation({ summary: 'List organizer participants' })
   async getParticipants(

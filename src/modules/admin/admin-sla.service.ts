@@ -4,9 +4,7 @@ import { DataSource } from 'typeorm';
 
 @Injectable()
 export class AdminSlaService {
-  constructor(
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async overview() {
     const rows = await this.dataSource.query(`

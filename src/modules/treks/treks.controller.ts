@@ -16,7 +16,7 @@ import {
   CurrentUser,
   type AuthenticatedUser,
 } from '../../common/decorators/current-user.decorator';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { OrganizerGuard } from '../../common/guards/organizer.guard';
 
 @ApiTags('Treks')
@@ -24,7 +24,7 @@ import { OrganizerGuard } from '../../common/guards/organizer.guard';
 export class TreksController {
   constructor(private readonly treksService: TreksService) {}
 
-  @UseGuards(JwtAuthGuard, OrganizerGuard)
+  @UseGuards(AuthGuard('jwt'), OrganizerGuard)
   @Post()
   @ApiOperation({ summary: 'Create a trek' })
   @ApiOkResponse({ description: 'Created trek' })

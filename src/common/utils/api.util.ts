@@ -1,10 +1,10 @@
-export interface ApiSuccessResponse<T> {
+interface ApiSuccessResponse<T> {
   success: true;
   message: string;
   data: T;
 }
 
-export interface ApiErrorResponse {
+interface ApiErrorResponse {
   success: false;
   statusCode: number;
   message: string;

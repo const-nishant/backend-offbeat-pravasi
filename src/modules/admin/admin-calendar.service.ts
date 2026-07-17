@@ -4,9 +4,7 @@ import { DataSource } from 'typeorm';
 
 @Injectable()
 export class AdminCalendarService {
-  constructor(
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async getCalendar() {
     const sql = `

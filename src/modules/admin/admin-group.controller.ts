@@ -9,7 +9,7 @@ import {
   Body,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
 import { AdminRole } from '../../modules/users/enums/admin-role.enum';
@@ -29,11 +29,9 @@ class TransferOwnershipDto {
 
 @ApiTags('Admin / Groups')
 @Controller('admin/groups')
-@UseGuards(JwtAuthGuard, AdminRolesGuard)
+@UseGuards(AuthGuard('jwt'), AdminRolesGuard)
 export class AdminGroupController {
-  constructor(
-    private readonly adminGroupService: AdminGroupService,
-  ) {}
+  constructor(private readonly adminGroupService: AdminGroupService) {}
 
   @Get()
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
@@ -64,14 +62,20 @@ export class AdminGroupController {
   @Delete(':id/members/:memberId')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Remove a member from the group' })
-  async removeMember(@Param('id') id: string, @Param('memberId') memberId: string) {
+  async removeMember(
+    @Param('id') id: string,
+    @Param('memberId') memberId: string,
+  ) {
     return this.adminGroupService.removeMember(id, memberId);
   }
 
   @Post(':id/transfer-ownership')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Transfer group ownership' })
-  async transferOwnership(@Param('id') id: string, @Body() dto: TransferOwnershipDto) {
+  async transferOwnership(
+    @Param('id') id: string,
+    @Body() dto: TransferOwnershipDto,
+  ) {
     return this.adminGroupService.transferOwnership(id, dto.newOwnerUserId);
   }
 }

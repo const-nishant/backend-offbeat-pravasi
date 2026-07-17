@@ -1,9 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PlatformSettings } from './entities/platform-settings.entity';
-import { RedisService } from '../../common/utils/redis.service';
-
+import type { RedisClient } from '../../common/utils/redis.client';
 const REDIS_KEY = 'platform:settings';
 
 @Injectable()
@@ -13,12 +12,12 @@ export class PlatformSettingsService {
   constructor(
     @InjectRepository(PlatformSettings)
     private readonly settingsRepo: Repository<PlatformSettings>,
-    private readonly redisService: RedisService,
+    @Inject('REDIS_CLIENT') private readonly redis: RedisClient,
   ) {}
 
   async getSettings(): Promise<any> {
     try {
-      const cached = await this.redisService.get(REDIS_KEY);
+      const cached = await this.redis.get(REDIS_KEY);
       if (cached) return JSON.parse(cached);
     } catch {
       this.logger.warn('Redis get failed for platform settings');
@@ -29,7 +28,7 @@ export class PlatformSettingsService {
     });
     const settings = row?.settings || {};
     try {
-      await this.redisService.set(REDIS_KEY, JSON.stringify(settings), 300);
+      await this.redis.set(REDIS_KEY, JSON.stringify(settings), 'EX', 300);
     } catch {
       this.logger.warn('Redis set failed for platform settings');
     }
@@ -54,7 +53,7 @@ export class PlatformSettingsService {
     }
     const saved = await this.settingsRepo.save(row as any);
     try {
-      await this.redisService.del(REDIS_KEY);
+      await this.redis.del(REDIS_KEY);
     } catch {
       this.logger.warn('Redis del failed for platform settings');
     }

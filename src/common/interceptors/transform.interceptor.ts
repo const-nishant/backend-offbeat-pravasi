@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Observable, map } from 'rxjs';
 
-export interface SuccessResponse<T> {
+interface SuccessResponse<T> {
   success: true;
   message: string;
   data: T;

@@ -19,7 +19,7 @@ import {
   CheckOutDto,
   AcknowledgeSafetyDto,
 } from './dtos/check-in.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { OrganizerGuard } from '../../common/guards/organizer.guard';
 import { Public } from '../../common/decorators/public.decorator';
 import {
@@ -40,7 +40,7 @@ export class SafetyController {
     return this.safetyService.getTrekSafety(trekId);
   }
 
-  @UseGuards(JwtAuthGuard, OrganizerGuard)
+  @UseGuards(AuthGuard('jwt'), OrganizerGuard)
   @Put('treks/:trekId/safety')
   @ApiOperation({ summary: 'Upsert safety info for a trek' })
   @ApiOkResponse({ description: 'Safety info upserted' })
@@ -52,7 +52,7 @@ export class SafetyController {
     return this.safetyService.upsertTrekSafety(trekId, user.id, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Get('profile/emergency-contacts')
   @ApiOperation({ summary: 'List user emergency contacts' })
   @ApiOkResponse({ description: 'List of emergency contacts' })
@@ -60,7 +60,7 @@ export class SafetyController {
     return this.safetyService.getUserContacts(user.id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Post('profile/emergency-contacts')
   @ApiOperation({ summary: 'Add emergency contact' })
   @ApiOkResponse({ description: 'Emergency contact created' })
@@ -71,7 +71,7 @@ export class SafetyController {
     return this.safetyService.addContact(user.id, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Patch('profile/emergency-contacts/:id')
   @ApiOperation({ summary: 'Update emergency contact' })
   @ApiOkResponse({ description: 'Emergency contact updated' })
@@ -83,7 +83,7 @@ export class SafetyController {
     return this.safetyService.updateContact(id, user.id, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Delete('profile/emergency-contacts/:id')
   @ApiOperation({ summary: 'Delete emergency contact' })
   @ApiOkResponse({ description: 'Emergency contact deleted' })
@@ -94,7 +94,7 @@ export class SafetyController {
     return this.safetyService.deleteContact(id, user.id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Post('bookings/:bookingId/check-in')
   @ApiOperation({ summary: 'Check in to a trek' })
   @ApiOkResponse({ description: 'Check-in created' })
@@ -106,7 +106,7 @@ export class SafetyController {
     return this.safetyService.checkIn(bookingId, user.id, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Post('bookings/:bookingId/check-out')
   @ApiOperation({ summary: 'Check out from a trek' })
   @ApiOkResponse({ description: 'Check-out completed' })
@@ -118,7 +118,7 @@ export class SafetyController {
     return this.safetyService.checkOut(bookingId, user.id, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Get('bookings/:bookingId/check-in-status')
   @ApiOperation({ summary: 'Get check-in/out status' })
   @ApiOkResponse({ description: 'Check-in status' })
@@ -129,7 +129,7 @@ export class SafetyController {
     return this.safetyService.getCheckInStatus(bookingId, user.id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Post('check-in/:checkInId/acknowledge')
   @ApiOperation({ summary: 'Acknowledge safety and cancel escalation' })
   @ApiOkResponse({ description: 'Safety acknowledged' })

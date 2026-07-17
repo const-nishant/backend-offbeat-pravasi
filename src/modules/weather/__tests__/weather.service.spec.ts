@@ -3,7 +3,6 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import type { Repository } from 'typeorm';
 import { WeatherService } from '../weather.service';
 import { Trek } from '../../treks/entities/trek.entity';
-import { RedisService } from '../../../common/utils/redis.service';
 import {
   describe,
   it,
@@ -17,7 +16,7 @@ import {
 describe('WeatherService', () => {
   let service: WeatherService;
   let trekRepo: jest.Mocked<Repository<Trek>>;
-  let redisService: jest.Mocked<RedisService>;
+  let redis: jest.Mocked<any>;
 
   const mockTrek = {
     id: 'trek-1',
@@ -123,7 +122,7 @@ describe('WeatherService', () => {
       findOne: jest.fn(),
     } as any;
 
-    redisService = {
+    redis = {
       get: jest.fn(),
       set: jest.fn(),
     } as any;
@@ -132,7 +131,7 @@ describe('WeatherService', () => {
       providers: [
         WeatherService,
         { provide: getRepositoryToken(Trek), useValue: trekRepo },
-        { provide: RedisService, useValue: redisService },
+        { provide: 'REDIS_CLIENT', useValue: redis },
       ],
     }).compile();
 
@@ -142,7 +141,7 @@ describe('WeatherService', () => {
   describe('getForTrek', () => {
     it('should fetch weather for a trek by ID', async () => {
       trekRepo.findOne.mockResolvedValue(mockTrek);
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       const result = await service.getForTrek('trek-1');
 
@@ -174,7 +173,7 @@ describe('WeatherService', () => {
 
   describe('getForCoordinates', () => {
     it('should return cached data when available', async () => {
-      redisService.get.mockResolvedValue(JSON.stringify(mockWeatherData));
+      redis.get.mockResolvedValue(JSON.stringify(mockWeatherData));
 
       const result = await service.getForCoordinates(27.9878, 86.925);
 
@@ -182,17 +181,17 @@ describe('WeatherService', () => {
     });
 
     it('should fetch and cache when cache misses', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
 
       const result = await service.getForCoordinates(27.9878, 86.925);
 
       expect(result.location.name).toBe('Everest Base Camp');
-      expect(redisService.set).toHaveBeenCalled();
+      expect(redis.set).toHaveBeenCalled();
       expect(result.source).toBe('WeatherAPI.com');
     });
 
     it('should handle redis cache read failure gracefully', async () => {
-      redisService.get.mockRejectedValue(new Error('Redis error'));
+      redis.get.mockRejectedValue(new Error('Redis error'));
 
       const result = await service.getForCoordinates(27.9878, 86.925);
 
@@ -200,8 +199,8 @@ describe('WeatherService', () => {
     });
 
     it('should handle redis cache write failure gracefully', async () => {
-      redisService.get.mockResolvedValue(null);
-      redisService.set.mockRejectedValue(new Error('Redis write error'));
+      redis.get.mockResolvedValue(null);
+      redis.set.mockRejectedValue(new Error('Redis write error'));
 
       const result = await service.getForCoordinates(27.9878, 86.925);
 

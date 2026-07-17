@@ -7,7 +7,7 @@ import {
   Body,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
 import { AdminRole } from '../../modules/users/enums/admin-role.enum';
@@ -22,7 +22,7 @@ class RejectDto {
 
 @ApiTags('Admin / Data Export')
 @Controller('admin/data-exports')
-@UseGuards(JwtAuthGuard, AdminRolesGuard)
+@UseGuards(AuthGuard('jwt'), AdminRolesGuard)
 export class AdminDataExportController {
   constructor(
     private readonly adminDataExportService: AdminDataExportService,
@@ -44,7 +44,10 @@ export class AdminDataExportController {
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Approve and start processing data export' })
   async approve(@Param('id') id: string) {
-    return this.adminDataExportService.approve(id, '00000000-0000-0000-0000-000000000000');
+    return this.adminDataExportService.approve(
+      id,
+      '00000000-0000-0000-0000-000000000000',
+    );
   }
 
   @Post(':id/reject')

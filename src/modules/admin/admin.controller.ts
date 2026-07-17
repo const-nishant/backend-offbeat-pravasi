@@ -9,7 +9,7 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from 'src/common/guards/admin-roles.guard';
 import { AdminRoles } from 'src/common/decorators/admin-roles.decorator';
 import { AdminRole } from 'src/modules/users/enums/admin-role.enum';
@@ -29,7 +29,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('Admin')
 @Controller('admin')
-@UseGuards(JwtAuthGuard, AdminRolesGuard)
+@UseGuards(AuthGuard('jwt'), AdminRolesGuard)
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,

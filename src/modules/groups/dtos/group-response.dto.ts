@@ -1,29 +1,26 @@
-import { ApiProperty } from '@nestjs/swagger';
-
 class GroupMemberDto {
-  @ApiProperty() id!: string;
-  @ApiProperty() groupId!: string;
-  @ApiProperty({ nullable: true }) userId!: string | null;
-  @ApiProperty() email!: string;
-  @ApiProperty() status!: string;
-  @ApiProperty({ nullable: true }) fullName!: string | null;
-  @ApiProperty({ nullable: true }) phone!: string | null;
-  @ApiProperty({ nullable: true }) medicalConditions!: string | null;
-  @ApiProperty({ nullable: true }) joinedAt!: Date | null;
-  @ApiProperty() createdAt!: Date;
+  id!: string;
+  groupId!: string;
+  userId!: string | null;
+  email!: string;
+  status!: string;
+  fullName!: string | null;
+  phone!: string | null;
+  medicalConditions!: string | null;
+  joinedAt!: Date | null;
+  createdAt!: Date;
 }
 
 export class GroupDetailDto {
-  @ApiProperty() id!: string;
-  @ApiProperty() trekId!: string;
-  @ApiProperty() leadUserId!: string;
-  @ApiProperty() name!: string;
-  @ApiProperty() maxSize!: number;
-  @ApiProperty() expiresAt!: Date;
-  @ApiProperty() status!: string;
-  @ApiProperty() shareCode!: string;
-  @ApiProperty() createdAt!: Date;
-  @ApiProperty() updatedAt!: Date;
-  @ApiProperty({ type: [GroupMemberDto] })
+  id!: string;
+  trekId!: string;
+  leadUserId!: string;
+  name!: string;
+  maxSize!: number;
+  expiresAt!: Date;
+  status!: string;
+  shareCode!: string;
+  createdAt!: Date;
+  updatedAt!: Date;
   members!: GroupMemberDto[];
 }

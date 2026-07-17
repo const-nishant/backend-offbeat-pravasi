@@ -30,7 +30,14 @@ export class AdminItineraryService {
     name: string;
     description?: string;
     region?: string;
-    days: { dayNumber: number; title?: string; description?: string; activities?: string; accommodation?: string; meals?: string }[];
+    days: {
+      dayNumber: number;
+      title?: string;
+      description?: string;
+      activities?: string;
+      accommodation?: string;
+      meals?: string;
+    }[];
   }) {
     const template = this.templateRepo.create({
       name: data.name,
@@ -51,7 +58,9 @@ export class AdminItineraryService {
   }
 
   async applyToTrek(templateId: string, trekId: string) {
-    const template = await this.templateRepo.findOne({ where: { id: templateId } });
+    const template = await this.templateRepo.findOne({
+      where: { id: templateId },
+    });
     if (!template) throw new NotFoundException('Template not found');
 
     const days = await this.dayRepo.find({
@@ -75,7 +84,15 @@ export class AdminItineraryService {
       await this.dataSource.query(
         `INSERT INTO trek_itinerary_days (trek_id, day_number, title, description, activities, accommodation, meals)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [trekId, day.dayNumber, day.title, day.description, day.activities, day.accommodation, day.meals],
+        [
+          trekId,
+          day.dayNumber,
+          day.title,
+          day.description,
+          day.activities,
+          day.accommodation,
+          day.meals,
+        ],
       );
     }
 

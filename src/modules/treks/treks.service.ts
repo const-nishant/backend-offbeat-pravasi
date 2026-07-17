@@ -1,10 +1,12 @@
 import {
+  Inject,
   Injectable,
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
+import type { RedisClient } from '../../common/utils/redis.client';
 import { Trek } from './entities/trek.entity';
 import { TrekReview } from './entities/trek-review.entity';
 import {
@@ -17,7 +19,6 @@ import {
   getPagination,
   buildPaginationMeta,
 } from '../../common/pagination/pagination.util';
-import { RedisService } from '../../common/utils/redis.service';
 import { User } from '../users/entities/user.entity';
 import { OrganizerStatus } from '../users/enums/organizer-status.enums';
 
@@ -36,7 +37,7 @@ export class TreksService {
     private readonly tagRepo: Repository<TrekTag>,
     @InjectRepository(TrekImage)
     private readonly imageRepo: Repository<TrekImage>,
-    private readonly redisService: RedisService,
+    @Inject('REDIS_CLIENT') private readonly redis: RedisClient,
   ) {}
 
   async createTrek(payload: any, userId?: string) {
@@ -211,7 +212,7 @@ export class TreksService {
   ) {
     if (userId) {
       const cacheKey = `user:recs:${userId}`;
-      const cached = await this.redisService.get(cacheKey);
+      const cached = await this.redis.get(cacheKey);
       if (cached) return JSON.parse(cached);
 
       const interactions = await this.interactionRepo.find({
@@ -232,7 +233,7 @@ export class TreksService {
       };
 
       for (const sid of seedIds) {
-        const raw = await this.redisService.get(`trek:similar:${sid}`);
+        const raw = await this.redis.get(`trek:similar:${sid}`);
         if (!raw) continue;
         const list = JSON.parse(raw) as Array<{ id: string; score: number }>;
         const intType =
@@ -270,7 +271,7 @@ export class TreksService {
         .map((id) => treks.find((t) => t.id === id))
         .filter(Boolean) as Trek[];
 
-      await this.redisService.set(cacheKey, JSON.stringify(ordered), 8 * 3600);
+      await this.redis.set(cacheKey, JSON.stringify(ordered), 'EX', 8 * 3600);
       return ordered.slice(0, limit);
     }
 

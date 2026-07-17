@@ -7,7 +7,6 @@ import {
 import type { Repository } from 'typeorm';
 import type { JwtService } from '@nestjs/jwt';
 import { AuthService, type TokenPair } from './auth.service';
-import type { RedisService } from '../../common/utils/redis.service';
 import type { MailerService } from '../mailer/mailer.service';
 import type { User } from '../users/entities/user.entity';
 import type { AnalyticsService } from '../analytics/analytics.service';
@@ -46,7 +45,7 @@ describe('AuthService', () => {
   let service: AuthService;
   let userRepo: jest.Mocked<Repository<User>>;
   let jwtService: jest.Mocked<JwtService>;
-  let redisService: jest.Mocked<RedisService>;
+  let redis: jest.Mocked<any>;
   let mailerService: jest.Mocked<MailerService>;
   let analyticsService: jest.Mocked<AnalyticsService>;
   let mockBetterAuth: any;
@@ -93,7 +92,7 @@ describe('AuthService', () => {
       verify: jest.fn(),
     } as any;
 
-    redisService = {
+    redis = {
       get: jest.fn(),
       set: jest.fn(),
       del: jest.fn(),
@@ -113,7 +112,7 @@ describe('AuthService', () => {
     service = new AuthService(
       userRepo as any,
       jwtService as any,
-      redisService as any,
+      redis as any,
       mailerService as any,
       mockBetterAuth as any,
       analyticsService as any,
@@ -141,7 +140,7 @@ describe('AuthService', () => {
         id: 'new-id',
         email,
       } as User);
-      redisService.set.mockResolvedValue(undefined);
+      redis.set.mockResolvedValue(undefined);
       mailerService.sendOtpEmail.mockResolvedValue(undefined);
 
       const result = await service.register({ email, password, fullName });
@@ -176,7 +175,7 @@ describe('AuthService', () => {
         id: 'no-name-id',
         fullName: null,
       } as User);
-      redisService.set.mockResolvedValue(undefined);
+      redis.set.mockResolvedValue(undefined);
       mailerService.sendOtpEmail.mockResolvedValue(undefined);
 
       const result = await service.register({
@@ -191,13 +190,13 @@ describe('AuthService', () => {
   describe('sendOtp', () => {
     it('should generate and store OTP, then send via email', async () => {
       (generateOtp as jest.Mock).mockReturnValue('123456');
-      redisService.set.mockResolvedValue(undefined);
+      redis.set.mockResolvedValue(undefined);
       mailerService.sendOtpEmail.mockResolvedValue(undefined);
 
       const result = await service.sendOtp({ email: 'test@example.com' });
 
       expect(result.message).toContain('OTP sent');
-      expect(redisService.set).toHaveBeenCalled();
+      expect(redis.set).toHaveBeenCalled();
       expect(mailerService.sendOtpEmail).toHaveBeenCalledWith(
         'test@example.com',
         '123456',
@@ -206,7 +205,7 @@ describe('AuthService', () => {
 
     it('should return success even if email sending fails', async () => {
       (generateOtp as jest.Mock).mockReturnValue('123456');
-      redisService.set.mockResolvedValue(undefined);
+      redis.set.mockResolvedValue(undefined);
       mailerService.sendOtpEmail.mockRejectedValue(new Error('Email error'));
 
       const result = await service.sendOtp({ email: 'test@example.com' });
@@ -220,14 +219,14 @@ describe('AuthService', () => {
     const otp = '123456';
 
     it('should verify OTP successfully', async () => {
-      redisService.get.mockResolvedValue(
+      redis.get.mockResolvedValue(
         JSON.stringify({
           otp: '123456',
           attempts: 0,
           createdAt: new Date().toISOString(),
         }),
       );
-      redisService.del.mockResolvedValue(undefined);
+      redis.del.mockResolvedValue(undefined);
       userRepo.findOne.mockResolvedValue(mockUser as User);
       userRepo.save.mockResolvedValue(mockUser as User);
 
@@ -239,39 +238,39 @@ describe('AuthService', () => {
     });
 
     it('should throw if OTP expired', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       await expect(service.verifyOtp({ email, otp })).rejects.toThrow(
         UnauthorizedException,
       );
     });
 
     it('should throw if max attempts exceeded', async () => {
-      redisService.get.mockResolvedValue(
+      redis.get.mockResolvedValue(
         JSON.stringify({
           otp: 'wrong',
           attempts: 5,
           createdAt: new Date().toISOString(),
         }),
       );
-      redisService.del.mockResolvedValue(undefined);
+      redis.del.mockResolvedValue(undefined);
       await expect(service.verifyOtp({ email, otp })).rejects.toThrow(
         'Too many failed attempts',
       );
     });
 
     it('should throw and increment attempts on wrong OTP', async () => {
-      redisService.get.mockResolvedValue(
+      redis.get.mockResolvedValue(
         JSON.stringify({
           otp: '999999',
           attempts: 0,
           createdAt: new Date().toISOString(),
         }),
       );
-      redisService.set.mockResolvedValue(undefined);
+      redis.set.mockResolvedValue(undefined);
       await expect(service.verifyOtp({ email, otp })).rejects.toThrow(
         'Invalid OTP',
       );
-      expect(redisService.set).toHaveBeenCalledWith(
+      expect(redis.set).toHaveBeenCalledWith(
         CacheKeys.otpEmail(email),
         expect.stringContaining('"attempts":1'),
         expect.any(Number),
@@ -279,14 +278,14 @@ describe('AuthService', () => {
     });
 
     it('should throw NotFoundException if user not found after valid OTP', async () => {
-      redisService.get.mockResolvedValue(
+      redis.get.mockResolvedValue(
         JSON.stringify({
           otp: '123456',
           attempts: 0,
           createdAt: new Date().toISOString(),
         }),
       );
-      redisService.del.mockResolvedValue(undefined);
+      redis.del.mockResolvedValue(undefined);
       userRepo.findOne.mockResolvedValue(null);
       await expect(service.verifyOtp({ email, otp })).rejects.toThrow(
         NotFoundException,
@@ -377,12 +376,12 @@ describe('AuthService', () => {
         email: 'test@example.com',
         isAdmin: false,
       });
-      redisService.get.mockResolvedValue('stored-hash');
+      redis.get.mockResolvedValue('stored-hash');
       (argon2.verify as jest.Mock).mockResolvedValue(true);
       jest
         .spyOn(service as any, 'createTokenPair')
         .mockResolvedValue(mockTokenPair);
-      redisService.del.mockResolvedValue(undefined);
+      redis.del.mockResolvedValue(undefined);
 
       const result = await service.refresh({
         refreshToken: 'valid-refresh-token',
@@ -415,7 +414,7 @@ describe('AuthService', () => {
         email: 'test@example.com',
         isAdmin: false,
       });
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       await expect(service.refresh({ refreshToken: 'token' })).rejects.toThrow(
         UnauthorizedException,
       );
@@ -425,10 +424,10 @@ describe('AuthService', () => {
   // ---------- LOGOUT ----------
   describe('logout', () => {
     it('should delete the refresh session key', async () => {
-      redisService.del.mockResolvedValue(undefined);
+      redis.del.mockResolvedValue(undefined);
       const result = await service.logout('user-1', 'session-1');
       expect(result).toEqual({ message: 'Logged out' });
-      expect(redisService.del).toHaveBeenCalledWith(
+      expect(redis.del).toHaveBeenCalledWith(
         CacheKeys.refreshSession('user-1', 'session-1'),
       );
     });
@@ -440,7 +439,7 @@ describe('AuthService', () => {
       service = new AuthService(
         userRepo as any,
         jwtService as any,
-        redisService as any,
+        redis as any,
         mailerService as any,
         null as any,
         analyticsService as any,
@@ -456,7 +455,7 @@ describe('AuthService', () => {
       service = new AuthService(
         userRepo as any,
         jwtService as any,
-        redisService as any,
+        redis as any,
         mailerService as any,
         null as any,
         analyticsService as any,

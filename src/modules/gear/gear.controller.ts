@@ -12,7 +12,7 @@ import { GearService } from './gear.service';
 import { CreateGearItemDto } from './dtos/create-gear-item.dto';
 import { SetTrekGearDto } from './dtos/set-trek-gear.dto';
 import { UpdatePackingItemDto } from './dtos/update-packing-item.dto';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { AdminGuard } from '../../common/guards/admin.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
@@ -24,21 +24,21 @@ export class GearController {
   constructor(private readonly gearService: GearService) {}
 
   @Get('gear-items')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
   @ApiOperation({ summary: 'List all master gear items' })
   async getAllGearItems() {
     return this.gearService.getAllGearItems();
   }
 
   @Post('gear-items')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
   @ApiOperation({ summary: 'Create a master gear item' })
   async createGearItem(@Body() dto: CreateGearItemDto) {
     return this.gearService.createGearItem(dto);
   }
 
   @Put('gear-items/:id')
-  @UseGuards(JwtAuthGuard, AdminGuard)
+  @UseGuards(AuthGuard('jwt'), AdminGuard)
   @ApiOperation({ summary: 'Update a master gear item' })
   async updateGearItem(
     @Param('id') id: string,
@@ -54,7 +54,7 @@ export class GearController {
   }
 
   @Put('treks/:trekId/gear')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Set gear list for a trek (organizer only)' })
   async setTrekGear(
     @Param('trekId') trekId: string,
@@ -65,7 +65,7 @@ export class GearController {
   }
 
   @Get('bookings/:bookingId/packing-list')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Get user packing list for a booking' })
   async getPackingList(
     @Param('bookingId') bookingId: string,
@@ -75,7 +75,7 @@ export class GearController {
   }
 
   @Patch('bookings/:bookingId/packing-list/items/:itemId')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Toggle packing list item fields' })
   async updatePackingItem(
     @Param('bookingId') bookingId: string,
@@ -87,7 +87,7 @@ export class GearController {
   }
 
   @Post('rentals/:bookingId')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Confirm rental items for a booking' })
   async confirmRentals(
     @Param('bookingId') bookingId: string,

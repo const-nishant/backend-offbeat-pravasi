@@ -6,7 +6,6 @@ import {
   Column,
 } from 'typeorm';
 import { WeatherService } from '../weather.service';
-import { RedisService } from '../../../common/utils/redis.service';
 import {
   describe,
   beforeAll,
@@ -64,7 +63,7 @@ describe('WeatherService Integration (SQLite)', () => {
   let dataSource: DataSource;
   let trekRepo: Repository<SqliteTrek>;
   let service: WeatherService;
-  let redisMock: jest.Mocked<RedisService>;
+  let redis: jest.Mocked<any>;
   let originalFetch: any;
   let originalApiKey: string | undefined;
 

@@ -1,9 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, MoreThan } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { FriendshipsService } from '../friendships/friendships.service';
-import { RedisService } from '../../common/utils/redis.service';
+import type { RedisClient } from '../../common/utils/redis.client';
 import { CacheKeys } from '../../common/constants/cache.keys';
 
 @Injectable()
@@ -14,12 +14,12 @@ export class LeaderboardService {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
     private readonly friendshipsService: FriendshipsService,
-    private readonly redisService: RedisService,
+    @Inject('REDIS_CLIENT') private readonly redis: RedisClient,
   ) {}
 
   async getFriendLeaderboard(userId: string) {
     const cacheKey = CacheKeys.leaderboardUser(userId) + ':friends';
-    const cached = await this.redisService.get(cacheKey);
+    const cached = await this.redis.get(cacheKey);
     if (cached) {
       return JSON.parse(cached);
     }
@@ -50,7 +50,7 @@ export class LeaderboardService {
       distanceTravelled: u.userDistanceTravelled,
     }));
 
-    await this.redisService.set(cacheKey, JSON.stringify(leaderboard), 900);
+    await this.redis.set(cacheKey, JSON.stringify(leaderboard), 'EX', 900);
 
     return leaderboard;
   }

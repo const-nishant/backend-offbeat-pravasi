@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_FILTER, APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
-import { ValidationExceptionFilter } from './common/filters/validation-exception.filter';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { ApiKeyGuard } from './common/guards/api-key.guard';
@@ -10,7 +9,6 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ormConfig } from './config/ormconfig';
 import configuration from './config/configuration';
-import { validationSchema } from './config/validation';
 import { RedisModule } from './common/modules/redis.module';
 import { HealthModule } from './modules/health/health.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -42,7 +40,6 @@ import { RecommendationsModule } from './modules/recommendations/recommendations
   imports: [
     ConfigModule.forRoot({
       load: [configuration],
-      validationSchema,
       isGlobal: true,
     }),
     ThrottlerModule.forRoot([
@@ -83,8 +80,7 @@ import { RecommendationsModule } from './modules/recommendations/recommendations
     // global guards
     { provide: APP_GUARD, useClass: ApiKeyGuard },
 
-    // Global exception filters: order matters — specific before catch-all
-    { provide: APP_FILTER, useClass: ValidationExceptionFilter },
+    // Global exception filters: AllExceptionsFilter handles validation + everything else
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
 
     // Global interceptors

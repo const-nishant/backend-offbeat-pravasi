@@ -4,24 +4,24 @@ import { AdminAnalyticsService } from '../admin-analytics.service';
 describe('AdminAnalyticsService', () => {
   let service: AdminAnalyticsService;
   let dataSource: any;
-  let redisService: any;
+  let: any;
 
   beforeEach(() => {
     jest.resetAllMocks();
 
     dataSource = { query: jest.fn<any>() };
-    redisService = {
+    redis = {
       get: jest.fn<any>(),
       set: jest.fn<any>(),
     };
 
-    service = new AdminAnalyticsService(dataSource as any, redisService as any);
+    service = new AdminAnalyticsService(dataSource as any, redis as any);
   });
 
   describe('getDau', () => {
     it('returns cached data when available', async () => {
       const cached = JSON.stringify([{ date: '2026-07-01', count: 42 }]);
-      redisService.get.mockResolvedValue(cached);
+      redis.get.mockResolvedValue(cached);
 
       const result = await service.getDau(7);
 
@@ -30,7 +30,7 @@ describe('AdminAnalyticsService', () => {
     });
 
     it('queries and caches when cache is empty', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([
         { date: new Date('2026-07-01'), count: '42' },
         { date: new Date('2026-07-02'), count: '55' },
@@ -42,7 +42,7 @@ describe('AdminAnalyticsService', () => {
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual({ date: expect.any(Date), count: 42 });
       expect(result[1]).toEqual({ date: expect.any(Date), count: 55 });
-      expect(redisService.set).toHaveBeenCalledWith(
+      expect(redis.set).toHaveBeenCalledWith(
         expect.any(String),
         expect.any(String),
         300,
@@ -52,7 +52,7 @@ describe('AdminAnalyticsService', () => {
 
   describe('getTrekPopularity', () => {
     it('queries trek_interactions grouped by trek', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([
         {
           id: 'trek-1',
@@ -77,7 +77,7 @@ describe('AdminAnalyticsService', () => {
       expect(result[0].trekId).toBe('trek-1');
       expect(result[0].views).toBe(100);
       expect(result[0].bookmarks).toBe(20);
-      expect(redisService.set).toHaveBeenCalledWith(
+      expect(redis.set).toHaveBeenCalledWith(
         expect.any(String),
         expect.any(String),
         600,
@@ -87,7 +87,7 @@ describe('AdminAnalyticsService', () => {
 
   describe('getConversionFunnel', () => {
     it('returns counts for each funnel stage', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query
         .mockResolvedValueOnce([{ count: '1000' }])
         .mockResolvedValueOnce([{ count: '200' }])
@@ -102,7 +102,7 @@ describe('AdminAnalyticsService', () => {
       expect(result.stages.paymentsInitiated).toBe(150);
       expect(result.stages.paymentsCompleted).toBe(130);
       expect(result.stages.bookingsConfirmed).toBe(120);
-      expect(redisService.set).toHaveBeenCalledWith(
+      expect(redis.set).toHaveBeenCalledWith(
         expect.any(String),
         expect.any(String),
         900,
@@ -110,7 +110,7 @@ describe('AdminAnalyticsService', () => {
     });
 
     it('applies date filters when provided', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query
         .mockResolvedValueOnce([{ count: '500' }])
         .mockResolvedValueOnce([{ count: '100' }])
@@ -130,7 +130,7 @@ describe('AdminAnalyticsService', () => {
 
   describe('getRevenueTrends', () => {
     it('queries payments grouped by date and provider', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([
         {
           date: new Date('2026-07-01'),
@@ -157,7 +157,7 @@ describe('AdminAnalyticsService', () => {
       expect(result).toHaveLength(2);
       expect(result[0].provider).toBe('STRIPE');
       expect(result[0].revenue).toBe(50000);
-      expect(redisService.set).toHaveBeenCalledWith(
+      expect(redis.set).toHaveBeenCalledWith(
         expect.any(String),
         expect.any(String),
         600,
@@ -165,7 +165,7 @@ describe('AdminAnalyticsService', () => {
     });
 
     it('maps weekly and monthly periods', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([]);
 
       await service.getRevenueTrends('monthly', 90);
@@ -184,7 +184,7 @@ describe('AdminAnalyticsService', () => {
 
   describe('getRetentionCohorts', () => {
     it('computes retention rates for each cohort', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([
         {
           cohort_month: new Date('2026-06-01'),
@@ -216,7 +216,7 @@ describe('AdminAnalyticsService', () => {
     });
 
     it('handles empty data', async () => {
-      redisService.get.mockResolvedValue(null);
+      redis.get.mockResolvedValue(null);
       dataSource.query.mockResolvedValue([]);
 
       const result = await service.getRetentionCohorts(12);

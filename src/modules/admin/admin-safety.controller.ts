@@ -7,7 +7,7 @@ import {
   Body,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
 import { AdminRole } from '../../modules/users/enums/admin-role.enum';
@@ -22,15 +22,15 @@ class ResolveIncidentDto {
 
 @ApiTags('Admin / Safety')
 @Controller('admin/safety')
-@UseGuards(JwtAuthGuard, AdminRolesGuard)
+@UseGuards(AuthGuard('jwt'), AdminRolesGuard)
 export class AdminSafetyController {
-  constructor(
-    private readonly adminSafetyService: AdminSafetyService,
-  ) {}
+  constructor(private readonly adminSafetyService: AdminSafetyService) {}
 
   @Get('incidents')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
-  @ApiOperation({ summary: 'List safety incidents (overdue check-ins, escalations)' })
+  @ApiOperation({
+    summary: 'List safety incidents (overdue check-ins, escalations)',
+  })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   async listIncidents(

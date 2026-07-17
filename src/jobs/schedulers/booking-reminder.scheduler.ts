@@ -1,31 +1,23 @@
-import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  Logger,
-} from '@nestjs/common';
-import { Queue } from 'bullmq';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { bullConnection } from '../config';
+import { bookingReminderQueue } from '../queues';
+import { CRON_TZ } from '../config';
 
 @Injectable()
-export class BookingReminderScheduler implements OnModuleInit, OnModuleDestroy {
+export class BookingReminderScheduler implements OnModuleInit {
   private readonly logger = new Logger(BookingReminderScheduler.name);
-  private readonly queue = new Queue('booking-reminder-queue', {
-    connection: bullConnection,
-  });
 
   constructor(private readonly dataSource: DataSource) {}
 
   async onModuleInit(): Promise<void> {
     try {
-      await this.queue.add(
+      await bookingReminderQueue.add(
         'check-upcoming-bookings',
         {},
         {
           jobId: 'booking-reminder-checker',
           removeOnComplete: true,
-          repeat: { every: 6 * 60 * 60 * 1000 },
+          repeat: { every: 6 * 60 * 60 * 1000, tz: CRON_TZ },
         },
       );
 
@@ -45,7 +37,7 @@ export class BookingReminderScheduler implements OnModuleInit, OnModuleDestroy {
     );
 
     for (const booking of upcoming) {
-      await this.queue.add(
+      await bookingReminderQueue.add(
         'send-reminder',
         { bookingId: booking.id },
         { removeOnComplete: true },
@@ -54,9 +46,5 @@ export class BookingReminderScheduler implements OnModuleInit, OnModuleDestroy {
 
     this.logger.log(`Enqueued ${upcoming.length} booking reminders`);
     return { reminded: upcoming.length };
-  }
-
-  async onModuleDestroy(): Promise<void> {
-    await this.queue.close();
   }
 }
