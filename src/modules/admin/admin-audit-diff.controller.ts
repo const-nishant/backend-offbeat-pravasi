@@ -1,4 +1,11 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  ParseUUIDPipe,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
@@ -32,7 +39,7 @@ export class AdminAuditDiffController {
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   async timeline(
-    @Query('actorId') actorId?: string,
+    @Query('actorId', new ParseUUIDPipe({ optional: true })) actorId?: string,
     @Query('action') action?: string,
     @Query('from') from?: string,
     @Query('to') to?: string,

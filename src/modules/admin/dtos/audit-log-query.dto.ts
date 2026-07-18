@@ -1,6 +1,7 @@
 import {
   IsOptional,
   IsString,
+  IsUUID,
   IsISO8601,
   IsInt,
   Min,
@@ -9,7 +10,7 @@ import {
 
 export class AuditLogQueryDto {
   @IsOptional()
-  @IsString()
+  @IsUUID()
   actorId?: string;
 
   @IsOptional()

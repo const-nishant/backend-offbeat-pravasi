@@ -8,9 +8,9 @@ export class AdminAuditDiffService {
 
   async diff(resourceType: string, resourceId: string) {
     const rows = await this.dataSource.query(
-      `SELECT id, actor_id, action, metadata, created_at
+      `SELECT id, actor_id, action, detail, created_at
        FROM audit_logs
-       WHERE entity_type = $1 AND entity_id = $2
+       WHERE resource_type = $1 AND resource_id = $2
        ORDER BY created_at ASC`,
       [resourceType, resourceId],
     );
@@ -89,7 +89,7 @@ export class AdminAuditDiffService {
     const offset = (page - 1) * limit;
 
     const rows = await this.dataSource.query(
-      `SELECT id, actor_id, action, entity_type, entity_id, metadata, created_at
+      `SELECT id, actor_id, action, resource_type, resource_id, detail, created_at
        FROM audit_logs
        WHERE ${conditions.join(' AND ')}
        ORDER BY created_at DESC

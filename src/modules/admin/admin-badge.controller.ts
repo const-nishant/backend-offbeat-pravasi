@@ -5,6 +5,7 @@ import {
   Patch,
   Delete,
   Param,
+  ParseUUIDPipe,
   Body,
   UseGuards,
 } from '@nestjs/common';
@@ -110,14 +111,17 @@ export class AdminBadgeController {
   @Patch(':id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Update a badge' })
-  async update(@Param('id') id: string, @Body() dto: UpdateBadgeDto) {
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateBadgeDto,
+  ) {
     return this.adminBadgeService.update(id, dto);
   }
 
   @Delete(':id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Delete a badge' })
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminBadgeService.remove(id);
   }
 
@@ -125,7 +129,7 @@ export class AdminBadgeController {
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Manually award badge to a user' })
   async award(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AwardBadgeDto,
     // TODO: Inject current admin user for awardedBy
   ) {
@@ -140,7 +144,10 @@ export class AdminBadgeController {
   @Post(':id/revoke')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Revoke badge from a user' })
-  async revoke(@Param('id') id: string, @Body() dto: AwardBadgeDto) {
+  async revoke(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: AwardBadgeDto,
+  ) {
     return this.adminBadgeService.revoke(id, dto.userId);
   }
 
