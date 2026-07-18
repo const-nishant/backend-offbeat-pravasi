@@ -37,7 +37,19 @@ export class AdminApiKeyService {
   }
 
   async get(id: string) {
-    const key = await this.repo.findOne({ where: { id } });
+    const key = await this.repo.findOne({
+      where: { id },
+      select: [
+        'id',
+        'name',
+        'permissions',
+        'expiresAt',
+        'lastUsedAt',
+        'isActive',
+        'createdAt',
+        'updatedAt',
+      ],
+    });
     if (!key) throw new NotFoundException('API key not found');
     return key;
   }

@@ -6,6 +6,7 @@ import {
   Delete,
   Param,
   Body,
+  ParseUUIDPipe,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -61,7 +62,7 @@ export class AdminApiKeyController {
   @Get(':id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Get API key details' })
-  async get(@Param('id') id: string) {
+  async get(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminApiKeyService.get(id);
   }
 
@@ -79,7 +80,10 @@ export class AdminApiKeyController {
   @Patch(':id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Update API key metadata' })
-  async update(@Param('id') id: string, @Body() dto: UpdateApiKeyDto) {
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateApiKeyDto,
+  ) {
     return this.adminApiKeyService.update(id, {
       name: dto.name,
       permissions: dto.permissions,
@@ -95,14 +99,14 @@ export class AdminApiKeyController {
   @Delete(':id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Revoke an API key' })
-  async revoke(@Param('id') id: string) {
+  async revoke(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminApiKeyService.revoke(id);
   }
 
   @Post(':id/rotate')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Rotate API key (returns new key once)' })
-  async rotate(@Param('id') id: string) {
+  async rotate(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminApiKeyService.rotate(id);
   }
 }
