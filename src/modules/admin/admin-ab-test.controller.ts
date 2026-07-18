@@ -12,14 +12,55 @@ import {
   IsNumber,
   IsDateString,
   ValidateNested,
+  ArrayMinSize,
+  Min,
+  Max,
+  Validate,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+  ValidationArguments,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+
+@ValidatorConstraint({ name: 'variantsSum', async: false })
+class VariantsSumConstraint implements ValidatorConstraintInterface {
+  validate(
+    variants: { name: string; percentage: number }[],
+    _args: ValidationArguments,
+  ) {
+    if (!Array.isArray(variants)) return true;
+    const sum = variants.reduce(
+      (acc, v) => acc + (Number(v?.percentage) || 0),
+      0,
+    );
+    return Math.round(sum) === 100;
+  }
+
+  defaultMessage() {
+    return 'variant percentages must sum to exactly 100';
+  }
+}
+
+@ValidatorConstraint({ name: 'endDateAfterStart', async: false })
+class EndDateAfterStartConstraint implements ValidatorConstraintInterface {
+  validate(_value: unknown, args: ValidationArguments) {
+    const obj = args.object as CreateAbTestDto;
+    if (!obj.startDate || !obj.endDate) return true;
+    return new Date(obj.endDate).getTime() >= new Date(obj.startDate).getTime();
+  }
+
+  defaultMessage() {
+    return 'endDate must be on or after startDate';
+  }
+}
 
 class VariantDto {
   @IsString()
   name!: string;
 
   @IsNumber()
+  @Min(0)
+  @Max(100)
   percentage!: number;
 }
 
@@ -32,7 +73,9 @@ class CreateAbTestDto {
   description?: string;
 
   @IsArray()
+  @ArrayMinSize(1)
   @ValidateNested({ each: true })
+  @Validate(VariantsSumConstraint)
   @Type(() => VariantDto)
   variants!: VariantDto[];
 
@@ -46,6 +89,7 @@ class CreateAbTestDto {
 
   @IsOptional()
   @IsDateString()
+  @Validate(EndDateAfterStartConstraint)
   endDate?: string;
 }
 

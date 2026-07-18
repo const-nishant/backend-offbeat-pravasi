@@ -1,4 +1,10 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FeatureFlag } from './entities/feature-flag.entity';
@@ -26,6 +32,13 @@ export class AdminAbTestService {
     startDate?: Date;
     endDate?: Date;
   }) {
+    const existing = await this.repo.findOne({ where: { key: data.key } });
+    if (existing) {
+      throw new ConflictException(
+        `A/B test with key "${data.key}" already exists`,
+      );
+    }
+
     const test = this.repo.create({
       key: data.key,
       description: JSON.stringify({
@@ -49,6 +62,16 @@ export class AdminAbTestService {
     if (!test) throw new NotFoundException('A/B test not found');
 
     const desc = test.description ? JSON.parse(test.description) : {};
+    const variants: { name: string }[] = desc.variants ?? [];
+    if (
+      variants.length > 0 &&
+      !variants.some((v) => v.name === winnerVariant)
+    ) {
+      throw new BadRequestException(
+        `winnerVariant "${winnerVariant}" is not one of the test variants`,
+      );
+    }
+
     desc.winner = winnerVariant;
     desc.concludedAt = new Date().toISOString();
     test.description = JSON.stringify(desc);
