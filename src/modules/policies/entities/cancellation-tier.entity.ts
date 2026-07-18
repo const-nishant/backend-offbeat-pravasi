@@ -20,7 +20,7 @@ export class CancellationTier {
   @ManyToOne(() => CancellationPolicy, (policy) => policy.tiers, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'policyId' })
+  @JoinColumn()
   policy: CancellationPolicy;
 
   @Column('int')

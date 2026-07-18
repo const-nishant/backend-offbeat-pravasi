@@ -20,7 +20,7 @@ export class UserEmergencyContact {
   userId!: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn()
   user!: User;
 
   @Column({ type: 'varchar', length: 120 })

@@ -18,7 +18,7 @@ export class TrekSafetyInfo {
   trekId!: string;
 
   @OneToOne(() => Trek, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'trekId' })
+  @JoinColumn()
   trek!: Trek;
 
   @Column({ type: 'text', nullable: true })

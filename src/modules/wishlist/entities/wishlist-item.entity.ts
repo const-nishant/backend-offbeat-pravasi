@@ -36,7 +36,7 @@ export class WishlistItem {
   @ManyToOne(() => WishlistCollection, (col) => col.items, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'collectionId' })
+  @JoinColumn()
   collection!: WishlistCollection;
 
   @CreateDateColumn({ type: 'timestamptz' })

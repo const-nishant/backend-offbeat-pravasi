@@ -22,14 +22,14 @@ export class TrekGearItem {
   trekId: string;
 
   @ManyToOne(() => Trek, (trek) => trek.gearItems, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'trekId' })
+  @JoinColumn()
   trek: Trek;
 
   @Column('uuid')
   gearItemId: string;
 
   @ManyToOne(() => GearItem, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'gearItemId' })
+  @JoinColumn()
   gearItem: GearItem;
 
   @Column({ type: 'varchar', length: 16 })

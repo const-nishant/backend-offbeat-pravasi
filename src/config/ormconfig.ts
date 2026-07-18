@@ -1,5 +1,6 @@
 import type { DataSourceOptions } from 'typeorm';
 import configuration from './configuration';
+import { SnakeNamingStrategy } from './snake-naming.strategy';
 import { User } from '../modules/users/entities/user.entity';
 import { Trek } from '../modules/treks/entities/trek.entity';
 import { TrekImage } from '../modules/treks/entities/trek-image.entity';
@@ -153,6 +154,7 @@ export const ormConfig: DataSourceOptions = {
 
   migrations: ['dist/database/migrations/*.js', 'src/database/migrations/*.ts'],
   migrationsTableName: 'migrations',
+  namingStrategy: new SnakeNamingStrategy(),
 
   ssl:
     process.env.DB_SSL === 'true'

@@ -24,7 +24,7 @@ export class TrekCheckIn {
   bookingId!: string;
 
   @OneToOne(() => Booking, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'bookingId' })
+  @JoinColumn()
   booking!: Booking;
 
   @Column({ type: 'uuid' })
@@ -32,7 +32,7 @@ export class TrekCheckIn {
   userId!: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn()
   user!: User;
 
   @Column({ type: 'timestamptz' })

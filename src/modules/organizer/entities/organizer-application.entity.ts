@@ -22,7 +22,7 @@ export class OrganizerApplication {
   userId: string;
 
   @ManyToOne(() => User, { eager: true })
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn()
   user: User;
 
   @Column({ length: 160 })

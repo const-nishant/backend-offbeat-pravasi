@@ -22,33 +22,33 @@ export class WebhookLog {
   @Column({ length: 20 })
   provider: string;
 
-  @Column({ name: 'event_type', length: 100 })
+  @Column({ length: 100 })
   eventType: string;
 
   @Column({ length: 20, default: WebhookStatus.PROCESSED })
   status: string;
 
-  @Column({ name: 'status_code', nullable: true })
+  @Column({ nullable: true })
   statusCode?: number;
 
-  @Column({ name: 'request_body', type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true })
   requestBody?: string;
 
-  @Column({ name: 'response_body', type: 'text', nullable: true })
+  @Column({ type: 'text', nullable: true })
   responseBody?: string;
 
   @Column({ type: 'text', nullable: true })
   error?: string;
 
-  @Column({ name: 'duration_ms', nullable: true })
+  @Column({ nullable: true })
   durationMs?: number;
 
-  @Column({ name: 'retry_count', default: 0 })
+  @Column({ default: 0 })
   retryCount: number;
 
-  @Column({ name: 'last_retry_at', type: 'timestamptz', nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   lastRetryAt?: Date;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @CreateDateColumn()
   createdAt: Date;
 }

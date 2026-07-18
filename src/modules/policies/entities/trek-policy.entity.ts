@@ -10,6 +10,6 @@ export class TrekPolicy {
   policyId: string;
 
   @ManyToOne(() => CancellationPolicy)
-  @JoinColumn({ name: 'policyId' })
+  @JoinColumn()
   policy: CancellationPolicy;
 }

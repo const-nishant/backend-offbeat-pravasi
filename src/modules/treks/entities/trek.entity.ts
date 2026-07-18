@@ -103,7 +103,7 @@ export class Trek {
   popularityScore!: number;
 
   @ManyToMany(() => TrekTag, (tag) => tag.treks, { cascade: true })
-  @JoinTable({ name: 'trek_tags_link' })
+  @JoinTable()
   tags!: TrekTag[];
 
   @OneToMany(() => TrekImage, (img) => img.trek)

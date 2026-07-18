@@ -24,7 +24,7 @@ export class ItineraryDay {
   trekId!: string;
 
   @ManyToOne(() => Trek, (trek) => trek.itineraryDays, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'trekId' })
+  @JoinColumn()
   trek!: Trek;
 
   @Column({ type: 'int' })

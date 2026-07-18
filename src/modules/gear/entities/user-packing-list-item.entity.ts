@@ -22,14 +22,14 @@ export class UserPackingListItem {
   userId: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'userId' })
+  @JoinColumn()
   user: User;
 
   @Column('uuid')
   trekGearItemId: string;
 
   @ManyToOne(() => TrekGearItem, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'trekGearItemId' })
+  @JoinColumn()
   trekGearItem: TrekGearItem;
 
   @Column({ type: 'boolean', default: false })

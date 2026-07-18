@@ -20,7 +20,7 @@ export class GroupMember {
   groupId!: string;
 
   @ManyToOne(() => TrekGroup, (tg) => tg.members, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'groupId' })
+  @JoinColumn()
   group!: TrekGroup;
 
   @Column({ type: 'uuid', nullable: true })
