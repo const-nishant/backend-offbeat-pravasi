@@ -4,6 +4,7 @@ import {
   Post,
   Patch,
   Param,
+  ParseUUIDPipe,
   Body,
   UseGuards,
   Req,
@@ -29,7 +30,7 @@ export class AdminBookingOverrideController {
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.FINANCE)
   @ApiOperation({ summary: 'Override booking details (price, dates, notes)' })
   async overrideBooking(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() body: AdminBookingOverrideDto,
     @Req() req: any,
   ) {
@@ -45,7 +46,7 @@ export class AdminBookingOverrideController {
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.FINANCE)
   @ApiOperation({ summary: 'Force-cancel a booking with refund override' })
   async forceCancel(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() body: AdminForceCancelDto,
     @Req() req: any,
   ) {
@@ -60,7 +61,7 @@ export class AdminBookingOverrideController {
   @Get(':id/timeline')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.FINANCE, AdminRole.SUPPORT)
   @ApiOperation({ summary: 'Get chronological event log for a booking' })
-  async getTimeline(@Param('id') id: string): Promise<any> {
+  async getTimeline(@Param('id', ParseUUIDPipe) id: string): Promise<any> {
     return this.adminBookingOverrideService.getTimeline(id);
   }
 }

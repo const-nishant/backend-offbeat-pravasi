@@ -5,6 +5,7 @@ import {
   Patch,
   Delete,
   Param,
+  ParseUUIDPipe,
   Body,
   UseGuards,
 } from '@nestjs/common';
@@ -124,7 +125,10 @@ export class AdminBannerController {
   @Patch(':id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Update a banner' })
-  async update(@Param('id') id: string, @Body() dto: UpdateBannerDto) {
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateBannerDto,
+  ) {
     const updateData: any = { ...dto };
     if (dto.startDate) updateData.startDate = new Date(dto.startDate);
     if (dto.endDate) updateData.endDate = new Date(dto.endDate);
@@ -134,7 +138,7 @@ export class AdminBannerController {
   @Delete(':id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Delete a banner' })
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminBannerService.remove(id);
   }
 

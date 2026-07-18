@@ -231,9 +231,7 @@ export class AdminService {
   }
 
   async getBookingsReport(filters: any, page = 1, limit = 20) {
-    const qb = this.bookingRepo
-      .createQueryBuilder('b')
-      .leftJoinAndSelect('b.trek', 't');
+    const qb = this.bookingRepo.createQueryBuilder('b');
 
     if (filters.status) {
       qb.andWhere('b.status = :status', { status: filters.status });
