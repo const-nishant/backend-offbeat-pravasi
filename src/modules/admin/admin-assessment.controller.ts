@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Param,
+  Query,
+  ParseUUIDPipe,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
@@ -20,23 +28,25 @@ export class AdminAssessmentController {
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   async list(@Query('page') page?: string, @Query('limit') limit?: string) {
-    return this.adminAssessmentService.list(
-      page ? Number(page) : 1,
-      limit ? Number(limit) : 20,
+    const pageNum = Math.max(1, Math.floor(Number(page) || 1));
+    const limitNum = Math.min(
+      100,
+      Math.max(1, Math.floor(Number(limit) || 20)),
     );
+    return this.adminAssessmentService.list(pageNum, limitNum);
   }
 
   @Get(':userId')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
   @ApiOperation({ summary: 'Assessment history for a user' })
-  async history(@Param('userId') userId: string) {
+  async history(@Param('userId', ParseUUIDPipe) userId: string) {
     return this.adminAssessmentService.history(userId);
   }
 
   @Post(':userId/flag')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Flag user for re-assessment' })
-  async flag(@Param('userId') userId: string) {
+  async flag(@Param('userId', ParseUUIDPipe) userId: string) {
     return this.adminAssessmentService.flagForReassessment(userId);
   }
 }
