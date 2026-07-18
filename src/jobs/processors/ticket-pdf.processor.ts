@@ -90,7 +90,7 @@ export class TicketPdfWorkerService implements OnModuleInit, OnModuleDestroy {
         const pdfUrl = `${process.env.R2_PUBLIC_BASE_URL?.replace(/\/$/, '') || ''}/${key}`;
 
         await this.dataSource.query(
-          `UPDATE bookings SET metadata = jsonb_set(COALESCE(metadata, '{}'), '{pdfUrl}', to_jsonb($1::text), true), "updatedAt" = now() WHERE id = $2`,
+          `UPDATE bookings SET metadata = jsonb_set(COALESCE(metadata, '{}'), '{pdfUrl}', to_jsonb($1::text), true), updated_at = now() WHERE id = $2`,
           [pdfUrl, bookingId],
         );
 

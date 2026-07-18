@@ -117,11 +117,14 @@ export class AdminAnalyticsService {
     const whereClause =
       conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
+    const appendCondition = (clause: string, extra: string) =>
+      clause ? `${clause} AND ${extra}` : `WHERE ${extra}`;
+
     const viewsQ = `SELECT COUNT(DISTINCT user_id) FROM trek_interactions ti ${whereClause}`;
     const bookingsQ = `SELECT COUNT(DISTINCT user_id) FROM bookings b ${whereClause.replace('ti.', 'b.')}`;
     const paymentsQ = `SELECT COUNT(DISTINCT b.user_id) FROM payments p JOIN bookings b ON b.id = p.booking_id ${whereClause.replace('ti.', 'p.')}`;
-    const completedQ = `SELECT COUNT(DISTINCT b.user_id) FROM payments p JOIN bookings b ON b.id = p.booking_id ${whereClause.replace('ti.', 'p.')} AND p.status = 'SUCCEEDED'`;
-    const confirmedQ = `SELECT COUNT(DISTINCT user_id) FROM bookings b ${whereClause.replace('ti.', 'b.')} AND b.status = 'CONFIRMED'`;
+    const completedQ = `SELECT COUNT(DISTINCT b.user_id) FROM payments p JOIN bookings b ON b.id = p.booking_id ${appendCondition(whereClause.replace('ti.', 'p.'), "p.status = 'SUCCEEDED'")}`;
+    const confirmedQ = `SELECT COUNT(DISTINCT user_id) FROM bookings b ${appendCondition(whereClause.replace('ti.', 'b.'), "b.status = 'CONFIRMED'")}`;
 
     const [views, bookings, payments, completed, confirmed] = await Promise.all(
       [

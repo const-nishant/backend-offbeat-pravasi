@@ -67,7 +67,8 @@ export class AdminRefundAnalyticsService {
         ) AS refund_rate
       FROM payments p
       JOIN bookings b ON b.id = p.booking_id
-      JOIN organizer_applications oa ON oa.user_id = b.organizer_id
+      JOIN treks t ON t.id = b.trek_id
+      JOIN organizer_applications oa ON oa.user_id = t.organizer_id
       JOIN users u ON u.id = oa.user_id
       GROUP BY oa.id, u.email, u.full_name
       ORDER BY refund_rate DESC

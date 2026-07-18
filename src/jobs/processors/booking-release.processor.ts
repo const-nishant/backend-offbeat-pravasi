@@ -25,8 +25,8 @@ export class BookingReleaseWorkerService
           UPDATE bookings
           SET status = 'FAILED',
               metadata = jsonb_set(COALESCE(metadata, '{}'), '{releasedAt}', to_jsonb(now() at time zone 'utc')),
-              "updatedAt" = now()
-          WHERE status = 'PENDING' AND "holdExpiresAt" <= now()
+              updated_at = now()
+          WHERE status = 'PENDING' AND hold_expires_at <= now()
           RETURNING id;
         `);
 
