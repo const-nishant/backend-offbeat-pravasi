@@ -169,6 +169,7 @@ Agent Skills (.agents/)
 	- small helper scripts or templates used by agents (formatters, codegen templates)
 - Conventions: name subfolders by domain (e.g., `.agents/auth/`, `.agents/bookings/`) and include a `README.md` describing inputs, outputs, and expectations.
 - Example: `.agents/bookings/README.md` documents webhook verification steps, idempotency keys, and test cases for `bookings-payments-agent`.
+- Skill: `.agents/skills/endpoint-testing/SKILL.md` — live endpoint testing workflow (login, dual auth headers, edge-case checklist, PowerShell 5.1 runner gotchas, post-deploy re-verification, and the `ab-tests-test-tracker.md` convention). **Consult this skill whenever testing/verifying HTTP endpoints against dev/staging.**
 
 Security & Permissions
 - Agents are a documentation convention: actual code changes must follow repository ownership and review rules. Do not commit secrets; reference env variables instead.
