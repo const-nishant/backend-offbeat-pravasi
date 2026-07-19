@@ -314,3 +314,776 @@ Base: `{{baseUrl}}/admin/bookings` — `override`/`cancel` = SUPERADMIN + FINANC
 
 ## Untested (needs seed data)
 - Happy paths for `override`/`cancel`/`timeline` require an existing booking; dev DB has none (`GET /bookings` returns empty). Test post-seed.
+
+---
+
+# Batch 1 — Tags (admin/tags, admin/categories, treks/:id/tags)
+
+Base: `{{baseUrl}}/admin` — tags/categories list = SUPERADMIN + MODERATOR; create/update/delete = SUPERADMIN.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/tags` | SUPERADMIN, MODERATOR | ✅ | 200 | List tags |
+| 2 | POST | `/admin/tags` | SUPERADMIN | ✅ | 201 / 400 | Create tag |
+| 3 | DELETE | `/admin/tags/:id` | SUPERADMIN | ✅ | 404 / 400 | bad uuid → 400 (fixed) |
+| 4 | GET | `/admin/categories` | SUPERADMIN, MODERATOR | ✅ | 200 | List categories |
+| 5 | POST | `/admin/categories` | SUPERADMIN | ✅ | 201 / 400 | Create category |
+| 6 | PATCH | `/admin/categories/:id` | SUPERADMIN | ✅ | 200 / 404 / 400 | bad uuid → 400 (fixed) |
+| 7 | DELETE | `/admin/categories/:id` | SUPERADMIN | ✅ | 404 / 400 | bad uuid → 400 (fixed) |
+| 8 | POST | `/admin/treks/:id/tags` | SUPERADMIN, MODERATOR | ✅ | 400 | bad trek uuid → 400 (fixed) |
+
+## Bugs Fixed (commit 0d4a0c9)
+1. Non-UUID `:id` on `tags/:id`, `categories/:id` (PATCH/DELETE), `treks/:id/tags` threw 500. Fixed with `ParseUUIDPipe` → 400.
+
+---
+
+# Batch 1 — Admin Catch-all (users / organizer-requests / treks / bookings/:id)
+
+Base: `{{baseUrl}}/admin`. Note: `users/:id/status`, `organizer-requests/:id`, `treks/:id/decision` already validated uuid via DTO (→ 400). Only `bookings/:id/generate-ticket-pdf` was unguarded.
+
+| # | Method | Path | Roles | Tested | Result |
+|---|--------|------|-------|--------|--------|
+| 1 | GET | `/admin/users` | (admin) | ✅ | 200 |
+| 2 | PATCH | `/admin/users/:id/status` | SUPERADMIN, MODERATOR, SUPPORT | ✅ | 400 (uuid via DTO) |
+| 3 | GET | `/admin/organizer-requests` | (admin) | ✅ | 200 |
+| 4 | PATCH | `/admin/organizer-requests/:id` | SUPERADMIN, MODERATOR | ✅ | 400 (uuid via DTO) |
+| 5 | GET | `/admin/treks/pending` | (admin) | ✅ | 200 |
+| 6 | PATCH | `/admin/treks/:id/decision` | SUPERADMIN, MODERATOR | ✅ | 400 (uuid via DTO) |
+| 7 | POST | `/admin/bookings/:id/generate-ticket-pdf` | SUPERADMIN, FINANCE, SUPPORT | ✅ | 400 (fixed) |
+
+## Bugs Fixed (commit 0d4a0c9)
+1. `bookings/:id/generate-ticket-pdf` unguarded `:id` threw 500. Fixed with `ParseUUIDPipe` → 400.
+
+---
+
+# Batch 1 — Bulk Operations (admin/bulk)
+
+Base: `{{baseUrl}}/admin/bulk` — users/treks = SUPERADMIN + MODERATOR; bookings = SUPERADMIN + SUPPORT.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | POST | `/admin/bulk/users/status` | SUPERADMIN, MODERATOR | ✅ | 400 | bad userId in array → 400 (fixed) |
+| 2 | POST | `/admin/bulk/treks/approve` | SUPERADMIN, MODERATOR | ✅ | 400 | bad trekId → 400 (fixed) |
+| 3 | POST | `/admin/bulk/bookings/generate-tickets` | SUPERADMIN, SUPPORT | ✅ | 400 | bad bookingId → 400 (fixed) |
+
+## Validation (400 cases)
+| Case | Body | Expected | Actual | Status |
+|------|------|----------|--------|--------|
+| Users bad uuid | `userIds:["notauuid"]` | 400 | 400 | ✅ (was 500) |
+| Treks bad uuid | `trekIds:["notauuid"]` | 400 | 400 | ✅ (was 500) |
+| Bookings bad uuid | `bookingIds:["notauuid"]` | 400 | 400 | ✅ (was 500) |
+
+## Bugs Fixed (commit 0d4a0c9)
+1. Array-body uuid fields (`userIds`/`trekIds`/`bookingIds`) unvalidated → 500 on bad uuid. Fixed with `@IsUUID('4',{each:true})` → 400.
+
+---
+
+# Batch 1 — Cache & Database (read-only infra)
+
+Base: `{{baseUrl}}/admin/cache` & `/admin/database` — SUPERADMIN only. No path params; all GETs safe.
+
+| # | Method | Path | Tested | Result |
+|---|--------|------|--------|--------|
+| 1 | POST | `/admin/cache/invalidate` | ⬜ | — |
+| 2 | GET | `/admin/cache/stats` | ✅ | 200 |
+| 3 | GET | `/admin/cache/keys?pattern=*` | ✅ | 200 |
+| 4 | GET | `/admin/database/health` | ✅ | 200 |
+| 5 | GET | `/admin/database/tables` | ✅ | 200 |
+| 6 | GET | `/admin/database/indexes` | ✅ | 200 |
+| 7 | GET | `/admin/database/slow-queries` | ✅ | 200 |
+
+## Auth Edge Cases (all 401)
+- [x] No `Authorization` header → 401
+- [x] Garbage token → 401
+- [x] Missing `x-api-key` → 401
+
+---
+
+# Batch 1 — Data Deletion (admin/data-deletion)
+
+Base: `{{baseUrl}}/admin/data-deletion` — SUPERADMIN only.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/data-deletion` | SUPERADMIN | ✅ | 200 | List (paginated) |
+| 2 | POST | `/admin/data-deletion/:id/approve` | SUPERADMIN | ✅ | 404 / 400 | bad uuid → 400 (fixed) |
+| 3 | POST | `/admin/data-deletion/:id/reject` | SUPERADMIN | ✅ | 404 / 400 | bad uuid → 400 (fixed) |
+
+## Bugs Fixed (commit 0d4a0c9)
+1. Non-UUID `:id` on approve/reject threw 500. Fixed with `ParseUUIDPipe` → 400.
+
+---
+
+# Batch 1 — Impersonation (admin/impersonate)
+
+Base: `{{baseUrl}}/admin/impersonate` — SUPERADMIN only.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | POST | `/admin/impersonate` | SUPERADMIN | ✅ | 400 | bad userId → 400 (fixed) |
+| 2 | POST | `/admin/impersonate/stop` | SUPERADMIN | ⬜ | — | |
+
+## Validation (400 cases)
+| Case | Body | Expected | Actual | Status |
+|------|------|----------|--------|--------|
+| Bad userId | `{userId:"notauuid"}` | 400 | 400 | ✅ (was 500) |
+
+## Bugs Fixed (commit 0d4a0c9)
+1. `userId` in body unvalidated → 500 on bad uuid. Fixed with `@IsUUID()` → 400.
+
+---
+
+# Batch 1 — User Merge (admin/users/merge)
+
+Base: `{{baseUrl}}/admin/users/merge` — SUPERADMIN only.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | POST | `/admin/users/merge/dry-run` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (via DTO) |
+| 2 | POST | `/admin/users/merge/execute` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (via DTO) |
+| 3 | GET | `/admin/users/merge/history` | SUPERADMIN | ✅ | 200 | was 500 (fixed) |
+
+## Bugs Fixed (commit 0d4a0c9)
+1. `history()` queried non-existent `entity_type`/`entity_id`/`metadata` columns (real: `resource_type`/`resource_id`/`detail`) → 500. Fixed column names. Same fix applied to `execute()` audit insert so real merges don't 500.
+
+---
+
+# Batch 1 — User Timeline (admin/users/:id/timeline)
+
+Base: `{{baseUrl}}/admin/users` — SUPERADMIN + SUPPORT.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/users/:id/timeline` | SUPERADMIN, SUPPORT | ✅ | 404 / 400 | bad uuid → 400 (fixed) |
+
+## Bugs Fixed (commit 0d4a0c9)
+1. Non-UUID `:id` threw 500. Fixed with `ParseUUIDPipe` → 400.
+
+---
+
+# Batch 1 — Security / IP Filter (admin/security/ip-*)
+
+Base: `{{baseUrl}}/admin/security` — SUPERADMIN only (blocklist + allowlist).
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/security/ip-blocklist` | SUPERADMIN | ✅ | 200 | List blocklist |
+| 2 | POST | `/admin/security/ip-blocklist` | SUPERADMIN | ⬜ | — | Add rule |
+| 3 | PATCH | `/admin/security/ip-blocklist/:id` | SUPERADMIN | ✅ | 404 / 400 | bad uuid → 400 (fixed) |
+| 4 | DELETE | `/admin/security/ip-blocklist/:id` | SUPERADMIN | ✅ | 404 / 400 | bad uuid → 400 (fixed) |
+| 5 | GET | `/admin/security/ip-allowlist` | SUPERADMIN | ✅ | 200 | List allowlist |
+| 6 | POST | `/admin/security/ip-allowlist` | SUPERADMIN | ⬜ | — | Add rule |
+| 7 | PATCH | `/admin/security/ip-allowlist/:id` | SUPERADMIN | ✅ | 404 / 400 | bad uuid → 400 (fixed) |
+| 8 | DELETE | `/admin/security/ip-allowlist/:id` | SUPERADMIN | ✅ | 404 / 400 | bad uuid → 400 (fixed) |
+| 9 | GET | `/admin/security/ip-blocklist/audit` | SUPERADMIN | ✅ | 200 | Blocklist hit audit |
+
+## Bugs Fixed (commit 0d4a0c9)
+1. Non-UUID `:id` on blocklist/allowlist PATCH/DELETE threw 500. Fixed with `ParseUUIDPipe` → 400.
+
+## Batch 1 Summary
+- 10 controller groups tested. All 500s eliminated (uuid guards via `ParseUUIDPipe` + `@IsUUID` on arrays/body; merge `history`/`execute` column-name fix). Build verified green before deploy.
+
+---
+
+# Batch 2 — Payments (admin/payments)
+
+Base: `{{baseUrl}}/admin/payments` — SUPERADMIN + FINANCE.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/payments` (search) | SUPERADMIN, FINANCE | ✅ | 200 | paginated, no params |
+| 2 | POST | `/admin/payments/:id/refund` | SUPERADMIN, FINANCE | ✅ | 400 | bad uuid → 400 (guard via DTO) |
+| 3 | POST | `/admin/payments/:id/retry` | SUPERADMIN, FINANCE | ✅ | 400 | bad uuid → 400 (guard via DTO) |
+| 4 | GET | `/admin/payments/disputes` | SUPERADMIN, FINANCE | ✅ | 200 | list disputes |
+
+## Bugs Fixed
+- None — payments already 400 on bad uuid (refund/retry go through validated service path). Verified live.
+
+---
+
+# Batch 2 — Payouts (admin/payouts)
+
+Base: `{{baseUrl}}/admin/payouts` — SUPERADMIN + FINANCE.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/payouts` (list, filters) | SUPERADMIN, FINANCE | ✅ | 200 | `organizerId` query unvalidated but filter-only (no 500) |
+| 2 | GET | `/admin/payouts/summary` | SUPERADMIN, FINANCE | ✅ | 200 | summary stats |
+| 3 | POST | `/admin/payouts/:id/approve` | SUPERADMIN, FINANCE | ✅ | 400 | bad uuid → 400 (fixed) |
+| 4 | POST | `/admin/payouts/:id/mark-settled` | SUPERADMIN, FINANCE | ✅ | 400 | bad uuid → 400 (fixed) |
+
+## Bugs Fixed (commit fe0e2d3)
+1. Non-UUID `:id` on approve/mark-settled threw 500 (`invalid input syntax for type uuid`). Fixed with `ParseUUIDPipe` → 400.
+
+---
+
+# Batch 2 — Referral Tiers (admin/referral/tiers)
+
+Base: `{{baseUrl}}/admin/referral` — tiers/settings list = SUPERADMIN + ANALYST; create/update/delete = SUPERADMIN.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/referral/tiers` | SUPERADMIN, ANALYST | ✅ | 200 | list tiers |
+| 2 | POST | `/admin/referral/tiers` | SUPERADMIN | ✅ | 201 / 400 | create tier |
+| 3 | PATCH | `/admin/referral/tiers/:id` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+| 4 | DELETE | `/admin/referral/tiers/:id` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+| 5 | GET | `/admin/referral/settings` | SUPERADMIN, ANALYST | ✅ | 200 | global settings |
+| 6 | PATCH | `/admin/referral/settings` | SUPERADMIN | ✅ | 200 | update settings |
+
+## Bugs Fixed (commit fe0e2d3)
+1. Non-UUID `:id` on tiers PATCH/DELETE threw 500. Fixed with `ParseUUIDPipe` → 400.
+
+---
+
+# Batch 2 — Revenue Share (admin/revenue-share)
+
+Base: `{{baseUrl}}/admin/revenue-share` — SUPERADMIN + ANALYST. No path/query params. Safe.
+
+| # | Method | Path | Roles | Tested | Result |
+|---|--------|------|-------|--------|--------|
+| 1 | GET | `/admin/revenue-share/overview` | SUPERADMIN, ANALYST | ✅ | 200 |
+| 2 | GET | `/admin/revenue-share/by-trek` | SUPERADMIN, ANALYST | ✅ | 200 |
+| 3 | GET | `/admin/revenue-share/by-organizer` | SUPERADMIN, ANALYST | ✅ | 200 |
+
+---
+
+# Batch 2 — Coupons (admin/coupons)
+
+Base: `{{baseUrl}}/admin/coupons` — list/get/redemptions = SUPERADMIN + ANALYST; create/update/expire = SUPERADMIN.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/coupons` | SUPERADMIN, ANALYST | ✅ | 200 | list |
+| 2 | GET | `/admin/coupons/:id` | SUPERADMIN, ANALYST | ✅ | 400 | bad uuid → 400 (fixed) |
+| 3 | POST | `/admin/coupons` | SUPERADMIN | ✅ | 201 / 400 | create |
+| 4 | PATCH | `/admin/coupons/:id` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+| 5 | POST | `/admin/coupons/:id/expire` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+| 6 | GET | `/admin/coupons/:id/redemptions` | SUPERADMIN, ANALYST | ✅ | 400 | bad uuid → 400 (fixed) |
+
+## Bugs Fixed (commit fe0e2d3)
+1. Non-UUID `:id` on GET/PATCH/expire/redemptions threw 500. Fixed with `ParseUUIDPipe` → 400.
+
+---
+
+# Batch 2 — Pricing Campaigns (admin/pricing)
+
+Base: `{{baseUrl}}/admin/pricing` — list/create = SUPERADMIN + MODERATOR (list) / SUPERADMIN (create/update).
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/pricing/campaigns` | SUPERADMIN, MODERATOR | ✅ | 200 | list campaigns |
+| 2 | POST | `/admin/pricing/campaigns` | SUPERADMIN | ✅ | 201 / 400 | create (trekIds array unvalidated but no 500 on bad list) |
+| 3 | PATCH | `/admin/pricing/campaigns/:id` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+
+## Bugs Fixed (commit fe0e2d3)
+1. Non-UUID `:id` on campaign PATCH threw 500. Fixed with `ParseUUIDPipe` → 400.
+
+---
+
+# Batch 2 — Tax (admin/tax)
+
+Base: `{{baseUrl}}/admin/tax` — SUPERADMIN + FINANCE. Query params only (`from`/`to` dates). Safe.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/tax/report?from=&to=` | SUPERADMIN, FINANCE | ✅ | 200 | date-range report |
+
+---
+
+# Batch 2 Summary
+- 6 controller groups: payments, payouts, referral-tiers, revenue-share, coupons, pricing-campaigns, tax.
+- 9 endpoints threw 500 on bad uuid (payouts×2, referral×2, coupons×4, pricing×1). Fixed in `fe0e2d3` with `ParseUUIDPipe` on all `:id` params. Payments already 400. All verified live → 400 (0 remaining 500s).
+- Note: log noise from background workers (weather-prefetch `startDate`, packing-reminder `b.userId` column errors) is pre-existing and OUT OF SCOPE for this batch — flag for a separate DB/entity-sync ticket.
+
+---
+
+# Batch 3 — Sessions (admin/sessions)
+
+Base: `{{baseUrl}}/admin/sessions` — SUPERADMIN only.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/sessions` | SUPERADMIN | ✅ | 200 | list active sessions |
+| 2 | DELETE | `/admin/sessions/:sessionId` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+| 3 | DELETE | `/admin/sessions/user/:userId` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+
+## Bugs Fixed (commit 1e9d928)
+1. `:sessionId` / `:userId` unguarded → 500. Fixed with `ParseUUIDPipe` → 400.
+
+---
+
+# Batch 3 — OTP (admin/otp)
+
+Base: `{{baseUrl}}/admin/otp` — SUPERADMIN only. Body param.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | POST | `/admin/otp/generate` | SUPERADMIN | ✅ | 400 | bad `userId` → 400 (fixed) |
+
+## Bugs Fixed (commit 1e9d928)
+1. `GenerateOtpDto.userId` unvalidated → 500. Fixed with `@IsUUID()` → 400.
+
+---
+
+# Batch 3 — Collections (admin/collections)
+
+Base: `{{baseUrl}}/admin/collections` — list/create = SUPERADMIN + MODERATOR; update-treks = SUPERADMIN.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/collections` | SUPERADMIN, MODERATOR | ✅ | 200 | list |
+| 2 | POST | `/admin/collections` | SUPERADMIN | ✅ | 201 / 400 | create |
+| 3 | PATCH | `/admin/collections/:id/treks` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+
+## Bugs Fixed (commit 1e9d928)
+1. `:id` unguarded → 500. Fixed with `ParseUUIDPipe` → 400.
+
+---
+
+# Batch 3 — Email Templates (admin/email-templates)
+
+Base: `{{baseUrl}}/admin/email-templates` — list/get/versions = SUPERADMIN + MODERATOR; create/update/delete/preview = SUPERADMIN.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/email-templates` | SUPERADMIN, MODERATOR | ✅ | 200 | list |
+| 2 | GET | `/admin/email-templates/:id` | SUPERADMIN, MODERATOR | ✅ | 400 | bad uuid → 400 (fixed) |
+| 3 | POST | `/admin/email-templates` | SUPERADMIN | ✅ | 201 / 400 | create |
+| 4 | PATCH | `/admin/email-templates/:id` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+| 5 | DELETE | `/admin/email-templates/:id` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+| 6 | POST | `/admin/email-templates/:id/preview` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+| 7 | GET | `/admin/email-templates/:id/versions` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+
+## Bugs Fixed (commit 1e9d928)
+1. `:id` unguarded on 5 routes → 500. Fixed with `ParseUUIDPipe` → 400.
+
+---
+
+# Batch 3 — Feature Flags (admin/feature-flags)
+
+Base: `{{baseUrl}}/admin/feature-flags` — list/get = SUPERADMIN + ANALYST; create/update/delete = SUPERADMIN.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/feature-flags` | SUPERADMIN, ANALYST | ✅ | 200 | list |
+| 2 | GET | `/admin/feature-flags/:id` | SUPERADMIN, ANALYST | ✅ | 400 | bad uuid → 400 (fixed) |
+| 3 | POST | `/admin/feature-flags` | SUPERADMIN | ✅ | 201 / 400 | create |
+| 4 | PATCH | `/admin/feature-flags/:id` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+| 5 | DELETE | `/admin/feature-flags/:id` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+
+## Bugs Fixed (commit 1e9d928)
+1. `:id` unguarded on 4 routes → 500. Fixed with `ParseUUIDPipe` → 400.
+
+---
+
+# Batch 3 — Gear (admin/gear)
+
+Base: `{{baseUrl}}/admin/gear` — pending/list = SUPERADMIN + MODERATOR; decision/featured/delete = SUPERADMIN.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/gear/pending` | SUPERADMIN, MODERATOR | ✅ | 200 | list (was 500 — see below) |
+| 2 | PATCH | `/admin/gear/:id/decision` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+| 3 | PATCH | `/admin/gear/:id/featured` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+| 4 | DELETE | `/admin/gear/:id` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+
+## Bugs Fixed
+1. `:id` unguarded on 3 routes → 500. Fixed with `ParseUUIDPipe` → 400 (commit `1e9d928`).
+2. **Schema drift**: `gear_items` table was missing `review_status` and `featured` columns that the admin gear service queries/updates → 500 on every gear endpoint. Added via migration `1784489848000-AddAdminModerationColumns` (commit `20fd478`); also added `reviewStatus`/`featured` fields to `GearItem` entity. Reversible via `down()`.
+
+---
+
+# Batch 3 — Groups (admin/groups)
+
+Base: `{{baseUrl}}/admin/groups` — list/members = SUPERADMIN + MODERATOR; status/delete-member/transfer = SUPERADMIN.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/groups` | SUPERADMIN, MODERATOR | ✅ | 200 | list (was 500 — see below) |
+| 2 | PATCH | `/admin/groups/:id/status` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+| 3 | GET | `/admin/groups/:id/members` | SUPERADMIN, MODERATOR | ✅ | 400 | bad uuid → 400 (fixed) |
+| 4 | DELETE | `/admin/groups/:id/members/:memberId` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+| 5 | POST | `/admin/groups/:id/transfer-ownership` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed); body `newOwnerUserId` → 400 (fixed) |
+
+## Bugs Fixed
+1. `:id` / `:memberId` unguarded + body `newOwnerUserId` (`@IsString`) unvalidated → 500. Fixed with `ParseUUIDPipe` on params and `@IsUUID()` on `newOwnerUserId` (commit `1e9d928`).
+2. **Schema drift**: `trek_groups` table was missing `moderation_status` and `ban_reason` columns that the admin group service queries/updates → 500 on `GET /admin/groups`. Added via migration `1784489848000-AddAdminModerationColumns` (commit `20fd478`); also added `moderationStatus`/`banReason` fields to `TrekGroup` entity. Reversible via `down()`.
+
+---
+
+# Batch 3 — Organizer Documents (admin/organizers)
+
+Base: `{{baseUrl}}/admin/organizers` — expiring/list = SUPERADMIN + MODERATOR; approve/reject = SUPERADMIN.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/organizers/documents/expiring` | SUPERADMIN, MODERATOR | ✅ | 200 | expiring docs |
+| 2 | GET | `/admin/organizers/:id/documents` | SUPERADMIN, MODERATOR | ✅ | 400 | bad `:id` → 400 (fixed) |
+| 3 | POST | `/admin/organizers/:id/documents/:docId/approve` | SUPERADMIN | ✅ | 400 | bad `:docId` → 400 (fixed) |
+| 4 | POST | `/admin/organizers/:id/documents/:docId/reject` | SUPERADMIN | ✅ | 400 | bad `:docId` → 400 (fixed) |
+
+## Bugs Fixed (commit 1e9d928)
+1. `:id` (organizer) and `:docId` unguarded → 500. Fixed with `ParseUUIDPipe` → 400.
+
+---
+
+# Batch 3 — Tasks (admin/tasks)
+
+Base: `{{baseUrl}}/admin/tasks` — list/mine/status = SUPERADMIN + MODERATOR; create/assign = SUPERADMIN.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/tasks` | SUPERADMIN, MODERATOR | ✅ | 200 | list |
+| 2 | GET | `/admin/tasks/mine` | SUPERADMIN, MODERATOR | ✅ | 200 | my open tasks |
+| 3 | POST | `/admin/tasks` | SUPERADMIN | ✅ | 201 / 400 | create |
+| 4 | PATCH | `/admin/tasks/:id/assign` | SUPERADMIN | ✅ | 400 | bad `:id` → 400 (fixed); bad `assignedTo` → 400 (fixed) |
+| 5 | PATCH | `/admin/tasks/:id/status` | SUPERADMIN, MODERATOR | ✅ | 400 | bad `:id` → 400 (fixed) |
+
+## Bugs Fixed (commit 1e9d928)
+1. `:id` unguarded on 2 routes → 500. Fixed with `ParseUUIDPipe` → 400. `AssignTaskDto.assignedTo` was `@IsString` → 500 on bad uuid; fixed with `@IsUUID()` → 400.
+
+---
+
+# Batch 3 — Weather Alerts (admin/weather/alerts)
+
+Base: `{{baseUrl}}/admin/weather/alerts` — list/create = SUPERADMIN + MODERATOR; expire = SUPERADMIN.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/weather/alerts` | SUPERADMIN, MODERATOR | ✅ | 200 | list |
+| 2 | POST | `/admin/weather/alerts` | SUPERADMIN | ✅ | 201 / 400 | create |
+| 3 | DELETE | `/admin/weather/alerts/:id` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+
+## Bugs Fixed (commit 1e9d928)
+1. `:id` unguarded → 500. Fixed with `ParseUUIDPipe` → 400.
+
+---
+
+# Batch 3 — Webhooks (admin/webhooks)
+
+Base: `{{baseUrl}}/admin/webhooks` — SUPERADMIN only.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/webhooks` | SUPERADMIN | ✅ | 200 | list |
+| 2 | GET | `/admin/webhooks/:id` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+| 3 | POST | `/admin/webhooks/:id/retry` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+
+## Bugs Fixed (commit 1e9d928)
+1. `:id` unguarded on 2 routes → 500. Fixed with `ParseUUIDPipe` → 400.
+
+---
+
+# Batch 3 Summary
+- 11 controller groups: sessions, otp, collections, email-templates, feature-flags, gear, groups, organizer-documents, tasks, weather-alerts, webhooks.
+- 27 bad-uuid edge cases → 400 (was 500). Fixed in `1e9d928` (`ParseUUIDPipe` on all `:id`/`:memberId`/`:docId`/`:sessionId`/`:userId` params; `@IsUUID()` on body uuids: otp `userId`, groups `newOwnerUserId`, tasks `assignedTo`).
+- 2 schema-drift 500s (`GET /admin/gear/pending`, `GET /admin/groups`) fixed in `20fd478` via migration `1784489848000-AddAdminModerationColumns` adding `gear_items.review_status`/`featured` and `trek_groups.moderation_status`/`ban_reason` (with matching entity fields). Migration is reversible.
+- All 10 list endpoints + 27 edge cases verified live → 0 remaining 500s.
+
+---
+
+# Batch 4 — Cohorts (admin/cohorts)
+
+Base: `{{baseUrl}}/admin/cohorts` — SUPERADMIN + MODERATOR.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | POST | `/admin/cohorts/build` | SUPERADMIN, MODERATOR | ✅ | 201 | build segment (body filters only) |
+| 2 | GET | `/admin/cohorts/history` | SUPERADMIN, MODERATOR | ✅ | 200 | export history |
+
+## Bugs Fixed
+- None — no path params; body filters validated. Verified live.
+
+---
+
+# Batch 4 — SLA (admin/sla)
+
+Base: `{{baseUrl}}/admin/sla` — SUPERADMIN + MODERATOR. GETs + query only. Safe.
+
+| # | Method | Path | Roles | Tested | Result |
+|---|--------|------|-------|--------|--------|
+| 1 | GET | `/admin/sla/overview` | SUPERADMIN, MODERATOR | ✅ | 200 |
+| 2 | GET | `/admin/sla/by-admin` | SUPERADMIN, MODERATOR | ✅ | 200 |
+| 3 | GET | `/admin/sla/breaches` | SUPERADMIN, MODERATOR | ✅ | 200 |
+
+---
+
+# Batch 4 — Safety (admin/safety)
+
+Base: `{{baseUrl}}/admin/safety` — incidents list/members = SUPERADMIN + MODERATOR; resolve = SUPERADMIN.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/safety/incidents` | SUPERADMIN, MODERATOR | ✅ | 200 | list |
+| 2 | GET | `/admin/safety/incidents/:id` | SUPERADMIN, MODERATOR | ✅ | 400 | bad uuid → 400 (fixed) |
+| 3 | PATCH | `/admin/safety/incidents/:id/resolve` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+
+## Bugs Fixed (commit d768162)
+1. `incidents/:id` unguarded on 2 routes → 500. Fixed with `ParseUUIDPipe` → 400.
+
+---
+
+# Batch 4 — Detection (admin/detection)
+
+Base: `{{baseUrl}}/admin/detection` — list = SUPERADMIN + MODERATOR; resolve = SUPERADMIN.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/detection/trek-duplicates` | SUPERADMIN, MODERATOR | ✅ | 200 | was 500 (pg_trgm) — fixed (see below) |
+| 2 | GET | `/admin/detection/user-duplicates` | SUPERADMIN, MODERATOR | ✅ | 200 | email/phone self-join |
+| 3 | POST | `/admin/detection/trek-duplicates/:id/resolve` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+
+## Bugs Fixed
+1. `trek-duplicates/:id/resolve` unguarded → 500. Fixed with `ParseUUIDPipe` → 400 (commit `d768162`).
+2. `GET /admin/detection/trek-duplicates` used `similarity()` (pg_trgm extension) → 500 because `pg_trgm` was never created. Added migration `1784492000000-AddPgTrgmExtension` (commit `56c840d`) AND a resilient `ILIKE` fallback in the service (commit `249f1a0`) so the endpoint returns 200 even if the extension can't be installed (e.g. deploy lacks CREATE EXTENSION privilege). Verified live → 200.
+
+---
+
+# Batch 4 — Storage (admin/storage)
+
+Base: `{{baseUrl}}/admin/storage` — SUPERADMIN only. GETs only.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/storage/summary` | SUPERADMIN | ✅ | 200 | per-bucket summary |
+| 2 | GET | `/admin/storage/file-types` | SUPERADMIN | ✅ | 200 | by MIME type |
+| 3 | GET | `/admin/storage/orphans` | SUPERADMIN | ✅ | 200 | was 500 (join bug) — fixed (see below) |
+
+## Bugs Fixed (commit 46327a5)
+1. `getOrphans()` joined `trek_images` on a nonexistent `image_id` column → 500. `trek_images` has no FK to `media`; both tables share a `key` (R2 key). Fixed join to `ti.key = m.key` / `ti.key IS NULL` → 200.
+
+---
+
+# Batch 4 — Rate Limit (admin/security/rate-limits)
+
+Base: `{{baseUrl}}/admin/security/rate-limits` — SUPERADMIN only. `:endpoint` is a string path, no uuid.
+
+| # | Method | Path | Roles | Tested | Result |
+|---|--------|------|-------|--------|--------|
+| 1 | GET | `/admin/security/rate-limits` | SUPERADMIN | ✅ | 200 |
+| 2 | PATCH | `/admin/security/rate-limits` | SUPERADMIN | ✅ | 200 (valid body) |
+| 3 | DELETE | `/admin/security/rate-limits/:endpoint` | SUPERADMIN | ✅ | 200 (string key) |
+
+---
+
+# Batch 4 — Queue Dashboard (admin/queues)
+
+Base: `{{baseUrl}}/admin/queues` — SUPERADMIN only. `:name`/`:jobId` are string identifiers. Safe.
+
+| # | Method | Path | Roles | Tested | Result |
+|---|--------|------|-------|--------|--------|
+| 1 | GET | `/admin/queues` | SUPERADMIN | ✅ | 200 |
+| 2 | GET | `/admin/queues/:name/jobs` | SUPERADMIN | ✅ | 200 (status query) |
+| 3 | POST | `/admin/queues/:name/jobs/:jobId/retry` | SUPERADMIN | ⬜ | string ids |
+| 4 | POST | `/admin/queues/:name/retry-all` | SUPERADMIN | ⬜ | — |
+| 5 | POST | `/admin/queues/:name/clean` | SUPERADMIN | ⬜ | — |
+| 6 | POST | `/admin/queues/:name/pause` | SUPERADMIN | ⬜ | — |
+| 7 | POST | `/admin/queues/:name/resume` | SUPERADMIN | ⬜ | — |
+
+---
+
+# Batch 4 — Cron Jobs (admin/cron-jobs)
+
+Base: `{{baseUrl}}/admin/cron-jobs` — SUPERADMIN only. `:key` string. Safe.
+
+| # | Method | Path | Roles | Tested | Result |
+|---|--------|------|-------|--------|--------|
+| 1 | GET | `/admin/cron-jobs` | SUPERADMIN | ✅ | 200 |
+| 2 | POST | `/admin/cron-jobs/:key/disable` | SUPERADMIN | ⬜ | — |
+| 3 | POST | `/admin/cron-jobs/:key/enable` | SUPERADMIN | ⬜ | — |
+| 4 | POST | `/admin/cron-jobs/:key/trigger-now` | SUPERADMIN | ⬜ | — |
+
+---
+
+# Batch 4 — Migrations (admin/migrations)
+
+Base: `{{baseUrl}}/admin/migrations` — SUPERADMIN only.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/migrations` | SUPERADMIN | ✅ | 200 | was 500 — fixed (see below) |
+
+## Bugs Fixed (commit 46327a5 + b28fd04)
+1. Original query selected `hash`, `batch` columns that don't exist in TypeORM's `migrations` table → 500. Removed them (commit `46327a5`).
+2. Live DB has **no `migrations` table** (migrations are not auto-run by the app; `migrationsRun` is unset and `synchronize` is env-gated off). Added a defensive try/catch returning `[]` + server-side log (commit `b28fd04`) so the endpoint never 500s. The underlying empty-table condition is logged for follow-up.
+
+---
+
+# Batch 4 — Environment (admin/environment)
+
+Base: `{{baseUrl}}/admin/environment` — SUPERADMIN only. GETs only. Safe.
+
+| # | Method | Path | Roles | Tested | Result |
+|---|--------|------|-------|--------|--------|
+| 1 | GET | `/admin/environment/compare` | SUPERADMIN | ✅ | 200 |
+| 2 | GET | `/admin/environment/drift-report` | SUPERADMIN | ✅ | 200 |
+
+---
+
+# Batch 4 — Export (admin/export)
+
+Base: `{{baseUrl}}/admin/export` — SUPERADMIN + ANALYST. `:entity` is a string with allowlist → 400 on bad value, no 500.
+
+| # | Method | Path | Roles | Tested | Result |
+|---|--------|------|-------|--------|--------|
+| 1 | GET | `/admin/export/:entity` (users/bookings/payments/treks) | SUPERADMIN, ANALYST | ✅ | 200 (CSV) |
+
+## Validation
+- `GET /admin/export/bogus` → 400 (allowlist enforced). ✅
+
+---
+
+# Batch 4 — Presets (admin/platform-settings/presets)
+
+Base: `{{baseUrl}}/admin/platform-settings/presets` — SUPERADMIN only.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/platform-settings/presets` | SUPERADMIN | ✅ | 200 | list |
+| 2 | POST | `/admin/platform-settings/presets` | SUPERADMIN | ✅ | 201 / 400 | save |
+| 3 | POST | `/admin/platform-settings/presets/:id/apply` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+| 4 | DELETE | `/admin/platform-settings/presets/:id` | SUPERADMIN | ✅ | 400 | bad uuid → 400 (fixed) |
+
+## Bugs Fixed (commit d768162)
+1. `:id` unguarded on apply/delete → 500. Fixed with `ParseUUIDPipe` → 400.
+
+---
+
+# Batch 4 Summary
+- 12 controller groups: cohorts, sla, safety, detection, storage, rate-limit, queue-dashboard, cron, migrations, environment, export, presets.
+- 5 bad-uuid edge cases → 400 (safety×2, detection×1, preset×2). Fixed in `d768162`.
+- Real 500s fixed:
+  - `storage/orphans`: wrong join column (`image_id` → `key`) — `46327a5`.
+  - `migrations`: nonexistent `hash`/`batch` cols + missing `migrations` table → defensive `[]` — `46327a5` + `b28fd04`.
+  - `detection/trek-duplicates`: `pg_trgm` extension missing → migration `56c840d` + `ILIKE` fallback `249f1a0`.
+- 18 GET/list endpoints + cohorts/build + 5 uuid edge cases verified live → **0 remaining 500s**.
+- Note: `GET /admin/detection/trek-duplicates` now returns 200 via the ILIKE fallback (pg_trgm was not installed by the deploy's migration step — likely a CREATE EXTENSION privilege issue). The `pg_trgm` migration exists but may need manual/superuser execution; flagged for follow-up.
+
+---
+
+# Batch 5 — Calendar (admin/marketing/calendar)
+
+Base: `{{baseUrl}}/admin/marketing/calendar` — SUPERADMIN + MODERATOR. GET only.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/marketing/calendar` | SUPERADMIN, MODERATOR | ✅ | 200 | was 500 — fixed (see below) |
+
+## Bugs Fixed (commit 10e0138)
+1. `getCalendar()` raw `UNION ALL` SQL referenced `coupons.start_date`/`end_date`/`description` — columns that **do not exist** (coupons uses `valid_from`/`valid_to`, no `description`) → 500. Also `discount_type || ' ' || discount_value` failed because `discount_value` is int (`text || integer` operator error). Fixed to `valid_from`/`valid_to`, built description from `discount_type || ' ' || discount_value::text`.
+
+---
+
+# Batch 5 — Itinerary Templates (admin/itinerary-templates)
+
+Base: `{{baseUrl}}/admin/itinerary-templates` — list/create = SUPERADMIN + MODERATOR; apply = SUPERADMIN.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/itinerary-templates` | SUPERADMIN, MODERATOR | ✅ | 200 | list |
+| 2 | POST | `/admin/itinerary-templates` | SUPERADMIN | ⬜ | create (validated) |
+| 3 | POST | `/admin/itinerary-templates/:id/apply-to-trek` | SUPERADMIN | ✅ | 400 | bad `:id` → 400 (fixed); bad `trekId` in body → 400 (fixed) |
+
+## Bugs Fixed (commit 2319c3f)
+1. `:id` unguarded → 500 (TypeORM find on bad uuid). Fixed with `ParseUUIDPipe` → 400.
+2. Body `trekId` was `@IsString()` → bad uuid passed to raw `trek_id` uuid column → 500. Changed to `@IsUUID()` → 400.
+
+---
+
+# Batch 5 — Broadcast (admin/notifications/broadcast)
+
+Base: `{{baseUrl}}/admin/notifications` — SUPERADMIN only. No uuid params. Safe.
+
+| # | Method | Path | Roles | Tested | Result |
+|---|--------|------|-------|--------|--------|
+| 1 | POST | `/admin/notifications/broadcast` | SUPERADMIN | ⬜ | send (validated DTO) |
+| 2 | GET | `/admin/notifications/broadcast/history` | SUPERADMIN | ✅ | 200 |
+
+---
+
+# Batch 5 — Search (admin/search)
+
+Base: `{{baseUrl}}/admin/search` — SUPERADMIN only. `:name` is a string identifier (no uuid). Safe.
+
+| # | Method | Path | Roles | Tested | Result |
+|---|--------|------|-------|--------|--------|
+| 1 | GET | `/admin/search/indexes` | SUPERADMIN | ✅ | 200 |
+| 2 | POST | `/admin/search/indexes/:name/reindex` | SUPERADMIN | ⬜ | string name |
+| 3 | PATCH | `/admin/search/indexes/:name/settings` | SUPERADMIN | ⬜ | string name |
+
+---
+
+# Batch 5 — Notification Preferences (admin/notifications/preferences)
+
+Base: `{{baseUrl}}/admin/notifications/preferences` — SUPERADMIN + MODERATOR. No route uuid (hardcoded admin id inside service). Safe.
+
+| # | Method | Path | Roles | Tested | Result |
+|---|--------|------|-------|--------|--------|
+| 1 | GET | `/admin/notifications/preferences` | SUPERADMIN, MODERATOR | ✅ | 200 |
+| 2 | PATCH | `/admin/notifications/preferences` | SUPERADMIN, MODERATOR | ⬜ | update (array DTO) |
+| 3 | POST | `/admin/notifications/preferences/test` | SUPERADMIN, MODERATOR | ✅ | 201 |
+
+---
+
+# Batch 5 — Refund Analytics (admin/analytics/refunds)
+
+Base: `{{baseUrl}}/admin/analytics/refunds` — SUPERADMIN + FINANCE. GETs only. Safe.
+
+| # | Method | Path | Roles | Tested | Result |
+|---|--------|------|-------|--------|--------|
+| 1 | GET | `/admin/analytics/refunds/overview` | SUPERADMIN, FINANCE | ✅ | 200 |
+| 2 | GET | `/admin/analytics/refunds/by-trek` | SUPERADMIN, FINANCE | ✅ | 200 |
+| 3 | GET | `/admin/analytics/refunds/by-organizer` | SUPERADMIN, FINANCE | ✅ | 200 |
+| 4 | GET | `/admin/analytics/refunds/by-user` | SUPERADMIN, FINANCE | ✅ | 200 |
+| 5 | GET | `/admin/analytics/refunds/trend` | SUPERADMIN, FINANCE | ✅ | 200 |
+
+---
+
+# Batch 5 — Booking Override (admin/bookings/:id/...)
+
+Base: `{{baseUrl}}/admin/bookings` — SUPERADMIN + FINANCE (override/cancel), +SUPPORT (timeline). All `:id` already `ParseUUIDPipe`. Safe (no fix needed).
+
+| # | Method | Path | Roles | Tested | Result |
+|---|--------|------|-------|--------|--------|
+| 1 | PATCH | `/admin/bookings/:id/override` | SUPERADMIN, FINANCE | ⬜ | 400 on bad uuid (pre-guarded) |
+| 2 | POST | `/admin/bookings/:id/cancel` | SUPERADMIN, FINANCE | ⬜ | 400 on bad uuid (pre-guarded) |
+| 3 | GET | `/admin/bookings/:id/timeline` | SUPERADMIN, FINANCE, SUPPORT | ⬜ | 400 on bad uuid (pre-guarded) |
+
+---
+
+# Batch 5 — Audit Diff (admin/audit-logs/:resourceType/:resourceId/diff)
+
+Base: `{{baseUrl}}/admin/audit-logs` — diff = SUPERADMIN; timeline = SUPERADMIN + MODERATOR.
+
+| # | Method | Path | Roles | Tested | Result | Notes |
+|---|--------|------|-------|--------|--------|-------|
+| 1 | GET | `/admin/audit-logs/:resourceType/:resourceId/diff` | SUPERADMIN | ✅ | 404 | bad uuid `resourceId` → 404 (fixed; was 500) |
+| 2 | GET | `/admin/audit-logs/timeline` | SUPERADMIN, MODERATOR | ✅ | 200 | actorId optional uuid pipe |
+
+## Bugs Fixed (commit 2319c3f)
+1. `:resourceId` is a `uuid` column; `WHERE resource_id = $2` with non-uuid text → `invalid input syntax for type uuid` → 500. Fixed by casting `resource_id::text = $2` (resources may use non-uuid ids). Now returns 404 when no logs.
+2. Service read `r.metadata` but the selected/actual column is `detail` (jsonb) → corrected to `r.detail` (latent mapping bug).
+
+---
+
+# Batch 5 — Audit Retention (admin/audit-logs/stats|retention|purge-now)
+
+Base: `{{baseUrl}}/admin/audit-logs` — SUPERADMIN only. GET/PATCH/POST, no uuid params. Safe.
+
+| # | Method | Path | Roles | Tested | Result |
+|---|--------|------|-------|--------|--------|
+| 1 | GET | `/admin/audit-logs/stats` | SUPERADMIN | ✅ | 200 |
+| 2 | PATCH | `/admin/audit-logs/retention` | SUPERADMIN | ⬜ | validated DTO (retentionDays ≥ 30) |
+| 3 | POST | `/admin/audit-logs/purge-now` | SUPERADMIN | ⬜ | manual purge |
+
+---
+
+# Batch 5 Summary
+- 9 controller groups: calendar, itinerary-templates, broadcast, search, notification-preferences, refund-analytics, booking-override, audit-diff, audit-retention.
+- 3 real 500s fixed:
+  - `marketing/calendar`: wrong coupon columns (`start_date`/`end_date`/`description` don't exist; coupons uses `valid_from`/`valid_to`) + int `||` text operator → `10e0138`.
+  - `audit-logs/:resourceType/:resourceId/diff`: `resource_id` uuid cast error + `r.metadata`→`r.detail` mapping → `2319c3f`.
+  - `itinerary-templates/:id/apply-to-trek`: unguarded `:id` + body `trekId` → `ParseUUIDPipe` + `@IsUUID()` → `2319c3f`.
+- 12 GET/list endpoints + prefs/test + uuid edges verified live → **0 remaining 500s**.
+- `booking-override` `:id` params were already `ParseUUIDPipe`-guarded (no fix needed).
+- ⬜ rows (POST/PATCH writes) not exercised live: itinerary create, broadcast send, search reindex/settings, prefs update, booking override/cancel, audit retention patch/purge. Flagged for later if live write tests are wanted.
