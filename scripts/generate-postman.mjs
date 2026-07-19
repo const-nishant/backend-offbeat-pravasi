@@ -33,6 +33,21 @@ function parseDto(filePath) {
   return parseDtoProps(src);
 }
 
+// extract the real base DTO from `extends PartialType(OmitType(FooDto, ...))`
+// or `extends FooDto` — the base is the first *Dto-named class in the clause.
+function resolveBaseDto(src, fromIndex) {
+  const slice = src.slice(fromIndex);
+  const m = slice.match(/extends\s+([\s\S]*?)(?:\{|implements)/);
+  if (!m) return null;
+  const clause = m[1];
+  const dtos = clause.match(/[A-Z]\w*Dto/g);
+  if (dtos) return dtos[0];
+  // fallback: first PascalCase identifier that is not a mapped-type utility
+  const util = /^(PartialType|OmitType|PickType|IntersectionType|Partial)$/;
+  const ids = clause.match(/[A-Z]\w+/g) || [];
+  return ids.find((x) => !util.test(x)) || null;
+}
+
 function buildBody(dtoName, dtoDir, controllerSrc) {
   if (!dtoName) return null;
   const base = dtoName.replace(/Dto$/, '');
@@ -53,9 +68,9 @@ function buildBody(dtoName, dtoDir, controllerSrc) {
     // follow extends PartialType(Base) / extends Base for empty classes
     if (!Object.keys(props).length) {
       const src = readFileSync(file, 'utf8');
-      const ext = src.match(/extends\s+(?:PartialType\()?(\w+)/);
+      const ext = resolveBaseDto(src, src.indexOf(`class ${dtoName}`));
       if (ext) {
-        const baseProps = buildBody(ext[1], dtoDir, controllerSrc);
+        const baseProps = buildBody(ext, dtoDir, controllerSrc);
         if (baseProps) props = baseProps;
       }
     }
@@ -63,9 +78,9 @@ function buildBody(dtoName, dtoDir, controllerSrc) {
     // inline DTO defined in the controller file
     props = parseDtoFromSource(controllerSrc, dtoName);
     if (!Object.keys(props).length) {
-      const ext = controllerSrc.match(/class\s+\w+[\s\S]*?extends\s+(?:PartialType\()?(\w+)/);
+      const ext = resolveBaseDto(controllerSrc, controllerSrc.indexOf(`class ${dtoName}`));
       if (ext) {
-        const baseProps = buildBody(ext[1], dtoDir, controllerSrc);
+        const baseProps = buildBody(ext, dtoDir, controllerSrc);
         if (baseProps) props = baseProps;
       }
     }
@@ -110,17 +125,29 @@ function parseDtoFromSource(src, className) {
   return parseDtoProps(block);
 }
 
+// scan decorator lines + the following property declaration. Decorators may
+// contain nested parens (e.g. @Type(() => Foo)), so we match a balanced group.
 function parseDtoProps(src) {
   const props = {};
-  const re = /@(\w+)\s*\([^)]*\)\s*\n\s*(?:@\w+\s*\([^)]*\)\s*\n\s*)*(\w+)\s*[!?]?\s*:/g;
-  let m;
-  while ((m = re.exec(src))) {
-    const decs = new Set();
-    const lineStart = src.lastIndexOf('@', m.index);
-    const blk = src.slice(lineStart, m.index + m[0].length);
-    for (const d of blk.match(/@(\w+)/g) || []) decs.add(d.slice(1));
-    const propName = m[m.length - 1];
-    props[propName] = { optional: /[!?]\s*[:=]/.test(m[0]) || decs.has('IsOptional'), decs };
+  const lines = src.split('\n');
+  let decs = [];
+  for (const raw of lines) {
+    const line = raw.trim();
+    const dec = line.match(/^@\w+(?:\([\s\S]*\))?\s*$/);
+    if (dec) {
+      const name = line.match(/^@(\w+)/)[1];
+      decs.push(name);
+      continue;
+    }
+    if (line === '' || line.startsWith('//') || line.startsWith('/*') || line.startsWith('*')) continue;
+    // property declaration: name!?: type  (optionally with array/trailing junk)
+    const pm = line.match(/^(\w+)\s*[!?]*\s*[:=]/);
+    if (pm) {
+      const propName = pm[1];
+      const optional = /[!?]\s*[:=]/.test(line) && line.includes('?') || decs.includes('IsOptional');
+      props[propName] = { optional, decs: new Set(decs) };
+    }
+    decs = [];
   }
   return props;
 }
@@ -173,15 +200,26 @@ function parseController(file) {
         const m = httpDec.match(/@(Get|Post|Put|Patch|Delete|Options|Head)\s*\(([^)]*)\)/);
         const method = m[1].toUpperCase();
         const pathArg = (m[2].match(/['"`]([^'"`]*)['"`]/) || [])[1] ?? '';
-        const block = methodDecs.join('\n');
+        // include the method signature line: @Body() dto lives in the param list,
+        // plus continuation lines until the param list's closing ')' (balanced parens).
+        // Decorator lines like @CurrentUser() contain ')' too, so track depth.
+        let sig = trimmed;
+        let depth = (trimmed.match(/\(/g) || []).length - (trimmed.match(/\)/g) || []).length;
+        for (let j = i + 1; j < lines.length; j++) {
+          const l = lines[j].trim();
+          sig += ' ' + l;
+          depth += (l.match(/\(/g) || []).length - (l.match(/\)/g) || []).length;
+          if (depth <= 0 && l.includes(')')) break;
+        }
+        const block = methodDecs.join('\n') + '\n' + sig;
         const methodIsPublic = /@Public\(\)|@AllowAnonymous\(\)/.test(block);
         const methodHasAuth = /@UseGuards|AuthGuard/.test(block);
         const isPublic = methodIsPublic || (classIsPublic && !methodHasAuth);
         const needsAuth = methodHasAuth || (classHasAuth && !methodIsPublic);
-        const bodyMatch = block.match(/@Body\([^)]*\)\s*\w+\s*[:?]\s*(?:Partial<)?(\w+)/);
+        const bodyMatch = block.match(/@Body\([^)]*\)\s*\w+\s*[!?:]+\s*(?:Partial<)?(\w+)/);
         const dtoName = bodyMatch ? bodyMatch[1] : null;
         let inlineBody = null;
-        const inlineMatch = block.match(/@Body\([^)]*\)\s*\w+\s*[:?]\s*\{([^}]*)\}/s);
+        const inlineMatch = block.match(/@Body\([^)]*\)\s*\w+\s*[!?:]+\s*\{([^}]*)\}/s);
         if (inlineMatch) {
           inlineBody = {};
           for (const part of inlineMatch[1].split(',')) {
@@ -189,7 +227,7 @@ function parseController(file) {
             if (kv) inlineBody[kv[1]] = 'string';
           }
         }
-        const fieldMatch = block.match(/@Body\(\s*['"`]([^'"`]+)['"`]\s*\)\s*(\w+)\s*[:?]/);
+        const fieldMatch = block.match(/@Body\(\s*['"`]([^'"`]+)['"`]\s*\)\s*(\w+)\s*[!?:]+/);
         const bodyField = fieldMatch ? fieldMatch[1] : null;
         const params = [...block.matchAll(/@Param\(\s*['"`]([^'"`]+)['"`]/g)].map((mm) => mm[1]);
         const opMatch = block.match(/@ApiOperation\(\{\s*summary:\s*['"`]([^'"`]+)['"`]/);
@@ -344,3 +382,6 @@ mkdirSync(dirname(OUT), { recursive: true });
 writeFileSync(OUT, JSON.stringify(collection, null, 2));
 console.log(`Wrote ${OUT}`);
 console.log(`Modules: ${Object.keys(folders).length}, Requests: ${Object.values(folders).reduce((a, b) => a + b.length, 0)}`);
+
+
+
