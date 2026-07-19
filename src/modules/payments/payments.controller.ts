@@ -10,15 +10,17 @@ import {
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { CreateCheckoutDto } from './dtos/create-checkout.dto';
-import { createStripeClient } from './providers/stripe.provider';
-import { createRazorpayClient } from './providers/razorpay.provider';
+import { GatewayRegistry } from './providers/gateway-registry.service';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('Payments')
 @Controller('payments')
 export class PaymentsController {
-  constructor(private readonly paymentsService: PaymentsService) {}
+  constructor(
+    private readonly paymentsService: PaymentsService,
+    private readonly gatewayRegistry: GatewayRegistry,
+  ) {}
 
   @Post('checkout')
   @UseGuards(AuthGuard('jwt'))
@@ -43,7 +45,8 @@ export class PaymentsController {
     const payload = req.body;
 
     if (provider === 'stripe') {
-      const stripe = createStripeClient();
+      const gateway = this.gatewayRegistry.getGateway('STRIPE');
+      const stripe = gateway.getClient();
       if (!stripe) throw new BadRequestException('Stripe not configured');
       const sig = headers['stripe-signature'];
       const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -92,7 +95,7 @@ export class PaymentsController {
     }
 
     if (provider === 'razorpay') {
-      const razor = createRazorpayClient();
+      const razor = this.gatewayRegistry.getGateway('RAZORPAY').getClient();
       if (!razor) throw new BadRequestException('Razorpay not configured');
       const sig =
         headers['x-razorpay-signature'] || headers['razorpay-signature'];

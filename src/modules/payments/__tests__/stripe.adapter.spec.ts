@@ -18,7 +18,7 @@ describe('StripeAdapter', () => {
   let adapter: StripeAdapter;
 
   beforeEach(() => {
-    process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+    process.env.STRIPE_RESTRICTED_KEY = 'rk_test_123';
     jest.clearAllMocks();
     adapter = new StripeAdapter();
   });
@@ -51,7 +51,7 @@ describe('StripeAdapter', () => {
         {
           amount: 200000,
           currency: 'inr',
-          payment_method_types: ['card'],
+          automatic_payment_methods: { enabled: true },
         },
         undefined,
       );
@@ -72,7 +72,7 @@ describe('StripeAdapter', () => {
     });
 
     it('throws error when stripe is not configured', async () => {
-      delete process.env.STRIPE_SECRET_KEY;
+      delete process.env.STRIPE_RESTRICTED_KEY;
       const unconfigured = new StripeAdapter();
 
       await expect(unconfigured.createPaymentIntent(1000)).rejects.toThrow(
@@ -90,9 +90,12 @@ describe('StripeAdapter', () => {
 
       const result = await adapter.refundPayment('pi_stripe_123');
 
-      expect(mockRefundsCreate).toHaveBeenCalledWith({
-        payment_intent: 'pi_stripe_123',
-      });
+      expect(mockRefundsCreate).toHaveBeenCalledWith(
+        {
+          payment_intent: 'pi_stripe_123',
+        },
+        undefined,
+      );
       expect(result.providerRefundId).toBe('rf_stripe_1');
       expect(result.status).toBe('succeeded');
     });
@@ -105,14 +108,17 @@ describe('StripeAdapter', () => {
 
       await adapter.refundPayment('pi_stripe_123', 500);
 
-      expect(mockRefundsCreate).toHaveBeenCalledWith({
-        payment_intent: 'pi_stripe_123',
-        amount: 50000,
-      });
+      expect(mockRefundsCreate).toHaveBeenCalledWith(
+        {
+          payment_intent: 'pi_stripe_123',
+          amount: 50000,
+        },
+        undefined,
+      );
     });
 
     it('throws error when stripe is not configured', async () => {
-      delete process.env.STRIPE_SECRET_KEY;
+      delete process.env.STRIPE_RESTRICTED_KEY;
       const unconfigured = new StripeAdapter();
 
       await expect(unconfigured.refundPayment('pi_123')).rejects.toThrow(
@@ -167,7 +173,7 @@ describe('StripeAdapter', () => {
     });
 
     it('returns empty array when stripe is not configured', async () => {
-      delete process.env.STRIPE_SECRET_KEY;
+      delete process.env.STRIPE_RESTRICTED_KEY;
       const unconfigured = new StripeAdapter();
 
       const result = await unconfigured.getDisputes();

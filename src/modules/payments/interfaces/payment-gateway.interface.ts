@@ -11,7 +11,9 @@ export interface PaymentGateway {
   refundPayment(
     providerPaymentId: string,
     amount?: number,
+    idempotencyKey?: string,
   ): Promise<RefundResult>;
   getDisputes(): Promise<any[]>;
   supportsProvider(provider: string): boolean;
+  getClient(): any | null;
 }

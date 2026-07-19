@@ -33,6 +33,7 @@ export class Payment {
   provider!: PaymentProvider;
 
   @Column('varchar', { nullable: true })
+  @Index({ unique: true })
   providerPaymentId?: string;
 
   @Column({ type: 'varchar', length: 32, default: PaymentStatus.CREATED })

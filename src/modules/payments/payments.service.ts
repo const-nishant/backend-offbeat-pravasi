@@ -14,16 +14,8 @@ import {
 } from '../bookings/entities/payment.entity';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
 import { TicketService } from '../bookings/ticket.service';
-import {
-  createStripeClient,
-  createStripePaymentIntent,
-  refundStripePayment,
-} from './providers/stripe.provider';
-import {
-  createRazorpayClient,
-  createRazorpayOrder,
-  refundRazorpayPayment,
-} from './providers/razorpay.provider';
+import { GatewayRegistry } from './providers/gateway-registry.service';
+import type { PaymentGateway } from './interfaces/payment-gateway.interface';
 import { Trek } from '../treks/entities/trek.entity';
 import { MailerService } from '../mailer/mailer.service';
 import type {
@@ -48,6 +40,7 @@ export class PaymentsService {
     private readonly mailerService: MailerService,
     private readonly dataSource: DataSource,
     private readonly notificationsService: NotificationsService,
+    private readonly gatewayRegistry: GatewayRegistry,
   ) {}
 
   async createCheckout(opts: {
@@ -91,35 +84,35 @@ export class PaymentsService {
     await this.paymentRepo.save(payment);
 
     if (provider === PaymentProvider.STRIPE) {
-      const stripe = createStripeClient();
-      if (!stripe) throw new Error('Stripe not configured');
-      const intent = await createStripePaymentIntent(
-        stripe,
+      const gateway = this.gatewayRegistry.getGateway(provider);
+      const intent = await gateway.createPaymentIntent(
         payment.amountInr,
         idempotencyKey,
       );
-      payment.providerPaymentId = intent.id as any;
-      payment.providerResponse = intent as any;
+      payment.providerPaymentId = intent.providerPaymentId as any;
+      payment.providerResponse = intent.rawResponse as any;
       await this.paymentRepo.save(payment);
       return {
         paymentId: payment.id,
         provider: 'STRIPE',
-        clientSecret: (intent as any).client_secret,
+        clientSecret: (intent.rawResponse as any).client_secret,
       };
     }
 
     if (provider === PaymentProvider.RAZORPAY) {
-      const razor = createRazorpayClient();
-      if (!razor) throw new Error('Razorpay not configured');
-      const order = await createRazorpayOrder(
-        razor,
+      const gateway = this.gatewayRegistry.getGateway(provider);
+      const order = await gateway.createPaymentIntent(
         payment.amountInr,
         payment.id,
       );
-      payment.providerPaymentId = order.id as any;
-      payment.providerResponse = order as any;
+      payment.providerPaymentId = order.providerPaymentId as any;
+      payment.providerResponse = order.rawResponse as any;
       await this.paymentRepo.save(payment);
-      return { paymentId: payment.id, provider: 'RAZORPAY', order };
+      return {
+        paymentId: payment.id,
+        provider: 'RAZORPAY',
+        order: order.rawResponse,
+      };
     }
 
     return {
@@ -436,16 +429,13 @@ export class PaymentsService {
     }
 
     try {
-      if (payment.provider === PaymentProvider.STRIPE) {
-        const stripe = createStripeClient();
-        if (stripe && payment.providerPaymentId) {
-          await refundStripePayment(stripe, payment.providerPaymentId);
-        }
-      } else if (payment.provider === PaymentProvider.RAZORPAY) {
-        const razor = createRazorpayClient();
-        if (razor && payment.providerPaymentId) {
-          await refundRazorpayPayment(razor, payment.providerPaymentId);
-        }
+      const gateway = this.gatewayRegistry.getGateway(payment.provider);
+      if (payment.providerPaymentId) {
+        await gateway.refundPayment(
+          payment.providerPaymentId,
+          payment.amountInr,
+          payment.id,
+        );
       }
     } catch (e) {
       this.logger.error(

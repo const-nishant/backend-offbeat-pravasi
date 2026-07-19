@@ -21,30 +21,66 @@ import {
 } from '@jest/globals';
 
 // Mock payment providers
-const mockStripeIntent = { id: 'pi_mock_123', client_secret: 'cs_mock_secret' };
+const mockStripeIntent = {
+  id: 'pi_mock_123',
+  client_secret: 'cs_mock_secret',
+};
 const mockRazorpayOrder = {
   id: 'order_mock_123',
   amount: 200000,
   currency: 'INR',
 };
 
-jest.mock('./providers/stripe.provider', () => ({
-  createStripeClient: jest.fn(() => ({
+const mockStripeGateway = {
+  supportsProvider: jest.fn((p: string) => p === 'STRIPE'),
+  getClient: jest.fn(() => ({
     paymentIntents: { create: jest.fn() },
     webhooks: { constructEvent: jest.fn() },
     refunds: { create: jest.fn() },
   })),
-  createStripePaymentIntent: jest.fn(() => Promise.resolve(mockStripeIntent)),
-  refundStripePayment: jest.fn(() => Promise.resolve({ id: 'refund_mock' })),
-}));
+  createPaymentIntent: jest.fn(() =>
+    Promise.resolve({
+      providerPaymentId: mockStripeIntent.id,
+      rawResponse: mockStripeIntent,
+    }),
+  ),
+  refundPayment: jest.fn(() => Promise.resolve({ id: 'refund_mock' })),
+  getDisputes: jest.fn(() => Promise.resolve([])),
+};
 
-jest.mock('./providers/razorpay.provider', () => ({
-  createRazorpayClient: jest.fn(() => ({
+const mockRazorpayGateway = {
+  supportsProvider: jest.fn((p: string) => p === 'RAZORPAY'),
+  getClient: jest.fn(() => ({
     orders: { create: jest.fn() },
     payments: { refund: jest.fn() },
   })),
-  createRazorpayOrder: jest.fn(() => Promise.resolve(mockRazorpayOrder)),
-  refundRazorpayPayment: jest.fn(() => Promise.resolve({ id: 'rfnd_mock' })),
+  createPaymentIntent: jest.fn(() =>
+    Promise.resolve({
+      providerPaymentId: mockRazorpayOrder.id,
+      rawResponse: mockRazorpayOrder,
+    }),
+  ),
+  refundPayment: jest.fn(() => Promise.resolve({ id: 'rfnd_mock' })),
+  getDisputes: jest.fn(() => Promise.resolve([])),
+};
+
+jest.mock('./providers/stripe.adapter', () => ({
+  StripeAdapter: jest.fn().mockImplementation(() => mockStripeGateway),
+}));
+
+jest.mock('./providers/razorpay.adapter', () => ({
+  RazorpayAdapter: jest.fn().mockImplementation(() => mockRazorpayGateway),
+}));
+
+const mockGatewayRegistry = {
+  getGateway: jest.fn((provider: string) =>
+    provider === 'STRIPE' ? mockStripeGateway : mockRazorpayGateway,
+  ),
+  getAllGateways: jest.fn(() => [mockStripeGateway, mockRazorpayGateway]),
+};
+
+jest.mock('./providers/gateway-registry.service', () => ({
+  GatewayRegistry: jest.fn().mockImplementation(() => mockGatewayRegistry),
 }));
 
 describe('PaymentsService', () => {
@@ -79,7 +115,7 @@ describe('PaymentsService', () => {
   } as any;
 
   beforeAll(() => {
-    process.env.STRIPE_SECRET_KEY = 'sk_test_mock';
+    process.env.STRIPE_RESTRICTED_KEY = 'rk_test_mock';
     process.env.RAZORPAY_KEY_ID = 'rzp_test_mock';
     process.env.RAZORPAY_KEY_SECRET = 'rzp_secret_mock';
   });
@@ -140,6 +176,7 @@ describe('PaymentsService', () => {
       mailerService as any,
       dataSource as any,
       notificationsService,
+      mockGatewayRegistry as any,
     );
   });
 

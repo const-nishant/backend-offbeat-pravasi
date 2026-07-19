@@ -28,6 +28,10 @@ export class RazorpayAdapter implements PaymentGateway {
     return provider === 'RAZORPAY';
   }
 
+  getClient(): Razorpay | null {
+    return this.client;
+  }
+
   async createPaymentIntent(
     amountInr: number,
     idempotencyKey?: string,
@@ -49,6 +53,7 @@ export class RazorpayAdapter implements PaymentGateway {
   async refundPayment(
     providerPaymentId: string,
     amount?: number,
+    idempotencyKey?: string,
   ): Promise<RefundResult> {
     const razorpay = this.client;
     if (!razorpay) throw new Error('Razorpay not configured');

@@ -11,14 +11,14 @@ export class StripeAdapter implements PaymentGateway {
   private readonly client: any | null;
 
   constructor() {
-    const key = process.env.STRIPE_SECRET_KEY;
+    const key = process.env.STRIPE_RESTRICTED_KEY;
     if (!key) {
       this.client = null;
       return;
     }
     try {
       this.client = new StripeLib(key, {
-        apiVersion: '2025-02-24.acacia' as any,
+        apiVersion: '2026-06-24.dahlia' as any,
       });
     } catch {
       this.client = null;
@@ -29,6 +29,10 @@ export class StripeAdapter implements PaymentGateway {
     return provider === 'STRIPE';
   }
 
+  getClient(): any | null {
+    return this.client;
+  }
+
   async createPaymentIntent(
     amountInr: number,
     idempotencyKey?: string,
@@ -36,11 +40,15 @@ export class StripeAdapter implements PaymentGateway {
     const stripe = this.client;
     if (!stripe) throw new Error('Stripe not configured');
     const amount = Math.round(amountInr * 100);
-    const intent = await stripe.paymentIntents.create({
-      amount,
-      currency: 'inr',
-      payment_method_types: ['card'],
-    });
+    // ponytail: omit payment_method_types to enable dynamic payment methods (UPI, netbanking, etc.)
+    const intent = await stripe.paymentIntents.create(
+      {
+        amount,
+        currency: 'inr',
+        automatic_payment_methods: { enabled: true },
+      },
+      idempotencyKey ? { idempotencyKey } : undefined,
+    );
     return {
       providerPaymentId: intent.id,
       rawResponse: intent,
@@ -50,6 +58,7 @@ export class StripeAdapter implements PaymentGateway {
   async refundPayment(
     providerPaymentId: string,
     amount?: number,
+    idempotencyKey?: string,
   ): Promise<RefundResult> {
     const stripe = this.client;
     if (!stripe) throw new Error('Stripe not configured');
@@ -57,7 +66,10 @@ export class StripeAdapter implements PaymentGateway {
     if (amount !== undefined) {
       params.amount = Math.round(amount * 100);
     }
-    const refund = await stripe.refunds.create(params);
+    const refund = await stripe.refunds.create(
+      params,
+      idempotencyKey ? { idempotencyKey } : undefined,
+    );
     return {
       providerRefundId: refund.id,
       status: refund.status,

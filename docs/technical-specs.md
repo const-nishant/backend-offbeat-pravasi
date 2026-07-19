@@ -254,7 +254,7 @@ const WORKER_CONCURRENCY = {
 | `JWT_ACCESS_SECRET` | Quarterly | Token forgery — **critical** |
 | `JWT_REFRESH_SECRET` | Quarterly | Token forgery — **critical** |
 | `JWT_TICKET_SECRET` | Quarterly | Ticket forgery — **high** |
-| `STRIPE_SECRET_KEY` | On compromise | Payment fraud — **critical** |
+| `STRIPE_RESTRICTED_KEY` | On compromise | Payment fraud — **critical** |
 | `STRIPE_WEBHOOK_SECRET` | On compromise | Webhook spoofing — **critical** |
 | `RAZORPAY_KEY_SECRET` | On compromise | Payment fraud — **critical** |
 | `RAZORPAY_WEBHOOK_SECRET` | On compromise | Webhook spoofing — **critical** |
