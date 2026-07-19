@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, Query, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
@@ -51,14 +51,14 @@ export class AdminPayoutController {
   @Post(':id/approve')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.FINANCE)
   @ApiOperation({ summary: 'Approve a payout for processing' })
-  async approve(@Param('id') id: string) {
+  async approve(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminPayoutService.approve(id);
   }
 
   @Post(':id/mark-settled')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.FINANCE)
   @ApiOperation({ summary: 'Mark a payout as settled (manual transfer)' })
-  async markSettled(@Param('id') id: string) {
+  async markSettled(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminPayoutService.markSettled(id);
   }
 }

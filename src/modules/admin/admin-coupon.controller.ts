@@ -6,6 +6,7 @@ import {
   Param,
   Body,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
@@ -122,7 +123,7 @@ export class AdminCouponController {
   @Get(':id')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.ANALYST)
   @ApiOperation({ summary: 'Get coupon by id' })
-  async get(@Param('id') id: string) {
+  async get(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminCouponService.get(id);
   }
 
@@ -140,7 +141,7 @@ export class AdminCouponController {
   @Patch(':id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Update a coupon' })
-  async update(@Param('id') id: string, @Body() dto: UpdateCouponDto) {
+  async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateCouponDto) {
     return this.adminCouponService.update(id, {
       ...dto,
       validFrom:
@@ -161,14 +162,14 @@ export class AdminCouponController {
   @Post(':id/expire')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Force-expire a coupon' })
-  async expire(@Param('id') id: string) {
+  async expire(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminCouponService.expire(id);
   }
 
   @Get(':id/redemptions')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.ANALYST)
   @ApiOperation({ summary: 'Get coupon redemption log' })
-  async getRedemptions(@Param('id') id: string) {
+  async getRedemptions(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminCouponService.getRedemptions(id);
   }
 }

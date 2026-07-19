@@ -7,6 +7,7 @@ import {
   Param,
   Body,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
@@ -96,14 +97,14 @@ export class AdminReferralTierController {
   @Patch('tiers/:id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Update a referral tier' })
-  async updateTier(@Param('id') id: string, @Body() dto: UpdateTierDto) {
+  async updateTier(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateTierDto) {
     return this.adminReferralTierService.updateTier(id, dto);
   }
 
   @Delete('tiers/:id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Delete a referral tier' })
-  async deleteTier(@Param('id') id: string) {
+  async deleteTier(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminReferralTierService.deleteTier(id);
   }
 

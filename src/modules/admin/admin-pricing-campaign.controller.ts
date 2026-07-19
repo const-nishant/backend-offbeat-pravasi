@@ -6,6 +6,7 @@ import {
   Param,
   Body,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
@@ -120,7 +121,7 @@ export class AdminPricingCampaignController {
   @Patch('campaigns/:id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Update or cancel a pricing campaign' })
-  async update(@Param('id') id: string, @Body() dto: UpdateCampaignDto) {
+  async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateCampaignDto) {
     const updateData: any = { ...dto };
     if (dto.startDate) updateData.startDate = new Date(dto.startDate);
     if (dto.endDate) updateData.endDate = new Date(dto.endDate);
