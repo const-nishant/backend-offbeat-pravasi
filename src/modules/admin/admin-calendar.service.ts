@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 @Injectable()
 export class AdminCalendarService {
+  private readonly logger = new Logger(AdminCalendarService.name);
+
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async getCalendar() {
@@ -50,7 +52,13 @@ export class AdminCalendarService {
       ORDER BY date DESC
     `;
 
-    const rows = await this.dataSource.query(sql);
+    let rows: any[];
+    try {
+      rows = await this.dataSource.query(sql);
+    } catch (e) {
+      // ponytail-diag: surface raw SQL error for diagnosis; remove after fix
+      return { __diag_error: (e as Error).message };
+    }
     return rows.map((r: any) => ({
       date: r.date,
       type: r.type,
