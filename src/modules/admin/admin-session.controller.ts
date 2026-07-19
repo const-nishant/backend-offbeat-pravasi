@@ -1,4 +1,4 @@
-import { Controller, Get, Delete, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Delete, Param, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
@@ -22,14 +22,14 @@ export class AdminSessionController {
   @Delete(':sessionId')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Revoke a specific session' })
-  async revokeSession(@Param('sessionId') sessionId: string) {
+  async revokeSession(@Param('sessionId', ParseUUIDPipe) sessionId: string) {
     return this.adminSessionService.revokeSession(sessionId);
   }
 
   @Delete('user/:userId')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Revoke all sessions for a user' })
-  async revokeUserSessions(@Param('userId') userId: string) {
+  async revokeUserSessions(@Param('userId', ParseUUIDPipe) userId: string) {
     return this.adminSessionService.revokeUserSessions(userId);
   }
 }

@@ -8,6 +8,7 @@ import {
   Query,
   Body,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
@@ -15,7 +16,7 @@ import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
 import { AdminRole } from '../../modules/users/enums/admin-role.enum';
 import { AdminGroupService } from './admin-group.service';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { IsString, IsIn } from 'class-validator';
+import { IsString, IsIn, IsUUID } from 'class-validator';
 
 class UpdateStatusDto {
   @IsIn(['active', 'banned', 'flagged'])
@@ -23,7 +24,7 @@ class UpdateStatusDto {
 }
 
 class TransferOwnershipDto {
-  @IsString()
+  @IsUUID()
   newOwnerUserId!: string;
 }
 
@@ -48,14 +49,14 @@ export class AdminGroupController {
   @Patch(':id/status')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Ban, warn, or clear a group' })
-  async updateStatus(@Param('id') id: string, @Body() dto: UpdateStatusDto) {
+  async updateStatus(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateStatusDto) {
     return this.adminGroupService.updateStatus(id, dto.status);
   }
 
   @Get(':id/members')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
   @ApiOperation({ summary: 'List group members' })
-  async listMembers(@Param('id') id: string) {
+  async listMembers(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminGroupService.listMembers(id);
   }
 
@@ -63,8 +64,8 @@ export class AdminGroupController {
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Remove a member from the group' })
   async removeMember(
-    @Param('id') id: string,
-    @Param('memberId') memberId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('memberId', ParseUUIDPipe) memberId: string,
   ) {
     return this.adminGroupService.removeMember(id, memberId);
   }
@@ -73,7 +74,7 @@ export class AdminGroupController {
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Transfer group ownership' })
   async transferOwnership(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: TransferOwnershipDto,
   ) {
     return this.adminGroupService.transferOwnership(id, dto.newOwnerUserId);

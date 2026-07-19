@@ -7,6 +7,7 @@ import {
   Query,
   Body,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
@@ -15,7 +16,7 @@ import { AdminRole } from '../../modules/users/enums/admin-role.enum';
 import { AdminTaskService } from './admin-task.service';
 import { TaskStatus, TaskPriority } from './entities/admin-task.entity';
 import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { IsString, IsOptional, IsEnum, IsDateString } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsDateString, IsUUID } from 'class-validator';
 
 class CreateTaskDto {
   @IsString()
@@ -43,7 +44,7 @@ class CreateTaskDto {
 }
 
 class AssignTaskDto {
-  @IsString()
+  @IsUUID()
   assignedTo!: string;
 }
 
@@ -105,14 +106,14 @@ export class AdminTaskController {
   @Patch(':id/assign')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Reassign a task' })
-  async assign(@Param('id') id: string, @Body() dto: AssignTaskDto) {
+  async assign(@Param('id', ParseUUIDPipe) id: string, @Body() dto: AssignTaskDto) {
     return this.adminTaskService.assign(id, dto.assignedTo);
   }
 
   @Patch(':id/status')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
   @ApiOperation({ summary: 'Update task status' })
-  async updateStatus(@Param('id') id: string, @Body() dto: UpdateStatusDto) {
+  async updateStatus(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateStatusDto) {
     return this.adminTaskService.updateStatus(id, dto.status);
   }
 }

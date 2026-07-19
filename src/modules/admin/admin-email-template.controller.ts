@@ -7,6 +7,7 @@ import {
   Param,
   Body,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
@@ -73,7 +74,7 @@ export class AdminEmailTemplateController {
   @Get(':id')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
   @ApiOperation({ summary: 'Get a single email template' })
-  async get(@Param('id') id: string) {
+  async get(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminEmailTemplateService.get(id);
   }
 
@@ -87,28 +88,28 @@ export class AdminEmailTemplateController {
   @Patch(':id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Update an email template (creates version)' })
-  async update(@Param('id') id: string, @Body() dto: UpdateTemplateDto) {
+  async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateTemplateDto) {
     return this.adminEmailTemplateService.update(id, dto);
   }
 
   @Delete(':id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Delete an email template' })
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminEmailTemplateService.remove(id);
   }
 
   @Post(':id/preview')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Preview rendered template' })
-  async preview(@Param('id') id: string) {
+  async preview(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminEmailTemplateService.preview(id);
   }
 
   @Get(':id/versions')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Get version history with diffs' })
-  async getVersions(@Param('id') id: string) {
+  async getVersions(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminEmailTemplateService.getVersions(id);
   }
 }

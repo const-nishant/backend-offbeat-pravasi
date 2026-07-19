@@ -7,6 +7,7 @@ import {
   Param,
   Body,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
@@ -86,7 +87,7 @@ export class AdminFeatureFlagController {
   @Get(':id')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.ANALYST)
   @ApiOperation({ summary: 'Get feature flag by id' })
-  async get(@Param('id') id: string) {
+  async get(@Param('id', ParseUUIDPipe) id: string) {
     return this.featureFlagService.get(id);
   }
 
@@ -100,14 +101,14 @@ export class AdminFeatureFlagController {
   @Patch(':id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Update a feature flag' })
-  async update(@Param('id') id: string, @Body() dto: UpdateFlagDto) {
+  async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateFlagDto) {
     return this.featureFlagService.update(id, dto);
   }
 
   @Delete(':id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Delete a feature flag' })
-  async delete(@Param('id') id: string) {
+  async delete(@Param('id', ParseUUIDPipe) id: string) {
     return this.featureFlagService.delete(id);
   }
 }

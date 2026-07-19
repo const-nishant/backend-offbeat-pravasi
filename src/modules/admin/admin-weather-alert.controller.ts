@@ -6,6 +6,7 @@ import {
   Param,
   Body,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
@@ -69,7 +70,7 @@ export class AdminWeatherAlertController {
   @Delete(':id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Expire a weather alert early' })
-  async expire(@Param('id') id: string) {
+  async expire(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminWeatherAlertService.expire(id);
   }
 }

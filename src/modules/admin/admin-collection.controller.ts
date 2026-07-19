@@ -6,6 +6,7 @@ import {
   Param,
   Body,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
@@ -67,7 +68,7 @@ export class AdminCollectionController {
   @Patch(':id/treks')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Reorder or replace treks in a collection' })
-  async updateTreks(@Param('id') id: string, @Body() dto: UpdateTreksDto) {
+  async updateTreks(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateTreksDto) {
     return this.adminCollectionService.updateTreks(id, dto.trekIds);
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
@@ -30,14 +30,14 @@ export class AdminOrganizerDocumentController {
   @Get(':id/documents')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
   @ApiOperation({ summary: 'List documents for an organizer' })
-  async listDocuments(@Param('id') id: string) {
+  async listDocuments(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminOrganizerDocumentService.listDocuments(id);
   }
 
   @Post(':id/documents/:docId/approve')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Approve a document' })
-  async approve(@Param('docId') docId: string) {
+  async approve(@Param('docId', ParseUUIDPipe) docId: string) {
     return this.adminOrganizerDocumentService.approve(
       docId,
       '00000000-0000-0000-0000-000000000000',
@@ -47,7 +47,7 @@ export class AdminOrganizerDocumentController {
   @Post(':id/documents/:docId/reject')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Reject a document with reason' })
-  async reject(@Param('docId') docId: string, @Body() dto: RejectDto) {
+  async reject(@Param('docId', ParseUUIDPipe) docId: string, @Body() dto: RejectDto) {
     return this.adminOrganizerDocumentService.reject(docId, dto.reason);
   }
 }

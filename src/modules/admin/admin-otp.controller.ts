@@ -5,12 +5,11 @@ import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
 import { AdminRole } from '../../modules/users/enums/admin-role.enum';
 import { AdminOtpService } from './admin-otp.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsUUID } from 'class-validator';
 import type { Request } from 'express';
 
 class GenerateOtpDto {
-  @IsString()
-  @IsNotEmpty()
+  @IsUUID()
   userId!: string;
 
   @IsString()

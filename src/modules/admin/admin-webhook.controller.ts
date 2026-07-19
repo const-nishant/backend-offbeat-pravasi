@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, Query, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
@@ -36,14 +36,14 @@ export class AdminWebhookController {
   @Get(':id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Get full webhook event detail' })
-  async getById(@Param('id') id: string) {
+  async getById(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminWebhookService.getById(id);
   }
 
   @Post(':id/retry')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Replay a webhook event' })
-  async retry(@Param('id') id: string) {
+  async retry(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminWebhookService.retry(id);
   }
 }

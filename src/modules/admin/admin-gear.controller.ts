@@ -7,6 +7,7 @@ import {
   Query,
   Body,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
@@ -49,21 +50,21 @@ export class AdminGearController {
   @Patch(':id/decision')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Approve or reject a gear item' })
-  async decide(@Param('id') id: string, @Body() dto: DecisionDto) {
+  async decide(@Param('id', ParseUUIDPipe) id: string, @Body() dto: DecisionDto) {
     return this.adminGearService.decide(id, dto.decision, dto.reason);
   }
 
   @Patch(':id/featured')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Toggle featured status' })
-  async toggleFeatured(@Param('id') id: string) {
+  async toggleFeatured(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminGearService.toggleFeatured(id);
   }
 
   @Delete(':id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Soft-delete a gear item' })
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminGearService.softDelete(id);
   }
 }
