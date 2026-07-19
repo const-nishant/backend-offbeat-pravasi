@@ -13,6 +13,11 @@
       "skillPath": "SKILL.md",
       "computedHash": "68658903272e1015f3ec5084c7d0988216a47f42f675ed819a675250fc6a23cd"
     },
+    "stripe-best-practices": {
+      "source": "docs.stripe.com",
+      "sourceType": "well-known",
+      "computedHash": "47b21ed8662be5dbad43239ca99f77326a73c2d0c691fb15dc028871fe4c3569"
+    },
     "typeorm": {
       "source": "mindrally/skills",
       "sourceType": "github",

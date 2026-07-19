@@ -170,6 +170,7 @@ Agent Skills (.agents/)
 - Conventions: name subfolders by domain (e.g., `.agents/auth/`, `.agents/bookings/`) and include a `README.md` describing inputs, outputs, and expectations.
 - Example: `.agents/bookings/README.md` documents webhook verification steps, idempotency keys, and test cases for `bookings-payments-agent`.
 - Skill: `.agents/skills/endpoint-testing/SKILL.md` — live endpoint testing workflow (login, dual auth headers, edge-case checklist, PowerShell 5.1 runner gotchas, post-deploy re-verification, and the `ab-tests-test-tracker.md` convention). **Consult this skill whenever testing/verifying HTTP endpoints against dev/staging.**
+- Skill: `.agents/skills/stripe-best-practices/SKILL.md` — Stripe integration guidance (Payments/PaymentIntents/Checkout, webhook signature verification, RAKs, dynamic payment methods, refunds/disputes, latest API version `2026-06-24.dahlia`). **Consult this skill whenever touching `src/modules/payments` (Stripe provider/adapter/webhook), payment intents, refunds, or webhook handlers.** Reference files live under `.agents/skills/stripe-best-practices/references/` (payments.md, security.md, billing.md, connect.md, tax.md, treasury.md).
 
 Security & Permissions
 - Agents are a documentation convention: actual code changes must follow repository ownership and review rules. Do not commit secrets; reference env variables instead.
