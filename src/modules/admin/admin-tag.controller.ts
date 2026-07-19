@@ -5,6 +5,7 @@ import {
   Patch,
   Delete,
   Param,
+  ParseUUIDPipe,
   Body,
   UseGuards,
 } from '@nestjs/common';
@@ -92,7 +93,7 @@ export class AdminTagController {
   @Delete('tags/:id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Delete a trek tag' })
-  async deleteTag(@Param('id') id: string) {
+  async deleteTag(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminTagService.deleteTag(id);
   }
 
@@ -114,7 +115,7 @@ export class AdminTagController {
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Update a trek category' })
   async updateCategory(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateCategoryDto,
   ) {
     return this.adminTagService.updateCategory(id, dto);
@@ -123,7 +124,7 @@ export class AdminTagController {
   @Delete('categories/:id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Delete a trek category' })
-  async deleteCategory(@Param('id') id: string) {
+  async deleteCategory(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminTagService.deleteCategory(id);
   }
 
@@ -131,7 +132,7 @@ export class AdminTagController {
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
   @ApiOperation({ summary: 'Batch-update trek tags' })
   async updateTrekTags(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateTrekTagsDto,
   ) {
     return this.adminTagService.updateTrekTags(id, dto.tagIds);

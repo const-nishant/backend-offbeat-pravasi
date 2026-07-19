@@ -5,6 +5,7 @@ import {
   Patch,
   Delete,
   Param,
+  ParseUUIDPipe,
   Body,
   UseGuards,
 } from '@nestjs/common';
@@ -71,7 +72,10 @@ export class AdminIpFilterController {
   @Patch('ip-blocklist/:id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Update a blocklist entry' })
-  async updateBlocklist(@Param('id') id: string, @Body() dto: UpdateIpRuleDto) {
+  async updateBlocklist(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateIpRuleDto,
+  ) {
     return this.adminIpFilterService.update(id, {
       ipCidr: dto.ipCidr,
       reason: dto.reason,
@@ -87,7 +91,7 @@ export class AdminIpFilterController {
   @Delete('ip-blocklist/:id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Remove IP from blocklist' })
-  async deleteBlocklist(@Param('id') id: string) {
+  async deleteBlocklist(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminIpFilterService.delete(id);
   }
 
@@ -112,7 +116,10 @@ export class AdminIpFilterController {
   @Patch('ip-allowlist/:id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Update an allowlist entry' })
-  async updateAllowlist(@Param('id') id: string, @Body() dto: UpdateIpRuleDto) {
+  async updateAllowlist(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateIpRuleDto,
+  ) {
     return this.adminIpFilterService.update(id, {
       ipCidr: dto.ipCidr,
       reason: dto.reason,
@@ -128,7 +135,7 @@ export class AdminIpFilterController {
   @Delete('ip-allowlist/:id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Remove IP from allowlist' })
-  async deleteAllowlist(@Param('id') id: string) {
+  async deleteAllowlist(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminIpFilterService.delete(id);
   }
 

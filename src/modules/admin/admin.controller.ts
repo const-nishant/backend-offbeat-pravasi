@@ -4,6 +4,7 @@ import {
   Query,
   Patch,
   Param,
+  ParseUUIDPipe,
   Body,
   Post,
   UseGuards,
@@ -55,7 +56,10 @@ export class AdminController {
   @Post('bookings/:id/generate-ticket-pdf')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.FINANCE, AdminRole.SUPPORT)
   @ApiOperation({ summary: 'Enqueue ticket PDF generation for a booking' })
-  async generateBookingPdf(@Param('id') id: string, @Req() req: any) {
+  async generateBookingPdf(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: any,
+  ) {
     return this.adminService.enqueueTicketPdfJob(id, req.user);
   }
 

@@ -110,7 +110,7 @@ export class AdminUserMergeService {
       );
 
       await queryRunner.query(
-        `INSERT INTO audit_logs (actor_id, action, entity_type, entity_id, metadata, created_at)
+        `INSERT INTO audit_logs (actor_id, action, resource_type, resource_id, detail, created_at)
          VALUES ($1, 'merge_users', 'users', $2, $3, NOW())`,
         [
           primaryUserId,
@@ -140,7 +140,7 @@ export class AdminUserMergeService {
 
   async history() {
     return this.dataSource.query(
-      `SELECT id, actor_id, action, entity_type, entity_id, metadata, created_at
+      `SELECT id, actor_id, action, resource_type, resource_id, detail, created_at
        FROM audit_logs
        WHERE action = 'merge_users'
        ORDER BY created_at DESC

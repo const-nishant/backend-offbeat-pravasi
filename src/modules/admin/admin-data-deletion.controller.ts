@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Param,
+  ParseUUIDPipe,
   Query,
   Body,
   UseGuards,
@@ -43,7 +44,7 @@ export class AdminDataDeletionController {
   @Post(':id/approve')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Approve data deletion request' })
-  async approve(@Param('id') id: string) {
+  async approve(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminDataDeletionService.approve(
       id,
       '00000000-0000-0000-0000-000000000000',
@@ -53,7 +54,7 @@ export class AdminDataDeletionController {
   @Post(':id/reject')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Reject data deletion with reason' })
-  async reject(@Param('id') id: string, @Body() dto: RejectDto) {
+  async reject(@Param('id', ParseUUIDPipe) id: string, @Body() dto: RejectDto) {
     return this.adminDataDeletionService.reject(id, dto.reason);
   }
 }

@@ -1,4 +1,11 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
@@ -22,7 +29,7 @@ export class AdminUserTimelineController {
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   async getTimeline(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {

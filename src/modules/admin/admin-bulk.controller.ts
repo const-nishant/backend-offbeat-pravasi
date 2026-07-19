@@ -10,6 +10,7 @@ import {
   IsString,
   IsNotEmpty,
   IsIn,
+  IsUUID,
   ArrayMinSize,
   ArrayMaxSize,
 } from 'class-validator';
@@ -19,7 +20,7 @@ const MAX_BATCH = 500;
 
 class BulkUserStatusDto {
   @IsArray()
-  @IsString({ each: true })
+  @IsUUID('4', { each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(MAX_BATCH)
   userIds!: string[];
@@ -35,7 +36,7 @@ class BulkUserStatusDto {
 
 class BulkTrekApproveDto {
   @IsArray()
-  @IsString({ each: true })
+  @IsUUID('4', { each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(MAX_BATCH)
   trekIds!: string[];
@@ -43,7 +44,7 @@ class BulkTrekApproveDto {
 
 class BulkTicketGenerateDto {
   @IsArray()
-  @IsString({ each: true })
+  @IsUUID('4', { each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(MAX_BATCH)
   bookingIds!: string[];
