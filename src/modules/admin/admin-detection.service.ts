@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { DuplicateCandidate } from './entities/duplicate-candidate.entity';
@@ -9,29 +9,57 @@ export class AdminDetectionService {
     @InjectRepository(DuplicateCandidate)
     private readonly repo: Repository<DuplicateCandidate>,
     private readonly dataSource: DataSource,
-  ) {}
+  ) {
+    this.logger = new Logger(AdminDetectionService.name);
+  }
+
+  private readonly logger = new Logger(AdminDetectionService.name);
 
   async trekDuplicates() {
-    const rows = await this.dataSource.query(`
-      SELECT
-        a.id AS primary_id,
-        a.name AS primary_name,
-        b.id AS candidate_id,
-        b.name AS candidate_name,
-        similarity(a.name, b.name) AS name_similarity
-      FROM treks a
-      JOIN treks b ON a.id < b.id
-        AND similarity(a.name, b.name) > 0.4
-      ORDER BY name_similarity DESC
-      LIMIT 100
-    `);
-    return rows.map((r: any) => ({
-      primaryId: r.primary_id,
-      primaryName: r.primary_name,
-      candidateId: r.candidate_id,
-      candidateName: r.candidate_name,
-      similarityScore: Number(r.name_similarity).toFixed(4),
-    }));
+    // ponytail: similarity() needs the pg_trgm extension. If it is not
+    // installed (e.g. deploy lacks privilege to CREATE EXTENSION), fall back
+    // to a plain case-insensitive name match so the endpoint still works.
+    try {
+      const rows = await this.dataSource.query(`
+        SELECT
+          a.id AS primary_id,
+          a.name AS primary_name,
+          b.id AS candidate_id,
+          b.name AS candidate_name,
+          similarity(a.name, b.name) AS name_similarity
+        FROM treks a
+        JOIN treks b ON a.id < b.id
+          AND similarity(a.name, b.name) > 0.4
+        ORDER BY name_similarity DESC
+        LIMIT 100
+      `);
+      return rows.map((r: any) => ({
+        primaryId: r.primary_id,
+        primaryName: r.primary_name,
+        candidateId: r.candidate_id,
+        candidateName: r.candidate_name,
+        similarityScore: Number(r.name_similarity).toFixed(4),
+      }));
+    } catch (err) {
+      this.logger.warn('pg_trgm similarity unavailable, using ILIKE fallback', err as any);
+      const rows = await this.dataSource.query(`
+        SELECT
+          a.id AS primary_id,
+          a.name AS primary_name,
+          b.id AS candidate_id,
+          b.name AS candidate_name
+        FROM treks a
+        JOIN treks b ON a.id < b.id AND a.name ILIKE b.name
+        LIMIT 100
+      `);
+      return rows.map((r: any) => ({
+        primaryId: r.primary_id,
+        primaryName: r.primary_name,
+        candidateId: r.candidate_id,
+        candidateName: r.candidate_name,
+        similarityScore: '1.0000',
+      }));
+    }
   }
 
   async userDuplicates() {
