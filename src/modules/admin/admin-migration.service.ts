@@ -13,9 +13,7 @@ export class AdminMigrationService {
       `SELECT
          id,
          timestamp,
-         name,
-         hash,
-         batch
+         name
        FROM migrations
        ORDER BY timestamp DESC`,
     );
@@ -24,8 +22,6 @@ export class AdminMigrationService {
       id: r.id,
       timestamp: r.timestamp,
       name: r.name,
-      hash: r.hash,
-      batch: r.batch ? Number(r.batch) : null,
       state: 'up',
     }));
   }

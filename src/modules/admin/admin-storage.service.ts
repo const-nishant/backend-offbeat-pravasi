@@ -79,8 +79,8 @@ export class AdminStorageService {
     const orphans = await this.dataSource.query(
       `SELECT m.id, m.key, m.bucket, m.original_name, m.category, m.created_at
        FROM media m
-       LEFT JOIN trek_images ti ON ti.image_id = m.id
-       WHERE ti.image_id IS NULL
+       LEFT JOIN trek_images ti ON ti.key = m.key
+       WHERE ti.key IS NULL
          AND m.category NOT IN ('PROFILE', 'BANNER')
        ORDER BY m.created_at DESC
        LIMIT 100`,
