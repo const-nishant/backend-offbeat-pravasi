@@ -185,17 +185,17 @@ export class BroadcastNotificationWorkerService
       .select('DISTINCT u.id')
       .from(User, 'u')
       .where(
-        'EXISTS (SELECT 1 FROM device_tokens dt WHERE dt."userId" = u.id)',
+        'EXISTS (SELECT 1 FROM device_tokens dt WHERE dt."user_id" = u.id)',
       );
 
     if (config.type === 'filtered') {
       if (config.trekTagIds && config.trekTagIds.length > 0) {
         qb.andWhere(
           `u.id IN (
-            SELECT DISTINCT b."userId" FROM bookings b
-            JOIN treks t ON b."trekId" = t.id
-            JOIN trek_tags_link ttl ON t.id = ttl."trekId"
-            WHERE ttl."tagId" IN (:...trekTagIds)
+            SELECT DISTINCT b."user_id" FROM bookings b
+            JOIN treks t ON b."trek_id" = t.id
+            JOIN trek_tags_link ttl ON t.id = ttl."trek_id"
+            WHERE ttl."tag_id" IN (:...trekTagIds)
           )`,
           { trekTagIds: config.trekTagIds },
         );
@@ -204,8 +204,8 @@ export class BroadcastNotificationWorkerService
       if (config.states && config.states.length > 0) {
         qb.andWhere(
           `u.id IN (
-            SELECT DISTINCT b."userId" FROM bookings b
-            JOIN treks t ON b."trekId" = t.id
+            SELECT DISTINCT b."user_id" FROM bookings b
+            JOIN treks t ON b."trek_id" = t.id
             WHERE t.state IN (:...states)
           )`,
           { states: config.states },
@@ -231,8 +231,8 @@ export class BroadcastNotificationWorkerService
         cutoff.setDate(cutoff.getDate() - config.inactiveDays);
         qb.andWhere(
           `u.id NOT IN (
-            SELECT DISTINCT b."userId" FROM bookings b
-            WHERE b."createdAt" >= :cutoffDate
+            SELECT DISTINCT b."user_id" FROM bookings b
+            WHERE b."created_at" >= :cutoffDate
           )`,
           { cutoffDate: cutoff },
         );

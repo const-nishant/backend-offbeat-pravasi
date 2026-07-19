@@ -29,11 +29,11 @@ export class PackingReminderScheduler implements OnModuleInit {
 
   async processUpcomingReminders(): Promise<{ reminded: number }> {
     const upcoming = await this.dataSource.query(
-      `SELECT b.id, b."userId"
+      `SELECT b.id, b."user_id" as "userId"
        FROM bookings b
-       JOIN treks t ON t.id = b."trekId"
+       JOIN treks t ON t.id = b."trek_id"
        WHERE b.status = 'CONFIRMED'
-         AND t."startDate" BETWEEN now() AND now() + interval '72 hours'`,
+         AND t."start_date" BETWEEN now() AND now() + interval '72 hours'`,
     );
 
     for (const booking of upcoming) {

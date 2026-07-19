@@ -42,7 +42,7 @@ export class TicketPdfWorkerService implements OnModuleInit, OnModuleDestroy {
         const { bookingId } = job.data as { bookingId: string };
 
         const bookings = await this.dataSource.query(
-          'SELECT id, "userId", "trekSnapshot", quantity, "totalAmountInr", metadata FROM bookings WHERE id = $1',
+          'SELECT id, "user_id" as "userId", "trek_snapshot" as "trekSnapshot", quantity, "total_amount_inr" as "totalAmountInr", metadata FROM bookings WHERE id = $1',
           [bookingId],
         );
         if (!bookings || !bookings.length) throw new Error('Booking not found');

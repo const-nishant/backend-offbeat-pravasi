@@ -67,9 +67,9 @@ export class WeatherPrefetchWorkerService
             const message = `Severe weather expected at ${trekName} on ${dates}: ${severeDays[0].condition}. Please check safety guidelines.`;
 
             const bookingsWithUsers = await this.dataSource.query(
-              `SELECT DISTINCT b."userId"
+              `SELECT DISTINCT b."user_id" as "userId"
                FROM bookings b
-               WHERE b."trekId" = $1
+               WHERE b."trek_id" = $1
                  AND b.status = 'CONFIRMED'`,
               [trekId],
             );

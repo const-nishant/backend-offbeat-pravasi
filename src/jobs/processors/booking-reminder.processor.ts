@@ -31,12 +31,12 @@ export class BookingReminderWorkerService
         const { bookingId } = job.data as { bookingId: string };
 
         const bookings = await this.dataSource.query(
-          `SELECT b.id, b."userId", b."trekId", b."startDate",
-                  u.email, u."fullName",
+          `SELECT b.id, b."user_id" as "userId", b."trek_id" as "trekId", b."start_date" as "startDate",
+                  u.email, u."full_name" as "fullName",
                   t.name as "trekName", t.location
            FROM bookings b
-           JOIN users u ON u.id = b."userId"
-           JOIN treks t ON t.id = b."trekId"
+           JOIN users u ON u.id = b."user_id"
+           JOIN treks t ON t.id = b."trek_id"
            WHERE b.id = $1 AND b.status = 'CONFIRMED'`,
           [bookingId],
         );

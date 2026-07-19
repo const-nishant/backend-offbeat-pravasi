@@ -32,7 +32,7 @@ export class WeatherPrefetchScheduler implements OnModuleInit {
        FROM treks
        WHERE latitude IS NOT NULL
          AND longitude IS NOT NULL
-         AND "startDate" BETWEEN now() AND now() + interval '14 days'`,
+         AND "start_date" BETWEEN now() AND now() + interval '14 days'`,
     );
 
     let severeCount = 0;

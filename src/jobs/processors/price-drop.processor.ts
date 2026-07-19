@@ -44,14 +44,14 @@ export class PriceDropWorkerService implements OnModuleInit, OnModuleDestroy {
 
   async checkPriceDrops(): Promise<{ notified: number }> {
     const rows = await this.dataSource.query(
-      `SELECT wi.id, wi."trekId", wi."basePriceInr", wi."collectionId",
-              t.name AS "trekName", t."costInr",
-              wc."userId"
+      `SELECT wi.id, wi."trek_id" as "trekId", wi."base_price_inr" as "basePriceInr", wi."collection_id" as "collectionId",
+              t.name AS "trekName", t."cost_inr" as "costInr",
+              wc."user_id" as "userId"
        FROM wishlist_items wi
-       JOIN wishlist_collections wc ON wc.id = wi."collectionId"
-       JOIN treks t ON t.id = wi."trekId"
-       WHERE wi."basePriceInr" IS NOT NULL
-         AND t."costInr" < wi."basePriceInr"`,
+       JOIN wishlist_collections wc ON wc.id = wi."collection_id"
+       JOIN treks t ON t.id = wi."trek_id"
+       WHERE wi."base_price_inr" IS NOT NULL
+         AND t."cost_inr" < wi."base_price_inr"`,
     );
 
     let notified = 0;
@@ -68,7 +68,7 @@ export class PriceDropWorkerService implements OnModuleInit, OnModuleDestroy {
           newPrice,
         );
         await this.dataSource.query(
-          `UPDATE wishlist_items SET "basePriceInr" = $1 WHERE id = $2`,
+          `UPDATE wishlist_items SET "base_price_inr" = $1 WHERE id = $2`,
           [newPrice, row.id],
         );
         notified++;

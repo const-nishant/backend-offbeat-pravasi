@@ -32,12 +32,12 @@ export class PackingReminderWorkerService
         const { bookingId } = job.data as { bookingId: string };
 
         const rows = await this.dataSource.query(
-          `SELECT b.id, b."userId", b."trekId",
-                  u."deviceToken",
-                  t.name as "trekName", t."startDate"
+          `SELECT b.id, b."user_id" as "userId", b."trek_id" as "trekId",
+                  u."device_token" as "deviceToken",
+                  t.name as "trekName", t."start_date" as "startDate"
            FROM bookings b
-           JOIN users u ON u.id = b."userId"
-           JOIN treks t ON t.id = b."trekId"
+           JOIN users u ON u.id = b."user_id"
+           JOIN treks t ON t.id = b."trek_id"
            WHERE b.id = $1 AND b.status = 'CONFIRMED'`,
           [bookingId],
         );
@@ -52,9 +52,9 @@ export class PackingReminderWorkerService
         const uncheckedItems = await this.dataSource.query(
           `SELECT COUNT(*)::int as count
            FROM user_packing_list_items pli
-           JOIN trek_gear_items tgi ON tgi.id = pli."trekGearItemId"
-           WHERE pli."userId" = $1
-             AND tgi."trekId" = $2
+           JOIN trek_gear_items tgi ON tgi.id = pli."trek_gear_item_id"
+           WHERE pli."user_id" = $1
+             AND tgi."trek_id" = $2
              AND pli.checked = false`,
           [booking.userId, booking.trekId],
         );
