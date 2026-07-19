@@ -11,13 +11,13 @@ export class AdminCalendarService {
   async getCalendar() {
     const sql = `
       SELECT date, type, title, description, status FROM (
-        SELECT
-          c.start_date AS date,
+         SELECT
+          c.valid_from AS date,
           'coupon' AS type,
           c.code AS title,
-          c.description AS description,
-          CASE WHEN c.is_active AND c.end_date >= NOW() THEN 'active'
-               WHEN c.end_date < NOW() THEN 'expired'
+          c.discount_type || ' ' || c.discount_value::text AS description,
+          CASE WHEN c.is_active AND c.valid_to >= NOW() THEN 'active'
+               WHEN c.valid_to < NOW() THEN 'expired'
                ELSE 'scheduled' END AS status
         FROM coupons c
         UNION ALL
@@ -52,13 +52,7 @@ export class AdminCalendarService {
       ORDER BY date DESC
     `;
 
-    let rows: any[];
-    try {
-      rows = await this.dataSource.query(sql);
-    } catch (e) {
-      // ponytail-diag: surface raw SQL error for diagnosis; remove after fix
-      return { __diag_error: (e as Error).message };
-    }
+    const rows = await this.dataSource.query(sql);
     return rows.map((r: any) => ({
       date: r.date,
       type: r.type,
