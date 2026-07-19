@@ -185,7 +185,7 @@ function parseController(file) {
     const opMatch = block.match(/@ApiOperation\(\{\s*summary:\s*['"`]([^'"`]+)['"`]/);
     const summary = opMatch ? opMatch[1] : '';
 
-    items.push({ method, pathArg, needsAuth, dtoName, inlineBody, bodyField, params, hasQuery, summary });
+    items.push({ method, pathArg, needsAuth, isPublic, dtoName, inlineBody, bodyField, params, hasQuery, summary });
   }
   return { moduleName, ctrlBase, items, dtoDir: dirname(file), src };
 }
@@ -207,6 +207,8 @@ function makeRequest(item, ctrl) {
   };
   const header = [{ key: 'Content-Type', value: 'application/json' }];
   if (item.needsAuth) header.push({ key: 'Authorization', value: 'Bearer {{accessToken}}' });
+  // global ApiKeyGuard requires x-api-key on every non-public endpoint
+  if (!item.isPublic) header.push({ key: 'x-api-key', value: '{{apiKey}}' });
 
   const request = { method: item.method, header, url };
   const hasBody = ['POST', 'PUT', 'PATCH'].includes(item.method);
