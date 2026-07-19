@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
@@ -7,6 +7,7 @@ import { AdminItineraryService } from './admin-itinerary.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import {
   IsString,
+  IsUUID,
   IsOptional,
   IsArray,
   IsInt,
@@ -58,7 +59,7 @@ class CreateTemplateDto {
 }
 
 class ApplyDto {
-  @IsString()
+  @IsUUID()
   trekId!: string;
 }
 
@@ -85,7 +86,7 @@ export class AdminItineraryController {
   @Post(':id/apply-to-trek')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Apply template to a trek (deep-copy days)' })
-  async applyToTrek(@Param('id') id: string, @Body() dto: ApplyDto) {
+  async applyToTrek(@Param('id', ParseUUIDPipe) id: string, @Body() dto: ApplyDto) {
     return this.adminItineraryService.applyToTrek(id, dto.trekId);
   }
 }

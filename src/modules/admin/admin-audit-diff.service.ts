@@ -8,10 +8,10 @@ export class AdminAuditDiffService {
 
   async diff(resourceType: string, resourceId: string) {
     const rows = await this.dataSource.query(
-      `SELECT id, actor_id, action, detail, created_at
-       FROM audit_logs
-       WHERE resource_type = $1 AND resource_id = $2
-       ORDER BY created_at ASC`,
+       `SELECT id, actor_id, action, detail, created_at
+        FROM audit_logs
+        WHERE resource_type = $1 AND resource_id::text = $2
+        ORDER BY created_at ASC`,
       [resourceType, resourceId],
     );
 
@@ -22,8 +22,8 @@ export class AdminAuditDiffService {
       id: r.id,
       actorId: r.actor_id,
       action: r.action,
-      detail:
-        typeof r.metadata === 'string' ? JSON.parse(r.metadata) : r.metadata,
+       detail:
+         typeof r.detail === 'string' ? JSON.parse(r.detail) : r.detail,
       createdAt: r.created_at,
     }));
 

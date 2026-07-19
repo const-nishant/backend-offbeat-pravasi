@@ -33,7 +33,7 @@ export class AdminCalendarService {
           pc.start_date,
           'pricing_campaign',
           pc.name,
-          pc.discount_type || ' ' || pc.discount_value,
+          pc.discount_type || ' ' || pc.discount_value::text,
           CASE WHEN pc.is_active AND pc.end_date >= NOW() THEN 'active'
                WHEN pc.end_date < NOW() THEN 'expired'
                ELSE 'scheduled' END
