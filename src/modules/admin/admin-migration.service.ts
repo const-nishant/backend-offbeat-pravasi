@@ -9,14 +9,15 @@ export class AdminMigrationService {
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async list() {
-    const rows = await this.dataSource.query(
-      `SELECT
-         id,
-         timestamp,
-         name
-       FROM migrations
-       ORDER BY timestamp DESC`,
-    );
+    let rows: any[];
+    try {
+      rows = await this.dataSource.query(
+        `SELECT id, timestamp, name FROM migrations ORDER BY timestamp DESC`,
+      );
+    } catch (err) {
+      this.logger.error('Failed to list migrations', err as any);
+      return [];
+    }
 
     return rows.map((r: any) => ({
       id: r.id,
