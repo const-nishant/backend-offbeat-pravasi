@@ -148,48 +148,63 @@ function parseController(file) {
   const tagMatch = src.match(/@ApiTags\(\s*['"`]([^'"`]+)['"`]/);
   const moduleName = tagMatch ? tagMatch[1] : ctrlBase;
 
+  // class-level guards / public (declared before `export class`)
+  const classHeader = src.slice(0, src.indexOf('export class'));
+  const classHasAuth = /@UseGuards|AuthGuard/.test(classHeader);
+  const classIsPublic = /@Public\(\)|@AllowAnonymous\(\)/.test(classHeader);
+
+  // robust line scanner: decorators accumulate until a method/statement boundary
+  const lines = src.split('\n');
+  const HTTP = ['Get', 'Post', 'Put', 'Patch', 'Delete', 'Options', 'Head'];
   const items = [];
-  // match each route handler block: a method decorator followed by its body
-  const handlerRe = /@(Get|Post|Put|Patch|Delete|Options|Head)\s*\(([^)]*)\)([\s\S]*?)(?=@(?:Get|Post|Put|Patch|Delete|Options|Head)\s*\(|export class)/g;
-  let h;
-  while ((h = handlerRe.exec(src))) {
-    const method = h[1].toUpperCase();
-    const pathArg = (h[2].match(/['"`]([^'"`]*)['"`]/) || [])[1] ?? '';
-    const block = h[3];
+  let methodDecs = [];
 
-    // auth: any guard that is not Public/AllowAnonymous
-    const isPublic = /@Public\(\)|@AllowAnonymous\(\)/.test(block);
-    const needsAuth = !isPublic && /UseGuards|AuthGuard/.test(block);
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const dec = line.match(/^\s*@(\w+)/);
+    if (dec) { methodDecs.push(line.trim()); continue; }
+    const trimmed = line.trim();
+    if (trimmed === '' || trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*')) continue;
 
-    // find @Body() dto type: "@Body() paramName: DtoType" or "@Body('x') x?: Type"
-    const bodyMatch = block.match(/@Body\([^)]*\)\s*\w+\s*[:?]\s*(\w+)/);
-    const dtoName = bodyMatch ? bodyMatch[1] : null;
-    // inline body literal: @Body() body: { pattern: string }
-    let inlineBody = null;
-    const inlineMatch = block.match(/@Body\([^)]*\)\s*\w+\s*[:?]\s*\{([^}]*)\}/s);
-    if (inlineMatch) {
-      inlineBody = {};
-      for (const part of inlineMatch[1].split(',')) {
-        const kv = part.match(/(\w+)\s*[:?]/);
-        if (kv) inlineBody[kv[1]] = 'string';
+    const mstart = trimmed.match(/^(?:async\s+)?(\w+)\s*\(/);
+    if (mstart && !['if', 'for', 'while', 'switch', 'catch', 'function', 'constructor'].includes(mstart[1])) {
+      const httpDec = methodDecs.find((d) => HTTP.some((m) => d.startsWith(`@${m}`)));
+      if (httpDec) {
+        const m = httpDec.match(/@(Get|Post|Put|Patch|Delete|Options|Head)\s*\(([^)]*)\)/);
+        const method = m[1].toUpperCase();
+        const pathArg = (m[2].match(/['"`]([^'"`]*)['"`]/) || [])[1] ?? '';
+        const block = methodDecs.join('\n');
+        const methodIsPublic = /@Public\(\)|@AllowAnonymous\(\)/.test(block);
+        const methodHasAuth = /@UseGuards|AuthGuard/.test(block);
+        const isPublic = methodIsPublic || (classIsPublic && !methodHasAuth);
+        const needsAuth = methodHasAuth || (classHasAuth && !methodIsPublic);
+        const bodyMatch = block.match(/@Body\([^)]*\)\s*\w+\s*[:?]\s*(?:Partial<)?(\w+)/);
+        const dtoName = bodyMatch ? bodyMatch[1] : null;
+        let inlineBody = null;
+        const inlineMatch = block.match(/@Body\([^)]*\)\s*\w+\s*[:?]\s*\{([^}]*)\}/s);
+        if (inlineMatch) {
+          inlineBody = {};
+          for (const part of inlineMatch[1].split(',')) {
+            const kv = part.match(/(\w+)\s*[:?]/);
+            if (kv) inlineBody[kv[1]] = 'string';
+          }
+        }
+        const fieldMatch = block.match(/@Body\(\s*['"`]([^'"`]+)['"`]\s*\)\s*(\w+)\s*[:?]/);
+        const bodyField = fieldMatch ? fieldMatch[1] : null;
+        const params = [...block.matchAll(/@Param\(\s*['"`]([^'"`]+)['"`]/g)].map((mm) => mm[1]);
+        const opMatch = block.match(/@ApiOperation\(\{\s*summary:\s*['"`]([^'"`]+)['"`]/);
+        const summary = opMatch ? opMatch[1] : '';
+        items.push({ method, pathArg, needsAuth, isPublic, dtoName, inlineBody, bodyField, params, summary });
       }
+      methodDecs = [];
+      continue;
     }
-    // single-field body: @Body('reason') reason?: string  -> field path
-    const fieldMatch = block.match(/@Body\(\s*['"`]([^'"`]+)['"`]\s*\)\s*(\w+)\s*[:?]/);
-    const bodyField = fieldMatch ? fieldMatch[1] : null;
-
-    // @Param ids
-    const params = [...block.matchAll(/@Param\(\s*['"`]([^'"`]+)['"`]/g)].map((m) => m[1]);
-    // @Query
-    const hasQuery = /@Query\(/.test(block);
-    const opMatch = block.match(/@ApiOperation\(\{\s*summary:\s*['"`]([^'"`]+)['"`]/);
-    const summary = opMatch ? opMatch[1] : '';
-
-    items.push({ method, pathArg, needsAuth, isPublic, dtoName, inlineBody, bodyField, params, hasQuery, summary });
+    methodDecs = [];
   }
+
+  if (!items.length) return null;
   return { moduleName, ctrlBase, items, dtoDir: dirname(file), src };
 }
-
 function buildPath(ctrlBase, pathArg, params) {
   let p = `api/v1/${ctrlBase}/${pathArg}`.replace(/\/+/g, '/').replace(/\/$/, '');
   for (const par of params) {
@@ -230,9 +245,12 @@ function makeRequest(item, ctrl) {
   if (item.method === 'POST') {
     tests.push(
       `const j = pm.response.json();`,
-      `const tok = j.data?.accessToken || j.data?.token || j.accessToken || j.token;`,
+      `const data = j.data || j;`,
+      `const tok = data.accessToken || data.token;`,
       `if (tok) pm.environment.set("accessToken", tok);`,
-      `const id = j.data?.id || j.id;`,
+      `if (data.refreshToken) pm.environment.set("refreshToken", data.refreshToken);`,
+      `pm.environment.set("tokenExpiry", String(Date.now() + 55 * 60 * 1000));`,
+      `const id = data.id || j.id;`,
       `if (id) pm.environment.set("lastCreatedId", id);`,
     );
   }
@@ -256,6 +274,7 @@ const controllers = walk(MODULES_DIR);
 const folders = {};
 for (const c of controllers) {
   const ctrl = parseController(c);
+  if (!ctrl) continue;
   if (!ctrl.items.length) continue;
   const folder = folders[ctrl.moduleName] || (folders[ctrl.moduleName] = []);
   for (const it of ctrl.items) folder.push(makeRequest(it, ctrl));
@@ -267,28 +286,53 @@ const collection = {
     description: 'Production Postman collection generated from controllers + DTOs. Uses {{baseUrl}}, {{accessToken}} env vars. Every POST/PUT/PATCH has a DTO-driven body; every request has test assertions.',
     schema: SCHEMA,
   },
-  // collection-level auth: auto-login before protected requests
+  // collection-level auth: synchronous token acquisition so accessToken is set
+  // BEFORE the request is sent (pm.sendRequest is async and would race it).
+  // Prefers refresh (session reuse) over full re-login when a refreshToken exists.
   event: [
     {
       listen: 'prerequest',
       script: {
         type: 'text/javascript',
         exec: [
-          '// Auto-refresh admin token if missing/expired (skips auth/* + public GETs).',
+          '// Skip auth endpoints (they issue their own tokens).',
           'const raw = pm.request.url.path.join("/");',
-          'const isAuthOrPublic = raw.includes("/auth/") ;',
+          'if (raw.includes("/auth/")) return;',
+          'const token = pm.environment.get("accessToken");',
           'const tokenExpiry = pm.environment.get("tokenExpiry");',
-          'const expired = !tokenExpiry || Date.now() > parseInt(tokenExpiry);',
-          'if (!isAuthOrPublic && expired && pm.environment.get("adminEmail")) {',
-          '  pm.sendRequest({',
-          '    url: pm.environment.get("baseUrl") + "/api/v1/auth/login",',
-          '    method: "POST",',
-          '    header: { "Content-Type": "application/json" },',
-          '    body: { mode: "raw", raw: JSON.stringify({ email: pm.environment.get("adminEmail"), password: pm.environment.get("adminPassword") }) }',
-          '  }, (err, res) => {',
-          '    if (!err) { const j = res.json(); const t = j.data?.accessToken || j.accessToken || j.token; if (t) { pm.environment.set("accessToken", t); pm.environment.set("tokenExpiry", String(Date.now() + 55*60*1000)); } }',
-          '  });',
+          'const fresh = token && tokenExpiry && Date.now() < parseInt(tokenExpiry);',
+          'if (fresh) return;',
+          'const base = pm.environment.get("baseUrl");',
+          'function applyTokens(resp) {',
+          '  const j = JSON.parse(resp);',
+          '  const data = j.data || j;',
+          '  const t = data.accessToken || data.token;',
+          '  if (t) {',
+          '    pm.environment.set("accessToken", t);',
+          '    pm.environment.set("tokenExpiry", String(Date.now() + 55 * 60 * 1000));',
+          '  }',
+          '  if (data.refreshToken) pm.environment.set("refreshToken", data.refreshToken);',
           '}',
+          'function call(url, body) {',
+          '  const xhr = new XMLHttpRequest();',
+          '  xhr.open("POST", url, false);',
+          '  xhr.setRequestHeader("Content-Type", "application/json");',
+          '  xhr.send(JSON.stringify(body));',
+          '  if (xhr.status < 200 || xhr.status >= 300) throw new Error(xhr.status + " " + xhr.responseText);',
+          '  return xhr.responseText;',
+          '}',
+          '// 1) Try silent session refresh first.',
+          'const rt = pm.environment.get("refreshToken");',
+          'if (rt) {',
+          '  try { applyTokens(call(base + "/api/v1/auth/refresh", { refreshToken: rt })); return; }',
+          '  catch (e) { console.warn("refresh failed, falling back to login:", e.message); }',
+          '}',
+          '// 2) Fall back to full login.',
+          'const email = pm.environment.get("adminEmail");',
+          'const password = pm.environment.get("adminPassword");',
+          'if (!email || !password) return;',
+          'try { applyTokens(call(base + "/api/v1/auth/login", { email: email, password: password })); }',
+          'catch (e) { console.error("auto-login failed:", e.message); }',
         ],
       },
     },
