@@ -6,6 +6,7 @@ import {
   Param,
   Body,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
@@ -47,14 +48,14 @@ export class AdminPresetController {
   @Post(':id/apply')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Apply a preset (overwrites current settings)' })
-  async apply(@Param('id') id: string) {
+  async apply(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminPresetService.apply(id);
   }
 
   @Delete(':id')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Delete a custom preset (cannot delete built-in)' })
-  async delete(@Param('id') id: string) {
+  async delete(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminPresetService.delete(id);
   }
 }

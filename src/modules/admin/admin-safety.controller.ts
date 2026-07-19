@@ -6,6 +6,7 @@ import {
   Query,
   Body,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
@@ -46,14 +47,14 @@ export class AdminSafetyController {
   @Get('incidents/:id')
   @AdminRoles(AdminRole.SUPERADMIN, AdminRole.MODERATOR)
   @ApiOperation({ summary: 'Get full incident detail' })
-  async getIncident(@Param('id') id: string) {
+  async getIncident(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminSafetyService.getIncident(id);
   }
 
   @Patch('incidents/:id/resolve')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Resolve a safety incident' })
-  async resolve(@Param('id') id: string, @Body() dto: ResolveIncidentDto) {
+  async resolve(@Param('id', ParseUUIDPipe) id: string, @Body() dto: ResolveIncidentDto) {
     return this.adminSafetyService.resolve(id, dto.note);
   }
 }

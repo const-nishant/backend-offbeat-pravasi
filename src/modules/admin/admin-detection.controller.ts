@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminRolesGuard } from '../../common/guards/admin-roles.guard';
 import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
@@ -31,7 +31,7 @@ export class AdminDetectionController {
   @Post('trek-duplicates/:id/resolve')
   @AdminRoles(AdminRole.SUPERADMIN)
   @ApiOperation({ summary: 'Mark a duplicate candidate as resolved' })
-  async resolveTrekDuplicate(@Param('id') id: string) {
+  async resolveTrekDuplicate(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminDetectionService.resolveTrekDuplicate(id);
   }
 }
