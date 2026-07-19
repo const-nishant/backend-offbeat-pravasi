@@ -5,13 +5,14 @@ import { AdminRoles } from '../../common/decorators/admin-roles.decorator';
 import { AdminRole } from '../../modules/users/enums/admin-role.enum';
 import { AdminImpersonationService } from './admin-impersonation.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { IsOptional, IsUUID } from 'class-validator';
+import { IsString, IsOptional, IsUUID } from 'class-validator';
 
 import type { Request } from 'express';
 
 class ImpersonateStartDto {
   @IsUUID()
   userId!: string;
+
   @IsString()
   @IsOptional()
   reason?: string;
