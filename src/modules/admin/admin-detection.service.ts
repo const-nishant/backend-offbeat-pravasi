@@ -16,6 +16,11 @@ export class AdminDetectionService {
   private readonly logger = new Logger(AdminDetectionService.name);
 
   async trekDuplicates() {
+    // TODO(unresolved): similarity() needs the pg_trgm extension which the
+    // deploy could not create (likely no CREATE EXTENSION privilege). The
+    // migration 1784492000000-AddPgTrgmExtension exists but must be run
+    // manually/superuser. Until then this ILIKE fallback keeps the endpoint
+    // at 200. Remove the try/catch + fallback once pg_trgm is installed.
     // ponytail: similarity() needs the pg_trgm extension. If it is not
     // installed (e.g. deploy lacks privilege to CREATE EXTENSION), fall back
     // to a plain case-insensitive name match so the endpoint still works.
