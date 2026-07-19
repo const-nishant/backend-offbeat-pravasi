@@ -21,6 +21,12 @@ export class GearItem {
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
+  @Column({ type: 'varchar', length: 16, default: 'pending' })
+  reviewStatus: string;
+
+  @Column({ type: 'boolean', default: false })
+  featured: boolean;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 

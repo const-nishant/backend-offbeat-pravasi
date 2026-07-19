@@ -35,6 +35,12 @@ export class TrekGroup {
   @Column({ type: 'varchar', length: 16, default: GroupStatus.OPEN })
   status!: GroupStatus;
 
+  @Column({ type: 'varchar', length: 16, default: 'active' })
+  moderationStatus!: string;
+
+  @Column({ type: 'varchar', length: 512, nullable: true })
+  banReason?: string | null;
+
   @Column({ type: 'varchar', length: 12, unique: true })
   shareCode!: string;
 
